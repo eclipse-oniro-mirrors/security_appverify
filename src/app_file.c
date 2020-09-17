@@ -43,8 +43,8 @@ int InitVerify(FileRead *file, const char *filePath, int *handle)
         return V_ERR_FILE_OPEN;
     }
     *handle = open(path, O_RDONLY, 0);
+    APPV_FREE(path);
     if (*handle < 0) {
-        APPV_FREE(path);
         LOG_PRINT_STR("file open error %s", path);
         return V_ERR_FILE_OPEN;
     }
@@ -53,12 +53,10 @@ int InitVerify(FileRead *file, const char *filePath, int *handle)
     }
     if (g_memoryPageSize <= 0) {
         LOG_ERROR("MAP_FAILED %d", g_memoryPageSize);
-        APPV_FREE(path);
         return V_ERR_FILE_STAT;
     }
     file->len = lseek(*handle, 0, SEEK_END);
     file->fp = *handle;
-    APPV_FREE(path);
     return V_OK;
 }
 
