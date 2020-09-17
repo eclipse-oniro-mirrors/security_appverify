@@ -1134,14 +1134,12 @@ static int VerifyIntegrity(SignatureInfo *signInfo, int fp, ProfileProf *pf)
     }
 
     ret = VerfiyAppSourceGetProfile(fp, signInfo, certType, binSignCert, pf);
-    if (ret != V_OK) {
-        LOG_ERROR("verify app source failed : %d", ret);
-        FreeCertInfo(binSignCert);
-        APPV_FREE(binSignCert);
-        return ret;
-    }
     FreeCertInfo(binSignCert);
     APPV_FREE(binSignCert);
+    if (ret != V_OK) {
+        LOG_ERROR("verify app source failed : %d", ret);
+        return ret;
+    }
     return V_OK;
 }
 

@@ -55,7 +55,7 @@ void HapPutData(const HapBuf *hapBuffer, int offset, const unsigned char *data, 
 
 void HapSetInt32(const HapBuf *buffer, int offset, int value)
 {
-    if (value < 0 || value > INT_MAX) {
+    if (value < 0) {
         LOG_ERROR("int32 value of out range: %d", value);
         return;
     }
