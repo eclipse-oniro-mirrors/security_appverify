@@ -640,16 +640,14 @@ static int ParseCertGetPk(const char *certEncoded, AppSignPk *pk)
     }
     int len = 0;
     unsigned char *pkBuf = GetPkBuf(&cert->pk, &len);
+    mbedtls_x509_crt_free(cert);
+    APPV_FREE(cert);
     if (pkBuf == NULL) {
         LOG_ERROR("get pk error");
-        mbedtls_x509_crt_free(cert);
-        APPV_FREE(cert);
         return V_ERR;
     }
     pk->pk = (char *)pkBuf;
     pk->len = len;
-    mbedtls_x509_crt_free(cert);
-    APPV_FREE(cert);
     return V_OK;
 }
 
@@ -713,16 +711,15 @@ int GetAppid(ProfileProf *profile)
     }
     ret = mbedtls_base64_encode((unsigned char *)appid + bundleNameLen + 1,
         appidLen - bundleNameLen - 1, &useLen, (unsigned char *)pk.pk, pk.len);
+    FreeAppSignPublicKey(&pk);
     if (ret != V_OK) {
         LOG_ERROR("base 64 encode error");
         APPV_FREE(appid);
-        FreeAppSignPublicKey(&pk);
         return V_ERR_GET_APPID;
     }
     profile->appid = appid;
     LOG_INFO("appid len: %d, bL len: %d, base64: %d", appidLen, bundleNameLen, (int)useLen);
     LOG_PRINT_STR("%s", appid);
-    FreeAppSignPublicKey(&pk);
     return V_OK;
 }
 
@@ -748,12 +745,11 @@ static int VerifyProfGetContent(int fp, const SignatureInfo *signInfo, int certT
     }
 
     ret = ParseProfile(profBuf, len, pf);
+    APPV_FREE(profBuf);
     if (ret != V_OK) {
         LOG_ERROR("GetSignBlock error");
-        APPV_FREE(profBuf);
         return V_ERR_GET_PARSE_PROFILE;
     }
-    APPV_FREE(profBuf);
 
     ret = VerifyProfileContent(pf);
     P_ERR_GOTO_WTTH_LOG(ret);
