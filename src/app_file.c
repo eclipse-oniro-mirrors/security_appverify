@@ -29,7 +29,7 @@ static int g_memoryPageSize = 0;
 int InitVerify(FileRead *file, const char *filePath, int *handle)
 {
     if (handle == NULL || file == NULL || filePath == NULL) {
-        LOG_ERROR("file open error");
+        LOG_ERROR("invalid input");
         return V_ERR_FILE_OPEN;
     }
     char *path = APPV_MALLOC(PATH_MAX + 1);
