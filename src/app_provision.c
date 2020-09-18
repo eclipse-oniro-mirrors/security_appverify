@@ -56,7 +56,7 @@ static char *GetStringTag(const cJSON *root, const char *tag)
     return value;
 }
 
-static void FreeStringAttay(char **array, int num)
+static void FreeStringArray(char **array, int num)
 {
     if (array == NULL) {
         return;
@@ -97,14 +97,14 @@ static char **GetStringArrayTag(const cJSON *root, const char *tag, int *numRetu
         int ret = strcpy_s(value[i], len + 1, item->valuestring);
         if (ret != V_OK) {
             LOG_ERROR("str cpy error : %d", ret);
-            FreeStringAttay(value, num);
+            FreeStringArray(value, num);
             return NULL;
         }
     }
     *numReturn = num;
     return value;
 EXIT:
-    FreeStringAttay(value, num);
+    FreeStringArray(value, num);
     return NULL;
 }
 
@@ -228,11 +228,11 @@ static void FreeProfBundle(ProfBundleInfo *pfval)
 
 static void FreeProfPerssion(ProfPermission *pfval)
 {
-    FreeStringAttay(pfval->permission, pfval->permissionNum);
+    FreeStringArray(pfval->permission, pfval->permissionNum);
     pfval->permissionNum = 0;
     pfval->permission = NULL;
 
-    FreeStringAttay(pfval->restricPermission, pfval->restricNum);
+    FreeStringArray(pfval->restricPermission, pfval->restricNum);
     pfval->restricNum = 0;
     pfval->restricPermission = NULL;
 }
@@ -241,7 +241,7 @@ static void FreeProfDebuginfo(ProfDebugInfo *pfval)
 {
     FREE_IF_NOT_NULL(pfval->devIdType);
 
-    FreeStringAttay(pfval->deviceId, pfval->devidNum);
+    FreeStringArray(pfval->deviceId, pfval->devidNum);
     pfval->devidNum = 0;
     pfval->deviceId = NULL;
 }
