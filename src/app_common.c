@@ -72,5 +72,4 @@ void HapPutInt32(unsigned char *buf, int len, int value)
         buf[i] = var;
         var = var >> (BYTE_BITS);
     }
-    return;
 }

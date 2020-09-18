@@ -27,9 +27,7 @@ static void ProfInit(ProfileProf *pf)
     int ret = memset_s(pf, sizeof(ProfileProf), 0, sizeof(ProfileProf));
     if (ret != V_OK) {
         LOG_ERROR("memset failed");
-        return;
     }
-    return;
 }
 
 static char *GetStringTag(const cJSON *root, const char *tag)
@@ -69,7 +67,6 @@ static void FreeStringAttay(char **array, int num)
         }
     }
     APPV_FREE(array);
-    return;
 }
 
 static char **GetStringArrayTag(const cJSON *root, const char *tag, int *numReturn)
@@ -238,7 +235,6 @@ static void FreeProfPerssion(ProfPermission *pfval)
     FreeStringAttay(pfval->restricPermission, pfval->restricNum);
     pfval->restricNum = 0;
     pfval->restricPermission = NULL;
-    return;
 }
 
 static void FreeProfDebuginfo(ProfDebugInfo *pfval)
@@ -248,8 +244,6 @@ static void FreeProfDebuginfo(ProfDebugInfo *pfval)
     FreeStringAttay(pfval->deviceId, pfval->devidNum);
     pfval->devidNum = 0;
     pfval->deviceId = NULL;
-
-    return;
 }
 
 void ProfFreeData(ProfileProf *pf)
@@ -266,7 +260,6 @@ void ProfFreeData(ProfileProf *pf)
     FreeProfDebuginfo(&pf->debugInfo);
     FREE_IF_NOT_NULL(pf->issuer);
     FREE_IF_NOT_NULL(pf->appid);
-    return;
 }
 
 /* parse profile */

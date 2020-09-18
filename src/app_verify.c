@@ -82,7 +82,6 @@ static void SignHeadN2H(HwSignHead *signHead)
     signHead->magicLow = HapGetInt64((unsigned char *)&signHead->magicLow, sizeof(signHead->magicLow));
     signHead->magicHigh = HapGetInt64((unsigned char *)&signHead->magicHigh, sizeof(signHead->magicHigh));
     signHead->version = HapGetInt((unsigned char *)&signHead->version, sizeof(signHead->version));
-    return;
 }
 
 static void BlockHeadN2H(BlockHead *blockHead)
@@ -90,7 +89,6 @@ static void BlockHeadN2H(BlockHead *blockHead)
     blockHead->type = HapGetInt((unsigned char *)&blockHead->type, sizeof(blockHead->type));
     blockHead->length = HapGetInt((unsigned char *)&blockHead->length, sizeof(blockHead->length));
     blockHead->offset = HapGetInt((unsigned char *)&blockHead->offset, sizeof(blockHead->offset));
-    return;
 }
 
 static void ContentN2H(ContentInfo *content)
@@ -99,7 +97,6 @@ static void ContentN2H(ContentInfo *content)
     content->size = HapGetInt((unsigned char *)&content->size, sizeof(content->size));
     content->algId = HapGetInt((unsigned char *)&content->algId, sizeof(content->algId));
     content->length = HapGetInt((unsigned char *)&content->length, sizeof(content->length));
-    return;
 }
 
 static int GetSignHead(const FileRead *file, SignatureInfo *signInfo)
@@ -235,7 +232,6 @@ int CalculateHash(const unsigned char *input, int len, int hashAlg, unsigned cha
     int ret = mbedtls_md(mbedtls_md_info_from_type((mbedtls_md_type_t)hashAlg), input, len, output);
     if (ret) {
         LOG_ERROR("Error: calc digest failed");
-        return ret;
     }
     return ret;
 }
@@ -535,6 +531,7 @@ EXIT:
     APPV_FREE(profileData);
     return V_ERR;
 }
+
 static unsigned char *GetRsaPk(const mbedtls_pk_context *pk, int *len)
 {
     unsigned char *buf = APPV_MALLOC(MAX_PK_BUF);
@@ -673,7 +670,6 @@ static void FreeAppSignPublicKey(AppSignPk *pk)
     if (pk->pk != NULL) {
         APPV_FREE(pk->pk);
     }
-    return;
 }
 
 int GetAppid(ProfileProf *profile)

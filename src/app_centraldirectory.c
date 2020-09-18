@@ -38,7 +38,6 @@ void HapPutByte(const HapBuf *hapBuffer, int offset, char value)
     if ((offset >= 0) && (hapBuffer->len - offset >= (int)(sizeof(value)))) {
         *(char *)((char *)hapBuffer->buffer + offset) = value;
     }
-    return;
 }
 
 void HapPutData(const HapBuf *hapBuffer, int offset, const unsigned char *data, int len)
@@ -65,7 +64,6 @@ void HapSetInt32(const HapBuf *buffer, int offset, int value)
     if ((offset >= 0) && ((buffer->len - offset) >= (int)(sizeof(value)))) {
         HapPutInt32((unsigned char *)buffer->buffer + offset, buffer->len - offset, (int)(value));
     }
-    return;
 }
 
 bool CreateHapBuffer(HapBuf *hapBuffer, int len)

@@ -683,7 +683,6 @@ static void FreeSignedDataCerts(Pkcs7 *pkcs7)
 static void FreeSignedDataCrl(Pkcs7 *pkcs7)
 {
     mbedtls_x509_crl_free(&pkcs7->signedData.crl);
-    return;
 }
 
 static int GetCertsNumOfSignedData(const mbedtls_x509_crt *crts)
@@ -1316,5 +1315,4 @@ void PKCS7_FreeRes(Pkcs7 *pkcs7)
     FreeSignedDataCerts(pkcs7);
     FreeSignedDataCrl(pkcs7);
     UnLoadRootCert();
-    return;
 }
