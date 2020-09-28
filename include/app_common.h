@@ -16,8 +16,8 @@
 #ifndef SECURITY_APP_COMMON_H
 #define SECURITY_APP_COMMON_H
 
+#include "app_verify_base.h"
 #include "app_verify_pub.h"
-#include "log.h"
 
 #ifdef __cplusplus
 #if __cplusplus
@@ -31,30 +31,6 @@ extern "C" {
 #define BYTE_BITS  8
 #define MAX_MALLOC_SIZE 0x100000  /* 1M */
 #define MAX_HASH_SIZE 64
-
-#define LOG_INFO(fmt, args...) HILOG_INFO(LOG_CORE, "["__FILE__":%d] :"fmt, __LINE__, ##args)
-#define LOG_DEBUG(fmt, args...) HILOG_DEBUG(LOG_CORE, "["__FILE__":%d] :"fmt, __LINE__, ##args)
-#define LOG_WARN(fmt, args...) HILOG_WARN(LOG_CORE, "["__FILE__":%d] :"fmt, __LINE__, ##args)
-#define LOG_ERROR(fmt, args...) HILOG_ERROR(LOG_CORE, "["__FILE__":%d] :"fmt, __LINE__, ##args)
-#define LOG_PRINT_STR(fmt, args...) HILOG_INFO(LOG_CORE, "["__FILE__":%d] :"fmt, __LINE__, ##args)
-
-typedef struct TagVMemStats {
-    void *buf;
-    int len;
-    int state;
-    const char *fileName;
-    int line;
-    struct TagVMemStats *next;
-} AppVMemStats;
-
-typedef struct {
-    AppVMemStats *head;
-    int totalMem;
-    int totalMallocCnt;
-    int totalFree;
-    int totalFreeCnt;
-    int maxMemUsed;
-} MemStastics;
 
 #define P_NULL_RETURN_WTTH_LOG(v) \
 do { \

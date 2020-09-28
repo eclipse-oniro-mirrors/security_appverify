@@ -32,6 +32,7 @@ int InitVerify(FileRead *file, const char *filePath, int *handle)
         LOG_ERROR("invalid input");
         return V_ERR_FILE_OPEN;
     }
+    RegistHalFunc();
     char *path = APPV_MALLOC(PATH_MAX + 1);
     if (path == NULL) {
         LOG_ERROR("path malloc error");
@@ -80,7 +81,7 @@ int HapMMap(int bufCapacity, int offset, MmapInfo *mmapInfo, const FileRead *fil
     mmapInfo->readMoreLen = (int)(offset - mmapInfo->mmapPosition);
     mmapInfo->mmapSize = bufCapacity + mmapInfo->readMoreLen;
     mmapInfo->mapAddr = (char*)(mmap(NULL, mmapInfo->mmapSize, PROT_READ,
-        MAP_SHARED | MAP_POPULATE, file->fp, mmapInfo->mmapPosition));
+        MAP_SHARED, file->fp, mmapInfo->mmapPosition));
     if (mmapInfo->mapAddr == MAP_FAILED) {
         LOG_ERROR("MAP_FAILED");
         return MMAP_FAILED;
