@@ -18,8 +18,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "app_common.h"
+#include "app_verify_hal.h"
 #include "cJSON.h"
-#include "parameter.h"
 #include "securec.h"
 
 static void ProfInit(ProfileProf *pf)
@@ -358,7 +358,7 @@ static int VerifyUdid(const ProfileProf *pf)
         LOG_ERROR("udid num exceed maximum");
         return V_ERR;
     }
-    char *udid = GetSerial();
+    char *udid = GetDevUdid();
     if (udid == NULL) {
         LOG_ERROR("udid is null");
         return V_ERR;

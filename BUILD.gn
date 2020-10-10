@@ -15,9 +15,10 @@ config("app_verify_config") {
   include_dirs = [
     "include",
     "//third_party/bounds_checking_function/include",
-    "//base/startup/interfaces/kits/syspara_lite",
     "//third_party/cJSON",
     "//base/security/interfaces/innerkits/app_verify",
+    "//base/security/frameworks/app_verify/products/default",
+    "//base/security/frameworks/app_verify/products/ipcamera",
   ]
   defines = [
     "PARSE_PEM_FORMAT_SIGNED_DATA"
@@ -36,13 +37,13 @@ shared_library("verify") {
       "src/app_centraldirectory.c",
       "src/app_file.c",
       "src/app_verify_hap.c",
+      "src/app_verify_hal.c",
   ]
   configs += [ ":app_verify_config" ]
   public_deps = [
       "//third_party/bounds_checking_function:libsec_shared",
       "//third_party/mbedtls:mbedtls_shared",
       "//third_party/cJSON:cjson_shared",
-      "//base/hiviewdfx/frameworks/hilog_lite/featured:hilog_shared",
-      "//base/startup/frameworks/syspara_lite/parameter:parameter",
+      "//base/security/frameworks/app_verify/products/ipcamera:verify_base",
   ]
 }
