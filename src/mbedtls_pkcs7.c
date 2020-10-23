@@ -89,6 +89,21 @@ static const unsigned char g_debugModeRootCertInPem[] =
     "7XL/vJcp3HeHjiXu7XZmYQ+QAvHPhU0CMCiwWFbDl8ETw4VK25QbwhL/QiUfiRfC\r\n"
     "J6LzteOvjLTEV5iebQMz/nS1j7/oj3Rsqg==\r\n"
     "-----END CERTIFICATE-----\r\n";
+static mbedtls_x509_crt g_selfSignedCert;
+static const unsigned char g_selfSignedCertInPem[] =
+    "-----BEGIN CERTIFICATE-----\r\n"
+    "MIICCzCCAbCgAwIBAgIEbZe8FTAMBggqhkjOPQQDAgUAMHMxCzAJBgNVBAYTAkNO\r\n"
+    "MRQwEgYDVQQKEwtPcGVuSGFybW9ueTElMCMGA1UECxMcT3Blbkhhcm1vbnkgRGV2\r\n"
+    "ZWxvcG1lbnQgVGVhbTEnMCUGA1UEAxMeT3Blbkhhcm1vbnkgU29mdHdhcmUgU2ln\r\n"
+    "bmF0dXJlMCAXDTIwMTAxNDAzMzAzM1oYDzIwNzAxMDE0MDMzMDMzWjBzMQswCQYD\r\n"
+    "VQQGEwJDTjEUMBIGA1UEChMLT3Blbkhhcm1vbnkxJTAjBgNVBAsTHE9wZW5IYXJt\r\n"
+    "b255IERldmVsb3BtZW50IFRlYW0xJzAlBgNVBAMTHk9wZW5IYXJtb255IFNvZnR3\r\n"
+    "YXJlIFNpZ25hdHVyZTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABCP2fr47i2IG\r\n"
+    "CKyX7apk865v1ZPVv82wrZEHOqzkPiLTG+o+6EEuuHGLngu9lA7Kc5+LpnhryQLz\r\n"
+    "gf9sD625M72jLjAsMAsGA1UdDwQEAwIHgDAdBgNVHQ4EFgQUx2NA8kYsHoN2qGMI\r\n"
+    "xmJeHuVVnDUwDAYIKoZIzj0EAwIFAANHADBEAiAHWP8lxpp/FHwHE9H0ESUmejK/\r\n"
+    "4lfN9rRcndM/+yB7mwIgEAE9gVW7xCrX509iHZl/iJth7IBySgDM590oelCqVXY=\r\n"
+    "-----END CERTIFICATE-----\r\n";
 
 /* valid digest alg now: sha256 sha384 sha512 */
 static bool InvalidDigestAlg(const mbedtls_asn1_buf *alg)
@@ -939,6 +954,25 @@ static int UnLoadDebugModeRootCert(void)
     return PKCS7_SUCC;
 }
 
+static int LoadSelfSignedCert(void)
+{
+    int rc;
+    mbedtls_x509_crt_init(&g_selfSignedCert);
+    rc = mbedtls_x509_crt_parse(&g_selfSignedCert, g_selfSignedCertInPem, sizeof(g_selfSignedCertInPem));
+    if (rc) {
+        LOG_ERROR("load self signed ca failed %d", rc);
+        return rc;
+    } else {
+        LOG_INFO("load self signed root ca success");
+    }
+    return rc;
+}
+
+static void UnLoadSelfSignedCert(void)
+{
+    mbedtls_x509_crt_free(&g_selfSignedCert);
+}
+
 static void DLogCrtVerifyInfo(unsigned int flags)
 {
     char vrfyBuf[VERIFY_BUF_LEN];
@@ -1031,7 +1065,16 @@ int PKCS7_VerifyCertsChain(const Pkcs7 *pkcs7)
             }
         }
         rc = VerifyClicert(clicert, signer->rootCert, pkcs7);
-        LOG_DEBUG("Verify : %d", rc);
+        LOG_DEBUG("Verify root : %d", rc);
+        if (rc == PKCS7_SUCC) {
+            signer = signer->next;
+            continue;
+        }
+        if (rc == PKCS7_IS_REVOKED) {
+            return PKCS7_IS_REVOKED;
+        }
+        rc = VerifyClicert(clicert, &g_selfSignedCert, pkcs7);
+        LOG_DEBUG("Verify self : %d", rc);
         if (rc == PKCS7_SUCC) {
             signer = signer->next;
             continue;
@@ -1280,6 +1323,8 @@ int PKCS7_ParseSignedData(const unsigned char *buf, size_t bufLen, Pkcs7 *pkcs7)
     /* loaded the root ca cert */
     rc = LoadRootCert();
     P_ERR_GOTO_WTTH_LOG(rc);
+    rc = LoadSelfSignedCert();
+    P_ERR_GOTO_WTTH_LOG(rc);
     LOG_INFO("Begin to parse pkcs#7 signed data");
     /* parse the ContentInfo total head */
     rc = GetContentInfoType(&start, end, &(pkcs7->contentTypeOid), &hasContent);
@@ -1315,4 +1360,5 @@ void PKCS7_FreeRes(Pkcs7 *pkcs7)
     FreeSignedDataCerts(pkcs7);
     FreeSignedDataCrl(pkcs7);
     UnLoadRootCert();
+    UnLoadSelfSignedCert();
 }
