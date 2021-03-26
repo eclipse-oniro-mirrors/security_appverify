@@ -1072,12 +1072,14 @@ int PKCS7_VerifyCertsChain(const Pkcs7 *pkcs7)
         if (rc == PKCS7_IS_REVOKED) {
             return PKCS7_IS_REVOKED;
         }
+#ifndef OHOS_SIGN_HAPS_BY_SERVER
         rc = VerifyClicert(clicert, &g_selfSignedCert, pkcs7);
         LOG_DEBUG("Verify self : %d", rc);
         if (rc == PKCS7_SUCC) {
             signer = signer->next;
             continue;
         }
+#endif
         return rc;
     }
     return PKCS7_SUCC;
@@ -1321,8 +1323,10 @@ int PKCS7_ParseSignedData(const unsigned char *buf, size_t bufLen, Pkcs7 *pkcs7)
     /* loaded the root ca cert */
     rc = LoadRootCert();
     P_ERR_GOTO_WTTH_LOG(rc);
+#ifndef OHOS_SIGN_HAPS_BY_SERVER
     rc = LoadSelfSignedCert();
     P_ERR_GOTO_WTTH_LOG(rc);
+#endif
     LOG_INFO("Begin to parse pkcs#7 signed data");
     /* parse the ContentInfo total head */
     rc = GetContentInfoType(&start, end, &(pkcs7->contentTypeOid), &hasContent);
@@ -1358,5 +1362,7 @@ void PKCS7_FreeRes(Pkcs7 *pkcs7)
     FreeSignedDataCerts(pkcs7);
     FreeSignedDataCrl(pkcs7);
     UnLoadRootCert();
+#ifndef OHOS_SIGN_HAPS_BY_SERVER
     UnLoadSelfSignedCert();
+#endif
 }
