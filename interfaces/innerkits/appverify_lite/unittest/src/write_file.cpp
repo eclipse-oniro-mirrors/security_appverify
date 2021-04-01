@@ -14,24 +14,25 @@
  */
 
 #include "write_file.h"
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <fcntl.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+
 #include "mbedtls/base64.h"
 #include "securec.h"
 
-const int MAX_FILE_LEN = 1000000;
-const int ONCE_WRITE = 2000;
+static const int MAX_FILE_LEN = 1000000;
+static const int ONCE_WRITE = 2000;
 
 int CopyFile(const char *org, const char *dest)
 {
     int ret = 0;
-    if (org == NULL || dest == NULL) {
+    if (org == nullptr || dest == nullptr) {
         return -1;
     }
     int in = open(dest, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
@@ -45,7 +46,7 @@ int CopyFile(const char *org, const char *dest)
         return -1;
     }
     char *buffer = (char *)malloc(wholeLen);
-    if (buffer == NULL) {
+    if (buffer == nullptr) {
         close(in);
         return -1;
     }
@@ -71,7 +72,7 @@ EXIT:
 
 void DeleteFile(const char *path)
 {
-    if (path == NULL) {
+    if (path == nullptr) {
         return;
     }
     remove(path);
