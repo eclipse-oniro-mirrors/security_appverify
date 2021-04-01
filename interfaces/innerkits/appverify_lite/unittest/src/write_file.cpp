@@ -26,8 +26,10 @@
 #include "mbedtls/base64.h"
 #include "securec.h"
 
-static const int MAX_FILE_LEN = 1000000;
-static const int ONCE_WRITE = 2000;
+namespace {
+    static const int MAX_FILE_LEN = 1000000;
+    static const int ONCE_WRITE = 2000;
+}
 
 int CopyFile(const char *org, const char *dest)
 {
