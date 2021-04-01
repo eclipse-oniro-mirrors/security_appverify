@@ -19,11 +19,11 @@
 #include "app_verify_pub.h"
 #include "write_file.h"
 
-const int DELAY_TIME = 4;
-
 using namespace std;
 using namespace testing::ext;
 namespace {
+const int DELAY_TIME = 4;
+
 class app_verify_test : public testing::Test {
 public:
     static void SetUpTestCase(void);
