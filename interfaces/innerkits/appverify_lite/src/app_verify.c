@@ -50,6 +50,7 @@ static const TrustAppCert g_trustAppList[] = {
             "C=CN, O=Huawei CBG, OU=HOS Development Team, CN=HOS Application Provision Profile Release_Debug",
         .issueCA = "C=CN, O=Huawei, OU=Huawei CBG, CN=Huawei CBG Software Signing Service CA",
     },
+#ifndef OHOS_SIGN_HAPS_BY_SERVER
     {
         .maxCertPath = CERT_MAX_DEPTH,
         .name = "huawei system apps",
@@ -58,6 +59,7 @@ static const TrustAppCert g_trustAppList[] = {
         .profileDebugSignCert = "C=CN, O=OpenHarmony, OU=OpenHarmony Development Team, CN=OpenHarmony Software Signature",
         .issueCA = "C=CN, O=OpenHarmony, OU=OpenHarmony Development Team, CN=OpenHarmony Software Signature",
     },
+#endif
 };
 
 static const TrustAppCert g_trustAppListTest[] = {
