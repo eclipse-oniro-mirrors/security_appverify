@@ -27,8 +27,8 @@
 #include "securec.h"
 
 namespace {
-    static const int MAX_FILE_LEN = 1000000;
-    static const int ONCE_WRITE = 2000;
+    const int MAX_FILE_LEN = 1000000;
+    const int ONCE_WRITE = 2000;
 }
 
 int CopyFile(const char *org, const char *dest)
