@@ -22,6 +22,8 @@
 using namespace std;
 using namespace testing::ext;
 namespace {
+const int DELAY_TIME = 4;
+
 class app_verify_test : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -66,6 +68,7 @@ HWTEST_F(app_verify_test, test001, TestSize.Level3)
     const char *signedHap = "./business_packet.hap";
     DeleteFile(signedHap);
     CopyFile(GetBusinessHap(), signedHap);
+    sleep(DELAY_TIME);
     VerifyResult verifyResult = {0};
     int32_t resultCode = APPVERI_AppVerify(signedHap, &verifyResult);
     ASSERT_TRUE(resultCode == V_OK);
@@ -90,6 +93,7 @@ HWTEST_F(app_verify_test, test002, TestSize.Level3)
     const char *unsignedHap = "./unsigned_packet.hap";
     DeleteFile(unsignedHap);
     CopyFile(GetUnsignedHap(), unsignedHap);
+    sleep(DELAY_TIME);
     VerifyResult verifyResult = {0};
     int32_t resultCode = APPVERI_AppVerify(unsignedHap, &verifyResult);
     ASSERT_TRUE(resultCode != V_OK);
@@ -116,6 +120,7 @@ HWTEST_F(app_verify_test, test003, TestSize.Level3)
     const char *udidUnmatchHap = "./udid_wrong_test.hap";
     DeleteFile(udidUnmatchHap);
     CopyFile(GetWrongUdidHap(), udidUnmatchHap);
+    sleep(DELAY_TIME);
     VerifyResult verifyResult = {0};
     int32_t resultCode = APPVERI_AppVerify(udidUnmatchHap, &verifyResult);
     ASSERT_TRUE(resultCode != V_OK);
@@ -144,6 +149,7 @@ HWTEST_F(app_verify_test, test004, TestSize.Level3)
     const char *udidMatchHap = "./udid_right_test.hap";
     DeleteFile(udidMatchHap);
     CopyFile(GetRightUdidHap(), udidMatchHap);
+    sleep(DELAY_TIME);
     VerifyResult verifyResult = {0};
     int32_t resultCode = APPVERI_AppVerify(udidMatchHap, &verifyResult);
     ASSERT_TRUE(resultCode == V_OK);
@@ -170,6 +176,7 @@ HWTEST_F(app_verify_test, test005, TestSize.Level3)
     const char *tamperedHap = "./modified_packet.hap";
     DeleteFile(tamperedHap);
     CopyFile(GetModifiedHap(), tamperedHap);
+    sleep(DELAY_TIME);
     VerifyResult verifyResult = {0};
     int32_t resultCode = APPVERI_AppVerify(tamperedHap, &verifyResult);
     ASSERT_TRUE(resultCode != V_OK);
@@ -196,6 +203,7 @@ HWTEST_F(app_verify_test, test006, TestSize.Level3)
     const char *testHap = "./success_test.hap";
     DeleteFile(testHap);
     CopyFile(GetSuccessHap(), testHap);
+    sleep(DELAY_TIME);
     VerifyResult verifyResult = {0};
     int32_t resultCode = APPVERI_AppVerify(testHap, &verifyResult);
     ASSERT_TRUE(resultCode != V_OK);
@@ -206,6 +214,7 @@ HWTEST_F(app_verify_test, test006, TestSize.Level3)
     const char *businessHap = "./business_packet.hap";
     DeleteFile(businessHap);
     CopyFile(GetBusinessHap(), businessHap);
+    sleep(DELAY_TIME);
     VerifyResult verifyResult1 = {0};
     resultCode = APPVERI_AppVerify(businessHap, &verifyResult1);
     APPVERI_FreeVerifyRst(&verifyResult1);
@@ -232,6 +241,7 @@ HWTEST_F(app_verify_test, test007, TestSize.Level3)
     const char *businessHap = "./business_packet.hap";
     DeleteFile(businessHap);
     CopyFile(GetBusinessHap(), businessHap);
+    sleep(DELAY_TIME);
     VerifyResult verifyResult = {0};
     int32_t resultCode = APPVERI_AppVerify(businessHap, &verifyResult);
     ASSERT_TRUE(resultCode == V_OK);
@@ -241,6 +251,7 @@ HWTEST_F(app_verify_test, test007, TestSize.Level3)
     const char *testHap = "./success_test.hap";
     DeleteFile(testHap);
     CopyFile(GetSuccessHap(), testHap);
+    sleep(DELAY_TIME);
     VerifyResult verifyResult1 = {0};
     APPVERI_SetActsMode(true);
     resultCode = APPVERI_AppVerify(testHap, &verifyResult1);
@@ -268,6 +279,7 @@ HWTEST_F(app_verify_test, test008, TestSize.Level3)
     const char *wrongHap = "./wrong_license.hap";
     DeleteFile(wrongHap);
     CopyFile(GetWrongLiceseHap(), wrongHap);
+    sleep(DELAY_TIME);
     VerifyResult verifyResult = {0};
     int32_t resultCode = APPVERI_AppVerify(wrongHap, &verifyResult);
     ASSERT_TRUE(resultCode != V_OK);
