@@ -54,7 +54,8 @@ int CopyFile(const char *org, const char *dest)
     }
     (void)memset_s(buffer, wholeLen, 0, wholeLen);
     int len = 0;
-    mbedtls_base64_decode((unsigned char *)buffer, (size_t)wholeLen, (size_t *)&len, (unsigned char *)org, (size_t)wholeLen);
+    mbedtls_base64_decode((unsigned char *)buffer, (size_t)wholeLen, (size_t *)&len,
+        (unsigned char *)org, (size_t)wholeLen);
     int num = 0;
     while (num < len) {
         int trueLen = ((len - num) >= ONCE_WRITE) ? ONCE_WRITE : (len - num);

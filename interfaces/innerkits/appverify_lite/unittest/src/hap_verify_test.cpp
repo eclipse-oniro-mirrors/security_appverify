@@ -24,7 +24,7 @@ using namespace testing::ext;
 namespace {
 const int DELAY_TIME = 4;
 
-class app_verify_test : public testing::Test {
+class HapVerifyTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
 
@@ -35,19 +35,19 @@ public:
     void TearDown();
 };
 
-void app_verify_test::SetUpTestCase(void)
+void HapVerifyTest::SetUpTestCase(void)
 {
 }
 
-void app_verify_test::TearDownTestCase(void)
+void HapVerifyTest::TearDownTestCase(void)
 {
 }
 
-void app_verify_test::SetUp()
+void HapVerifyTest::SetUp()
 {
 }
 
-void app_verify_test::TearDown()
+void HapVerifyTest::TearDown()
 {
 }
 
@@ -63,7 +63,7 @@ void app_verify_test::TearDown()
  * @tc.level: level 3
  * @tc.type: FUNC
  */
-HWTEST_F(app_verify_test, test001, TestSize.Level3)
+HWTEST_F(HapVerifyTest, test001, TestSize.Level3)
 {
     const char *signedHap = "./business_packet.hap";
     DeleteFile(signedHap);
@@ -88,7 +88,7 @@ HWTEST_F(app_verify_test, test001, TestSize.Level3)
  * @tc.level: level 3
  * @tc.type: FUNC
  */
-HWTEST_F(app_verify_test, test002, TestSize.Level3)
+HWTEST_F(HapVerifyTest, test002, TestSize.Level3)
 {
     const char *unsignedHap = "./unsigned_packet.hap";
     DeleteFile(unsignedHap);
@@ -113,7 +113,7 @@ HWTEST_F(app_verify_test, test002, TestSize.Level3)
  * @tc.level: level 3
  * @tc.type: FUNC
  */
-HWTEST_F(app_verify_test, test003, TestSize.Level3)
+HWTEST_F(HapVerifyTest, test003, TestSize.Level3)
 {
     APPVERI_SetDebugMode(true);
     APPVERI_SetActsMode(true);
@@ -142,7 +142,7 @@ HWTEST_F(app_verify_test, test003, TestSize.Level3)
  * @tc.level: level 3
  * @tc.type: FUNC
  */
-HWTEST_F(app_verify_test, test004, TestSize.Level3)
+HWTEST_F(HapVerifyTest, test004, TestSize.Level3)
 {
     APPVERI_SetDebugMode(true);
     APPVERI_SetActsMode(true);
@@ -171,7 +171,7 @@ HWTEST_F(app_verify_test, test004, TestSize.Level3)
  * @tc.level: level 3
  * @tc.type: FUNC
  */
-HWTEST_F(app_verify_test, test005, TestSize.Level3)
+HWTEST_F(HapVerifyTest, test005, TestSize.Level3)
 {
     const char *tamperedHap = "./modified_packet.hap";
     DeleteFile(tamperedHap);
@@ -196,7 +196,7 @@ HWTEST_F(app_verify_test, test005, TestSize.Level3)
  * @tc.level: level 3
  * @tc.type: FUNC
  */
-HWTEST_F(app_verify_test, test006, TestSize.Level3)
+HWTEST_F(HapVerifyTest, test006, TestSize.Level3)
 {
     APPVERI_SetDebugMode(true);
     APPVERI_SetActsMode(true);
@@ -235,7 +235,7 @@ HWTEST_F(app_verify_test, test006, TestSize.Level3)
  * @tc.level: level 3
  * @tc.type: FUNC
  */
-HWTEST_F(app_verify_test, test007, TestSize.Level3)
+HWTEST_F(HapVerifyTest, test007, TestSize.Level3)
 {
     APPVERI_SetDebugMode(false);
     const char *businessHap = "./business_packet.hap";
@@ -274,7 +274,7 @@ HWTEST_F(app_verify_test, test007, TestSize.Level3)
  * @tc.level: level 3
  * @tc.type: FUNC
  */
-HWTEST_F(app_verify_test, test008, TestSize.Level3)
+HWTEST_F(HapVerifyTest, test008, TestSize.Level3)
 {
     const char *wrongHap = "./wrong_license.hap";
     DeleteFile(wrongHap);
