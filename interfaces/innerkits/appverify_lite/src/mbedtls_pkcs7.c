@@ -16,7 +16,6 @@
 #include "mbedtls_pkcs7.h"
 #include <ctype.h>
 #include <stdbool.h>
-#include <stdlib.h>
 #include <string.h>
 #include "app_common.h"
 #include "mbedtls/platform.h" // for mbedtls_calloc
