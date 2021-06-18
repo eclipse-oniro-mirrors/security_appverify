@@ -139,7 +139,7 @@ bool HapVerifyV2::VerifyAppPkcs7(Pkcs7Context& pkcs7Context, const HapByteBuffer
 }
 
 bool HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context,
-    const HapByteBuffer& hapProfileBlock, HapVerifyResult& hapVerifyV1Result, bool& profileNeadWriteCrl)
+    const HapByteBuffer& hapProfileBlock, HapVerifyResult& hapVerifyV1Result, bool& profileNeedWriteCrl)
 {
     std::string certSubject;
     if (!HapCertVerifyOpensslUtils::GetSubjectFromX509(pkcs7Context.certChains[0][0], certSubject)) {
@@ -194,7 +194,7 @@ bool HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context,
     }
 
     hapVerifyV1Result.SetProvisionInfo(provisionInfo);
-    profileNeadWriteCrl = profileContext.needWriteCrl;
+    profileNeedWriteCrl = profileContext.needWriteCrl;
     return true;
 }
 
