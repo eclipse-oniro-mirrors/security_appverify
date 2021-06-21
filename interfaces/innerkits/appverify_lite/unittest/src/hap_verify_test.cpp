@@ -52,7 +52,6 @@ void HapVerifyTest::TearDown()
 }
 
 /**
- * @tc.require: SR000E10EO
  * @tc.name: test001
  * @tc.desc: 测试签名正确的hap包可以安装并验签通过
  * @tc.function: SUB_SEC_AppSec_AppSign_VerifySignature
@@ -77,7 +76,6 @@ HWTEST_F(HapVerifyTest, test001, TestSize.Level3)
 }
 
 /**
- * @tc.require: SR000E10EO
  * @tc.name: test002
  * @tc.desc: 安装未签名的应用，校验失败
  * @tc.function: SUB_SEC_AppSec_AppSign_VerifySignature
@@ -102,7 +100,6 @@ HWTEST_F(HapVerifyTest, test002, TestSize.Level3)
 }
 
 /**
- * @tc.require: SR000E10EO
  * @tc.name: test003
  * @tc.desc: udid号与设备不对应的应用安装验签失败
  * @tc.function: SUB_SEC_AppSec_AppSign_VerifySignature
@@ -131,7 +128,6 @@ HWTEST_F(HapVerifyTest, test003, TestSize.Level3)
 }
 
 /**
- * @tc.require: AR000F5M36
  * @tc.name: test004
  * @tc.desc: udid号与设备对应的应用安装验签
  * @tc.function: SUB_SEC_AppSec_AppSign_VerifySignature
@@ -160,7 +156,6 @@ HWTEST_F(HapVerifyTest, test004, TestSize.Level3)
 }
 
 /**
- * @tc.require: SR000E320R
  * @tc.name: test005
  * @tc.desc: 被篡改的应用安装验签
  * @tc.function: SUB_SEC_AppSec_AppSign_VerifySignature
@@ -185,7 +180,6 @@ HWTEST_F(HapVerifyTest, test005, TestSize.Level3)
 }
 
 /**
- * @tc.require: AR000E320S
  * @tc.name: test006
  * @tc.desc: debug模式打开，安装商用版本hap成功，安装测试版本hap成功
  * @tc.function: SUB_SEC_AppSec_AppSign_VerifySignature
@@ -224,7 +218,6 @@ HWTEST_F(HapVerifyTest, test006, TestSize.Level3)
 }
 
 /**
- * @tc.require: AR000E320S
  * @tc.name: test007
  * @tc.desc: debug模式关闭，安装商用版本hap成功，安装测试版本hap失败
  * @tc.function: SUB_SEC_AppSec_AppSign_VerifySignature
@@ -263,7 +256,6 @@ HWTEST_F(HapVerifyTest, test007, TestSize.Level3)
 }
 
 /**
- * @tc.require: SR000E320R
  * @tc.name: test008
  * @tc.desc: 使用错误证书的应用安全验签失败
  * @tc.function: SUB_SEC_AppSec_AppSign_VerifySignature
