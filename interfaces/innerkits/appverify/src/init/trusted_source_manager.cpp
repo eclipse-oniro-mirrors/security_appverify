@@ -38,6 +38,7 @@ const std::string TrustedSourceManager::KEY_OF_MAX_CERTS_PATH = "max-certs-path"
 const std::string TrustedSourceManager::KEY_OF_CRITIALCAL_CERT_EXTENSION = "critialcal-cert-extension";
 const std::string TrustedSourceManager::APP_GALLARY_SOURCE_NAME = "huawei app gallery";
 const std::string TrustedSourceManager::APP_SYSTEM_SOURCE_NAME = "huawei system apps";
+const std::string TrustedSourceManager::APP_THIRD_PARTY_PRELOAD_SOURCE_NAME = "third_party app preload";
 
 TrustedSourceManager& TrustedSourceManager::GetInstance()
 {
@@ -227,16 +228,17 @@ MatchingStates TrustedSourceManager::TrustedSourceListCompare(const std::string&
     MatchingStates ret = DO_NOT_MATCH;
     switch (blobType) {
         case HAP_SIGN_BLOB: {
-            if (appSource.appSigningCert.compare(certSubject) == 0 && appSource.issuer.compare(certIssuer) == 0) {
+            if (MatchSubjectAndIssuer(appSource.appSigningCert, certSubject) &&
+                MatchSubjectAndIssuer(appSource.issuer, certIssuer)) {
                 ret = MATCH_WITH_SIGN;
             }
             break;
         }
         case PROFILE_BLOB: {
-            if (appSource.issuer.compare(certIssuer) == 0) {
-                if (appSource.profileSigningCertificate.compare(certSubject) == 0) {
+            if (MatchSubjectAndIssuer(appSource.issuer, certIssuer)) {
+                if (MatchSubjectAndIssuer(appSource.profileSigningCertificate, certSubject)) {
                     ret = MATCH_WITH_PROFILE;
-                } else if (appSource.profileDebugSigningCertificate.compare(certSubject) == 0) {
+                } else if (MatchSubjectAndIssuer(appSource.profileDebugSigningCertificate, certSubject)) {
                     ret = MATCH_WITH_PROFILE_DEBUG;
                 }
             }
@@ -250,13 +252,28 @@ MatchingStates TrustedSourceManager::TrustedSourceListCompare(const std::string&
 
 TrustedSources TrustedSourceManager::GetTrustedSource(std::string& sourceName)
 {
-    if (APP_GALLARY_SOURCE_NAME.compare(sourceName) == 0) {
+    if (APP_GALLARY_SOURCE_NAME == sourceName) {
         return APP_GALLARY;
     }
-    if (APP_SYSTEM_SOURCE_NAME.compare(sourceName) == 0) {
+
+    if (APP_SYSTEM_SOURCE_NAME == sourceName) {
         return APP_SYSTEM;
     }
-    return NOT_TRUSTED_SOURCE;
+
+    if (APP_THIRD_PARTY_PRELOAD_SOURCE_NAME == sourceName) {
+        return APP_THIRD_PARTY_PRELOAD;
+    }
+    return OTHER_TRUSTED_SOURCE;
+}
+
+bool TrustedSourceManager::MatchSubjectAndIssuer(const std::string& trustedSource,
+                                                 const std::string& certSubjectOrIssuer) const
+{
+    if (trustedSource.empty()) {
+        return false;
+    }
+
+    return trustedSource == certSubjectOrIssuer;
 }
 } // namespace Verify
 } // namespace Security

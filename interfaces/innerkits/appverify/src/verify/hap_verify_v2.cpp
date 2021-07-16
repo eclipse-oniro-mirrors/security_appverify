@@ -139,7 +139,7 @@ bool HapVerifyV2::VerifyAppPkcs7(Pkcs7Context& pkcs7Context, const HapByteBuffer
 }
 
 bool HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context,
-    const HapByteBuffer& hapProfileBlock, HapVerifyResult& hapVerifyV1Result, bool& profileNeedWriteCrl)
+    const HapByteBuffer& hapProfileBlock, HapVerifyResult& hapVerifyV1Result, bool& profileNeadWriteCrl)
 {
     std::string certSubject;
     if (!HapCertVerifyOpensslUtils::GetSubjectFromX509(pkcs7Context.certChains[0][0], certSubject)) {
@@ -160,6 +160,10 @@ bool HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context,
         return false;
     }
 
+    if (!VerifyProfileSignature(pkcs7Context, profileContext)) {
+        HAPVERIFY_LOG_ERROR(LABEL, "VerifyProfileSignature failed");
+        return false;
+    }
     /*
      * If app source is not trusted, verify profile.
      * If profile is debug, check whether app signed cert is same as the debug cert in profile.
@@ -194,7 +198,19 @@ bool HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context,
     }
 
     hapVerifyV1Result.SetProvisionInfo(provisionInfo);
-    profileNeedWriteCrl = profileContext.needWriteCrl;
+    profileNeadWriteCrl = profileContext.needWriteCrl;
+    return true;
+}
+
+bool HapVerifyV2::VerifyProfileSignature(const Pkcs7Context& pkcs7Context, Pkcs7Context& profileContext)
+{
+    if (pkcs7Context.matchResult.matchState == MATCH_WITH_SIGN &&
+        pkcs7Context.matchResult.source == APP_THIRD_PARTY_PRELOAD) {
+        if (!HapProfileVerifyUtils::VerifyProfile(profileContext)) {
+            HAPVERIFY_LOG_ERROR(LABEL, "profile verify failed");
+            return false;
+        }
+    }
     return true;
 }
 

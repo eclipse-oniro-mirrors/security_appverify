@@ -59,10 +59,20 @@ ohos_shared_library("libhapverify") {
     "//utils/native/base:utils",
   ]
 
-  external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
-  ]
+  if (is_standard_system) {
+    defines = [ "STANDARD_SYSTEM" ]
+
+    external_deps = [
+      "hiviewdfx_hilog_native:libhilog",
+      "startup_l2:syspara",
+    ]
+  } else {
+    external_deps = [
+      "hilog_native:libhilog",
+      "ipc:ipc_core",
+      "os_account:libaccountkits",
+    ]
+  }
 
   part_name = "appverify"
 
