@@ -1,6 +1,6 @@
 {
     "version": "1.0.1",
-    "release-time":"2020-7-10 9:49:00",
+    "release-time":"2021-06-03 10:06:00",
     "trust-app-source":[
         {
             "name":"huawei app gallery",
@@ -19,6 +19,15 @@
             "issuer-ca":"C=CN, O=Huawei, OU=Huawei CBG, CN=Huawei CBG Software Signing Service CA Test",
             "max-certs-path":3,
             "critialcal-cert-extension":["keyusage","huawei-signing-capability"]
+        },
+        {
+            "name":"third_party app preload",
+            "app-signing-cert":"C=CN, O=Huawei, OU=HOS Open Platform, CN=HOS Preload Service",
+            "profile-signing-certificate":"",
+            "profile-debug-signing-certificate":"",
+            "issuer-ca":"C=CN, O=Huawei, OU=Huawei CBG, CN=Huawei CBG Software Signing Service CA Test",
+            "max-certs-path":3,
+            "critialcal-cert-extension":["keyusage","huawei-signing-capability"]
         }
-   ]
+    ]
 }

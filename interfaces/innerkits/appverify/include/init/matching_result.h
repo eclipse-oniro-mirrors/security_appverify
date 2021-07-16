@@ -19,9 +19,10 @@ namespace OHOS {
 namespace Security {
 namespace Verify {
 enum TrustedSources {
-    NOT_TRUSTED_SOURCE = 0,
+    OTHER_TRUSTED_SOURCE = 0,
     APP_GALLARY,
     APP_SYSTEM,
+    APP_THIRD_PARTY_PRELOAD,
 };
 
 enum MatchingStates {

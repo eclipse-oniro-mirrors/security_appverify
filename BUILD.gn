@@ -13,7 +13,5 @@
 
 group("testcase_packages") {
   testonly = true
-  deps = [
-    "//base/security/appverify/interfaces/innerkits/appverify/test:unittest",
-  ]
+  deps = [ "//base/security/appverify/interfaces/innerkits/appverify/test:unittest" ]
 }
