@@ -24,7 +24,11 @@
 namespace OHOS {
 namespace Security {
 namespace Verify {
+#ifndef STANDARD_SYSTEM
+const std::string HapCrlManager::HAP_CRL_FILE_PATH = "/data/sadata/hap_crl";
+#else
 const std::string HapCrlManager::HAP_CRL_FILE_PATH = "/data/hap_crl";
+#endif
 
 HapCrlManager& HapCrlManager::GetInstance()
 {

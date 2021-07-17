@@ -53,10 +53,20 @@ ohos_unittest("verify_test") {
     "//utils/native/base:utils",
   ]
 
-  external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
-  ]
+  if (is_standard_system) {
+    defines = [ "STANDARD_SYSTEM" ]
+
+    external_deps = [
+      "hiviewdfx_hilog_native:libhilog",
+      "startup_l2:syspara",
+    ]
+  } else {
+    external_deps = [
+      "hilog_native:libhilog",
+      "ipc:ipc_core",
+      "os_account:libaccountkits",
+    ]
+  }
 
   resource_config_file =
       "//base/security/appverify/test/resource/appverify/ohos_test.xml"

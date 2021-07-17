@@ -35,7 +35,7 @@ private:
     bool VerifyAppPkc7AndParseProfile(Pkcs7Context& pkcs7Context, HapByteBuffer& hapProfileBlock,
         HapVerifyResult& hapVerifyV1Result);
     bool VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context, const HapByteBuffer& hapProfileBlock,
-        HapVerifyResult& hapVerifyV1Result, bool& profileNeedWriteCrl);
+        HapVerifyResult& hapVerifyV1Result, bool& profileNeadWriteCrl);
     bool VerifyAppPkcs7(Pkcs7Context& pkcs7Context, const HapByteBuffer& hapSignatureBlock);
     bool VerifyAppSource(Pkcs7Context& pkcs7Context, Pkcs7Context& profileContext);
     DLL_EXPORT bool GetDigestAndAlgorithm(Pkcs7Context& digest);
@@ -48,6 +48,7 @@ private:
         ProvisionInfo& provisionInfo);
     bool CheckProfileSignatureIsRight(const MatchingStates& matchState, const ProvisionType& type);
     DLL_EXPORT bool GenerateAppId(ProvisionInfo& provisionInfo);
+    bool VerifyProfileSignature(const Pkcs7Context& pkcs7Context, Pkcs7Context& profileContext);
 
 private:
     static const int HEX_PRINT_LENGTH;

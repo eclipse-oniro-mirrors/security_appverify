@@ -21,6 +21,8 @@
 namespace OHOS {
 namespace Security {
 namespace Verify {
+#define DEV_UUID_LEN 65
+
 enum AppProvisionVerifyResult {
     PROVISION_INVALID, // Invalid json string
     PROVISION_OK, // Passed

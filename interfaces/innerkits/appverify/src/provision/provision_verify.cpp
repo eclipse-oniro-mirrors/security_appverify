@@ -19,6 +19,13 @@
 
 #include "nlohmann/json.hpp"
 
+#ifndef STANDARD_SYSTEM
+#include "ohos_account_kits.h"
+#else
+#include "parameter.h"
+#include "sysparam_errno.h"
+#endif // STANDARD_SYSTEM
+
 #include "common/hap_verify_log.h"
 
 using namespace std;
@@ -207,7 +214,24 @@ AppProvisionVerifyResult CheckDeviceID(ProvisionInfo& info)
         return PROVISION_NUM_DEVICE_EXCEEDED;
     }
     string deviceId;
-    if (info.debugInfo.deviceIdType != VALUE_DEVICE_ID_TYPE_UDID) {
+    if (info.debugInfo.deviceIdType == VALUE_DEVICE_ID_TYPE_UDID) {
+#ifndef STANDARD_SYSTEM
+        int32_t ret = OHOS::AccountSA::OhosAccountKits::GetInstance().GetUdid(deviceId);
+        if (ret != 0) {
+            HAPVERIFY_LOG_ERROR(LABEL, "obtaining current device id failed (%{public}d).", ret);
+            return PROVISION_DEVICE_UNAUTHORIZED;
+        }
+#else
+        char udid[DEV_UUID_LEN] = {0};
+        int ret = GetDevUdid(udid, sizeof(udid));
+        if (ret != EC_SUCCESS) {
+            HAPVERIFY_LOG_ERROR(LABEL, "obtaining current device id failed (%{public}d).", static_cast<int>(ret));
+            return PROVISION_DEVICE_UNAUTHORIZED;
+        }
+        deviceId = std::string(udid, sizeof(udid) - 1);
+        HAPVERIFY_LOG_INFO(LABEL, "L2 UDID:%{public}s, len:%{public}d.", deviceId.c_str(), deviceId.size());
+#endif // STANDARD_SYSTEM
+    } else {
         HAPVERIFY_LOG_ERROR(LABEL, "type of device ID is not supported.");
         return PROVISION_UNSUPPORTED_DEVICE_TYPE;
     }

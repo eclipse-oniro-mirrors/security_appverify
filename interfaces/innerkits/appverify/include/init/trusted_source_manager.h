@@ -66,6 +66,7 @@ private:
     MatchingStates TrustedSourceListCompare(const std::string& certSubject, const std::string& certIssuer,
         const HapAppSourceInfo& appSource, HapBlobType blobType) const;
     TrustedSources GetTrustedSource(std::string& sourceName);
+    bool MatchSubjectAndIssuer(const std::string& trustedSource, const std::string& certSubjectOrIssuer) const;
 
 private:
     static const std::string APP_TRUSTED_SOURCE_FILE_PATH;
@@ -82,6 +83,7 @@ private:
     static const std::string KEY_OF_CRITIALCAL_CERT_EXTENSION;
     static const std::string APP_GALLARY_SOURCE_NAME;
     static const std::string APP_SYSTEM_SOURCE_NAME;
+    static const std::string APP_THIRD_PARTY_PRELOAD_SOURCE_NAME;
     SourceInfoVec appTrustedSources;
     SourceInfoVec appTrustedSourcesForTest;
     std::string version;

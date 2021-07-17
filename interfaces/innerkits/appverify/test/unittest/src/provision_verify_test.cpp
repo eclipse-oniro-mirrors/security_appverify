@@ -16,6 +16,13 @@
 
 #include <gtest/gtest.h>
 
+#ifndef STANDARD_SYSTEM
+#include "ohos_account_kits.h"
+#else
+#include "parameter.h"
+#include "sysparam_errno.h"
+#endif // STANDARD_SYSTEM
+
 #include "provision/provision_verify.h"
 
 using namespace testing::ext;
@@ -351,5 +358,57 @@ HWTEST_F(ProvisionVerifyTest, ProvisionVerify007, TestSize.Level1)
     ProvisionInfo info;
     int ret = ParseAndVerify(DEVICE_UNAUTH_PROVISION, info);
     ASSERT_EQ(ret, AppProvisionVerifyResult::PROVISION_DEVICE_UNAUTHORIZED);
+}
+
+/**
+ * @tc.name: Test HarmonyAppProvision ProvisionVerify008 function
+ * @tc.desc: The static function will return verify result;
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProvisionVerifyTest, ProvisionVerify008, TestSize.Level1)
+{
+    /*
+     * @tc.steps: step8. input a valid HarmonyAppProvision with device info
+     *     and run ParseAndVerify function.
+     * @tc.expected: step8. return code will be PROVISION_OK.
+     */
+    std::string prefixValidDeviceInfoProvision = R"(
+    {
+        "version-code": 9,
+        "version-name": "9.0.0",
+        "uuid": "test_uuid",
+        "type": "debug",
+        "validity": {
+            "not-before": 1262275200,
+            "not-after": 2524579300
+        },
+        "bundle-info": {
+            "developer-id": "test_developer_9",
+            "development-certificate": "ABCDEFG",
+            "distribution-certificate": "123456789",
+            "bundle-name": "com.hello",
+            "app-feature": "hos_normal_app"
+        },
+        "debug-info": {
+            "device-id-type": "udid",
+            "device-ids" : [")";
+    std::string postfixValidDeviceInfoProvision = R"("]
+        },
+        "issuer": "App Gallery"
+    })";
+    string deviceId = "";
+#ifndef STANDARD_SYSTEM
+    OHOS::AccountSA::OhosAccountKits::GetInstance().GetUdid(deviceId);
+#else
+    char udid[DEV_UUID_LEN] = {0};
+    int udidRet = GetDevUdid(udid, sizeof(udid));
+    ASSERT_EQ(udidRet, EC_SUCCESS);
+    deviceId = std::string(udid, sizeof(udid) - 1);
+#endif
+    prefixValidDeviceInfoProvision += deviceId;
+    prefixValidDeviceInfoProvision += postfixValidDeviceInfoProvision;
+    ProvisionInfo info;
+    int ret = ParseAndVerify(prefixValidDeviceInfoProvision, info);
+    ASSERT_EQ(ret, AppProvisionVerifyResult::PROVISION_OK);
 }
 } // namespace
