@@ -88,20 +88,22 @@ static const unsigned char g_debugModeRootCertInPem[] =
     "7XL/vJcp3HeHjiXu7XZmYQ+QAvHPhU0CMCiwWFbDl8ETw4VK25QbwhL/QiUfiRfC\r\n"
     "J6LzteOvjLTEV5iebQMz/nS1j7/oj3Rsqg==\r\n"
     "-----END CERTIFICATE-----\r\n";
-static mbedtls_x509_crt g_selfSignedCert;
-static const unsigned char g_selfSignedCertInPem[] =
+static mbedtls_x509_crt g_ohosRootCert;
+static const unsigned char g_ohosRootCertInPem[] =
     "-----BEGIN CERTIFICATE-----\r\n"
-    "MIICCzCCAbCgAwIBAgIEbZe8FTAMBggqhkjOPQQDAgUAMHMxCzAJBgNVBAYTAkNO\r\n"
-    "MRQwEgYDVQQKEwtPcGVuSGFybW9ueTElMCMGA1UECxMcT3Blbkhhcm1vbnkgRGV2\r\n"
-    "ZWxvcG1lbnQgVGVhbTEnMCUGA1UEAxMeT3Blbkhhcm1vbnkgU29mdHdhcmUgU2ln\r\n"
-    "bmF0dXJlMCAXDTIwMTAxNDAzMzAzM1oYDzIwNzAxMDE0MDMzMDMzWjBzMQswCQYD\r\n"
-    "VQQGEwJDTjEUMBIGA1UEChMLT3Blbkhhcm1vbnkxJTAjBgNVBAsTHE9wZW5IYXJt\r\n"
-    "b255IERldmVsb3BtZW50IFRlYW0xJzAlBgNVBAMTHk9wZW5IYXJtb255IFNvZnR3\r\n"
-    "YXJlIFNpZ25hdHVyZTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABCP2fr47i2IG\r\n"
-    "CKyX7apk865v1ZPVv82wrZEHOqzkPiLTG+o+6EEuuHGLngu9lA7Kc5+LpnhryQLz\r\n"
-    "gf9sD625M72jLjAsMAsGA1UdDwQEAwIHgDAdBgNVHQ4EFgQUx2NA8kYsHoN2qGMI\r\n"
-    "xmJeHuVVnDUwDAYIKoZIzj0EAwIFAANHADBEAiAHWP8lxpp/FHwHE9H0ESUmejK/\r\n"
-    "4lfN9rRcndM/+yB7mwIgEAE9gVW7xCrX509iHZl/iJth7IBySgDM590oelCqVXY=\r\n"
+    "MIICRDCCAcmgAwIBAgIED+E4izAMBggqhkjOPQQDAwUAMGgxCzAJBgNVBAYTAkNO\r\n"
+    "MRQwEgYDVQQKEwtPcGVuSGFybW9ueTEZMBcGA1UECxMQT3Blbkhhcm1vbnkgVGVh\r\n"
+    "bTEoMCYGA1UEAxMfT3Blbkhhcm1vbnkgQXBwbGljYXRpb24gUm9vdCBDQTAeFw0y\r\n"
+    "MTAyMDIxMjE0MThaFw00OTEyMzExMjE0MThaMGgxCzAJBgNVBAYTAkNOMRQwEgYD\r\n"
+    "VQQKEwtPcGVuSGFybW9ueTEZMBcGA1UECxMQT3Blbkhhcm1vbnkgVGVhbTEoMCYG\r\n"
+    "A1UEAxMfT3Blbkhhcm1vbnkgQXBwbGljYXRpb24gUm9vdCBDQTB2MBAGByqGSM49\r\n"
+    "AgEGBSuBBAAiA2IABE023XmRaw2DnO8NSsb+KG/uY0FtS3u5LQucdr3qWVnRW5ui\r\n"
+    "QIL6ttNZBEeLTUeYcJZCpayg9Llf+1SmDA7dY4iP2EcRo4UN3rilovtfFfsmH4ty\r\n"
+    "3SApHVFzWUl+NwdH8KNCMEAwDwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMC\r\n"
+    "AQYwHQYDVR0OBBYEFBc6EKGrGXzlAE+s0Zgnsphadw7NMAwGCCqGSM49BAMDBQAD\r\n"
+    "ZwAwZAIwd1p3JzHN93eoPped1li0j64npgqNzwy4OrkehYAqNXpcpaEcLZ7UxW8E\r\n"
+    "I2lZJ3SbAjAkqySHb12sIwdSFKSN9KCMMEo/eUT5dUXlcKR2nZz0MJdxT5F51qcX\r\n"
+    "1CumzkcYhgU=\r\n"
     "-----END CERTIFICATE-----\r\n";
 
 /* valid digest alg now: sha256 sha384 sha512 */
@@ -957,8 +959,8 @@ static int UnLoadDebugModeRootCert(void)
 static int LoadSelfSignedCert(void)
 {
     int rc;
-    mbedtls_x509_crt_init(&g_selfSignedCert);
-    rc = mbedtls_x509_crt_parse(&g_selfSignedCert, g_selfSignedCertInPem, sizeof(g_selfSignedCertInPem));
+    mbedtls_x509_crt_init(&g_ohosRootCert);
+    rc = mbedtls_x509_crt_parse(&g_ohosRootCert, g_ohosRootCertInPem, sizeof(g_ohosRootCertInPem));
     if (rc) {
         LOG_ERROR("load self signed ca failed %d", rc);
         return rc;
@@ -970,7 +972,7 @@ static int LoadSelfSignedCert(void)
 
 static void UnLoadSelfSignedCert(void)
 {
-    mbedtls_x509_crt_free(&g_selfSignedCert);
+    mbedtls_x509_crt_free(&g_ohosRootCert);
 }
 static void DLogCrtVerifyInfo(unsigned int flags)
 {
@@ -1072,7 +1074,7 @@ int PKCS7_VerifyCertsChain(const Pkcs7 *pkcs7)
             return PKCS7_IS_REVOKED;
         }
 #ifndef OHOS_SIGN_HAPS_BY_SERVER
-        rc = VerifyClicert(clicert, &g_selfSignedCert, pkcs7);
+        rc = VerifyClicert(clicert, &g_ohosRootCert, pkcs7);
         LOG_DEBUG("Verify self : %d", rc);
         if (rc == PKCS7_SUCC) {
             signer = signer->next;
@@ -1121,9 +1123,39 @@ static size_t GetSignersCnt(const SignerInfo *signers)
     }
     return cnt;
 }
+
+static bool IsIncludeRoot(const SignerInfo *signer)
+{
+    mbedtls_x509_crt *pre = signer->certPath.crt;
+    mbedtls_x509_crt *cur = pre;
+    int i = 0;
+    while (i < signer->certPath.depth && cur != NULL) {
+        pre = cur;
+        cur = cur->next;
+        i++;
+    }
+
+    if (pre == NULL) {
+        return false;
+    }
+
+    /* root cert is a self-sign cert */
+    if (CompareX509NameList(&pre->issuer, &pre->subject) == 0) {
+        LOG_INFO("Include root cert");
+        return true;
+    }
+    LOG_INFO("Not include root cert");
+    return false;
+}
+
 static size_t GetSignerSignningCertDepth(const SignerInfo *signer)
 {
-    return signer->certPath.depth + 1; // 1 for root cert;
+    if (IsIncludeRoot(signer)) {
+        return signer->certPath.depth;
+    }
+
+    /* root cert is not included in signer->certPath, add 1 for root cert */
+    return signer->certPath.depth + 1;
 }
 
 void PKCS7_FreeAllSignersResolvedInfo(SignersResovedInfo *sri)

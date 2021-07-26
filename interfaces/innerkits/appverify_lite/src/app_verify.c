@@ -53,11 +53,11 @@ static const TrustAppCert g_trustAppList[] = {
 #ifndef OHOS_SIGN_HAPS_BY_SERVER
     {
         .maxCertPath = CERT_MAX_DEPTH,
-        .name = "huawei system apps",
-        .appSignCert = "C=CN, O=OpenHarmony, OU=OpenHarmony Development Team, CN=OpenHarmony Software Signature",
-        .profileSignCert = "C=CN, O=OpenHarmony, OU=OpenHarmony Development Team, CN=OpenHarmony Software Signature",
-        .profileDebugSignCert = "C=CN, O=OpenHarmony, OU=OpenHarmony Development Team, CN=OpenHarmony Software Signature",
-        .issueCA = "C=CN, O=OpenHarmony, OU=OpenHarmony Development Team, CN=OpenHarmony Software Signature",
+        .name = "OpenHarmony apps",
+        .appSignCert = "C=CN, O=OpenHarmony, OU=OpenHarmony Team, CN=OpenHarmony Application Release",
+        .profileSignCert = "C=CN, O=OpenHarmony, OU=OpenHarmony Team, CN=OpenHarmony Application Profile Release",
+        .profileDebugSignCert = "C=CN, O=OpenHarmony, OU=OpenHarmony Team, CN=OpenHarmony Application Profile Debug",
+        .issueCA = "C=CN, O=OpenHarmony, OU=OpenHarmony Team, CN=OpenHarmony Application CA",
     },
 #endif
 };
@@ -367,6 +367,10 @@ static int GetCertTypeBySourceName(const TrustAppCert *cert)
         return CERT_TYPE_APPGALLARY;
     } else if (strcmp(cert->name, "huawei system apps") == 0) {
         return CERT_TYPE_SYETEM;
+#ifndef OHOS_SIGN_HAPS_BY_SERVER
+    } else if (strcmp(cert->name, "OpenHarmony apps") == 0) {
+        return CERT_TYPE_SYETEM;
+#endif
     } else {
         return CERT_TYPE_OTHER;
     }
