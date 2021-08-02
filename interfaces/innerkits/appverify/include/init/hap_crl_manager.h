@@ -43,8 +43,8 @@ private:
     ~HapCrlManager();
 
     /* Forbid external replication constructs and external replication */
-    HapCrlManager(const HapCrlManager& hapCrlManager);
-    const HapCrlManager& operator=(const HapCrlManager& hapCrlManager);
+    HapCrlManager(const HapCrlManager& hapCrlManager) = delete;
+    HapCrlManager& operator = (const HapCrlManager& hapCrlManager) = delete;
 
     DLL_EXPORT X509_CRL* GetFinalCrl(X509_CRL* crlInPackage, Pkcs7Context& pkcs7Context);
     DLL_EXPORT X509_CRL* GetCrlByIssuer(const std::string& issuer);
