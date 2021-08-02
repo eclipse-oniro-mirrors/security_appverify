@@ -42,8 +42,8 @@ private:
     ~TrustedRootCa();
 
     /* Forbid external replication constructs and external replication */
-    TrustedRootCa(const TrustedRootCa& trustedRoot);
-    const TrustedRootCa& operator=(const TrustedRootCa& trustedRoot);
+    TrustedRootCa(const TrustedRootCa& trustedRoot) = delete;
+    TrustedRootCa& operator = (const TrustedRootCa& trustedRoot) = delete;
 
     DLL_EXPORT bool GetTrustedRootCAFromJson(StringCertMap& rootCertMap, const std::string& filePath);
     X509* FindMatchedRoot(const StringCertMap& rootCertMap, X509* caCert);

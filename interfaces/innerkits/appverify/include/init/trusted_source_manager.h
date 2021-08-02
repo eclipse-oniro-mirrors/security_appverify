@@ -55,7 +55,7 @@ private:
 
     /* Forbid external replication constructs and external replication */
     TrustedSourceManager(const TrustedSourceManager& trustedSource) = delete;
-    const TrustedSourceManager& operator=(const TrustedSourceManager& trustedSource) = delete;
+    TrustedSourceManager& operator = (const TrustedSourceManager& trustedSource) = delete;
 
     bool GetAppTrustedSources(SourceInfoVec& trustedAppSources, std::string& souucesVersion,
         std::string& souucesReleaseTime, const std::string& filePath);

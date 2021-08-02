@@ -73,8 +73,8 @@ bool TrustedSourceManager::EnableDebug()
 
 void TrustedSourceManager::DisableDebug()
 {
-    appTrustedSourcesForTest.clear();
     isDebug = false;
+    appTrustedSourcesForTest.clear();
 }
 
 bool TrustedSourceManager::Init()
