@@ -63,7 +63,7 @@ void HapVerifyTest::TearDown()
  * @tc.desc: The static function will return true;
  * @tc.type: FUNC
  */
-HWTEST_F(HapVerifyTest, HapVerifyEnableDebug001, TestSize.Level1)
+HWTEST_F(HapVerifyTest, HapVerifyEnableDebug001, TestSize.Level0)
 {
     ASSERT_TRUE(EnableDebugMode());
 }
@@ -73,7 +73,7 @@ HWTEST_F(HapVerifyTest, HapVerifyEnableDebug001, TestSize.Level1)
  * @tc.desc: The static function will return verify result;
  * @tc.type: FUNC
  */
-HWTEST_F(HapVerifyTest, HapVerify001, TestSize.Level1)
+HWTEST_F(HapVerifyTest, HapVerify001, TestSize.Level0)
 {
     /*
      * @tc.steps: step1. input a invalid path to function of HapVerify.
@@ -135,7 +135,7 @@ HWTEST_F(HapVerifyTest, HapVerify001, TestSize.Level1)
  * @tc.desc: The static function will return verify result of signed file;
  * @tc.type: FUNC
  */
-HWTEST_F(HapVerifyTest, HapVerifyOsApp001, TestSize.Level1)
+HWTEST_F(HapVerifyTest, HapVerifyOsApp001, TestSize.Level0)
 {
     /*
      * @tc.steps: step1. input a signed file to verify.
@@ -160,7 +160,7 @@ HWTEST_F(HapVerifyTest, HapVerifyOsApp001, TestSize.Level1)
  * @tc.desc: The static function will return verify result of signed file;
  * @tc.type: FUNC
  */
-HWTEST_F(HapVerifyTest, HapVerify002, TestSize.Level1)
+HWTEST_F(HapVerifyTest, HapVerify002, TestSize.Level0)
 {
     std::string fileContent[TEST_FILE_NUM] = {HAP_FILE_ECC_SIGN_BASE64, HAP_FILE_RSA_SIGN_BASE64};
     std::string filePath[TEST_FILE_NUM] = {"./signed_ecc.hap", "./signed_rsa.hap"};
