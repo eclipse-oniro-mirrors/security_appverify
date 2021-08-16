@@ -373,7 +373,7 @@ static int VerifyUdid(const ProfileProf *pf)
     int result = InquiryDeviceUdid(udid, size);
     if (result != INQUIRY_UDID_OK) {
         free(udid);
-        LOG_ERROR("get udid fail");
+        LOG_ERROR("get udid fail, ret: %d", result);
         return V_ERR;
     }
     for (int i = 0; i < pf->debugInfo.devidNum; i++) {
