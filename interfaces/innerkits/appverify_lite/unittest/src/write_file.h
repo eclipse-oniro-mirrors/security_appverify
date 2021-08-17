@@ -22,7 +22,6 @@ int CopyFile(const char *org, const char *dest);
 const char* GetWrongLiceseHap(void);
 const char* GetUnsignedHap(void);
 const char* GetWrongUdidHap(void);
-const char* GetRightUdidHap(void);
 const char* GetSuccessHap(void);
 const char* GetModifiedHap(void);
 const char* GetBusinessHap(void);

@@ -14,13 +14,8 @@
 config("verify_base_config") {
   include_dirs = [
     "//base/security/appverify/interfaces/innerkits/appverify_lite/include",
-    "//base/startup/syspara_lite/interfaces/kits",
     "//base/security/appverify/interfaces/innerkits/appverify_lite/products/ipcamera",
-    "//base/security/permission/services/permission_lite/pms_base/include",
-    "//foundation/distributedschedule/samgr_lite/interfaces/kits/samgr",
-    "//base/security/permission/services/permission_lite/pms/include",
-    "//base/security/permission/interfaces/innerkits/permission_lite",
-    "//base/security/permission/interfaces/kits/permission_lite",
+    "//base/startup/syspara_lite/interfaces/kits",
   ]
   cflags = [ "-Wall" ]
 }
@@ -34,6 +29,5 @@ shared_library("verify_base") {
   public_deps = [
     "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
     "//base/startup/syspara_lite/frameworks/parameter:parameter",
-    "//foundation/distributedschedule/samgr_lite/samgr:samgr",
   ]
 }
