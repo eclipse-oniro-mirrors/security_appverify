@@ -128,34 +128,6 @@ HWTEST_F(HapVerifyTest, test003, TestSize.Level3)
 }
 
 /**
- * @tc.name: test004
- * @tc.desc: udid号与设备对应的应用安装验签
- * @tc.function: SUB_SEC_AppSec_AppSign_VerifySignature
- * @tc.spec: SUB_SEC_AppSec_AppSign_VerifySignature
- * @tc.feature: SUB_SEC_AppSec_AppSign_VerifySignature
- * @tc.number: SUB_SEC_AppSec_AppSign_VerifySignature_1500
- * @tc.size: MEDIUM
- * @tc.level: level 3
- * @tc.type: FUNC
- */
-HWTEST_F(HapVerifyTest, test004, TestSize.Level3)
-{
-    APPVERI_SetDebugMode(true);
-    APPVERI_SetActsMode(true);
-    const char *udidMatchHap = "./udid_right_test.hap";
-    DeleteFile(udidMatchHap);
-    CopyFile(GetRightUdidHap(), udidMatchHap);
-    sleep(DELAY_TIME);
-    VerifyResult verifyResult = {0};
-    int32_t resultCode = APPVERI_AppVerify(udidMatchHap, &verifyResult);
-    ASSERT_TRUE(resultCode == V_OK);
-    APPVERI_FreeVerifyRst(&verifyResult);
-    APPVERI_SetDebugMode(false);
-    APPVERI_SetActsMode(false);
-    DeleteFile(udidMatchHap);
-}
-
-/**
  * @tc.name: test005
  * @tc.desc: 被篡改的应用安装验签
  * @tc.function: SUB_SEC_AppSec_AppSign_VerifySignature

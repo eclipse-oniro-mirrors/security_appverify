@@ -21,7 +21,6 @@ unittest("app_verify_test") {
     "packets/business_packet.cpp",
     "packets/modified_packet.cpp",
     "packets/success_test.cpp",
-    "packets/udid_right_test.cpp",
     "packets/udid_wrong_test.cpp",
     "packets/unsigned_packet.cpp",
     "packets/wrong_license.cpp",

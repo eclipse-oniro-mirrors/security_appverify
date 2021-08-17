@@ -15,41 +15,11 @@
 
 #include "app_verify_default.h"
 #include "app_verify_pub.h"
-#include "pms_common.h"
-#include "pms_inner.h"
-#include "pms_interface_inner.h"
-#include "iunknown.h"
-#include "samgr_lite.h"
-
-
-int GetUdidServer(unsigned char *udid, int size)
-{
-    IUnknown *iUnknown = SAMGR_GetInstance()->GetFeatureApi(PERMISSION_SERVICE, PERM_INNER);
-    if (iUnknown == NULL) {
-        return INQUIRY_UDID_ERROR;
-    }
-    PmsInnerApi *interface = NULL;
-    iUnknown->QueryInterface(iUnknown, DEFAULT_VERSION, (void **) &interface);
-    if (interface == NULL || interface->GetDevUdid == NULL) {
-        return INQUIRY_UDID_ERROR;
-    }
-    int ret = interface->GetDevUdid(udid, size);
-    return ret;
-}
-
-int GetUdidClient(unsigned char *udid, int size)
-{
-    return RequestDevUdid(udid, size);
-}
+#include "parameter.h"
 
 int GetUdid(unsigned char *udid, int size)
 {
-    int ret;
-    if (APPVERI_IsActsMode() == false) {
-        ret = GetUdidServer(udid, size);
-    } else {
-        ret = GetUdidClient(udid, size);
-    }
+    int ret = GetDevUdid((char *)udid, size);
     return ret;
 }
 
