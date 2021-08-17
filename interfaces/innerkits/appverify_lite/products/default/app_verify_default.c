@@ -16,11 +16,6 @@
 #include "app_verify_default.h"
 #include "app_verify_pub.h"
 #include "parameter.h"
-// #include "pms_common.h"
-// #include "pms_inner.h"
-// #include "pms_interface_inner.h"
-// #include "iunknown.h"
-// #include "samgr_lite.h"
 
 int GetUdid(unsigned char *udid, int size)
 {
