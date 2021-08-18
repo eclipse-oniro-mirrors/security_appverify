@@ -17,6 +17,7 @@
 
 #include <mutex>
 
+#include "init/device_type_manager.h"
 #include "init/hap_crl_manager.h"
 #include "init/trusted_root_ca.h"
 #include "init/trusted_source_manager.h"
@@ -33,6 +34,7 @@ bool HapVerifyInit()
     TrustedRootCa& rootCertsObj = TrustedRootCa::GetInstance();
     TrustedSourceManager& trustedAppSourceManager = TrustedSourceManager::GetInstance();
     HapCrlManager& hapCrlManager = HapCrlManager::GetInstance();
+    DeviceTypeManager& deviceTypeManager = DeviceTypeManager::GetInstance();
     g_mtx.lock();
     g_isInit = rootCertsObj.Init() && trustedAppSourceManager.Init();
     if (!g_isInit) {
@@ -40,6 +42,7 @@ bool HapVerifyInit()
         trustedAppSourceManager.Recovery();
     }
     hapCrlManager.Init();
+    deviceTypeManager.GetDeviceTypeInfo();
     g_mtx.unlock();
     return g_isInit;
 }

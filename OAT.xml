@@ -46,7 +46,6 @@
             <filefilter name="binaryFileTypePolicyFilter" desc="Filters for binary file policies">
                 <filteritem type="filepath" name="base/security/appverify/figures/image_appverify.png" desc="Picture of module architecture in README"/>
                 <filteritem type="filepath" name="base/security/appverify/figures/zh-cn_image_appverify.png" desc="Picture of module architecture in README"/>
-                <filteritem type="filepath" name="base/security/appverify/interfaces/innerkits/appverify_lite/OpenHarmonyCer/OpenHarmony.jks" desc="Keystore used in OpenHarmony build"/>
             </filefilter>
 
         </filefilterlist>
