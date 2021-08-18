@@ -27,6 +27,7 @@
 #endif // STANDARD_SYSTEM
 
 #include "common/hap_verify_log.h"
+#include "init/device_type_manager.h"
 
 using namespace std;
 using namespace nlohmann;
@@ -202,6 +203,20 @@ AppProvisionVerifyResult ParseProvision(const string& appProvision, ProvisionInf
     return PROVISION_OK;
 }
 
+inline bool CheckDeviceID(const std::vector<std::string>& deviceIds, const string& deviceId)
+{
+    auto iter = find(deviceIds.begin(), deviceIds.end(), deviceId);
+    if (iter == deviceIds.end()) {
+        DeviceTypeManager& deviceTypeManager = DeviceTypeManager::GetInstance();
+        if (!deviceTypeManager.GetDeviceTypeInfo()) {
+            HAPVERIFY_LOG_ERROR(LABEL, "current device is not authorized");
+            return false;
+        }
+        HAPVERIFY_LOG_INFO(LABEL, "current device is a debug device");
+    }
+    return true;
+}
+
 AppProvisionVerifyResult CheckDeviceID(ProvisionInfo& info)
 {
     // Checking device ids
@@ -209,39 +224,40 @@ AppProvisionVerifyResult CheckDeviceID(ProvisionInfo& info)
         HAPVERIFY_LOG_ERROR(LABEL, "device-id list is empty.");
         return PROVISION_DEVICE_UNAUTHORIZED;
     }
+
     if (info.debugInfo.deviceIds.size() > MAXIMUM_NUM_DEVICES) {
         HAPVERIFY_LOG_ERROR(LABEL, "No. of device IDs in list exceed maximum number %{public}d", MAXIMUM_NUM_DEVICES);
         return PROVISION_NUM_DEVICE_EXCEEDED;
     }
-    string deviceId;
-    if (info.debugInfo.deviceIdType == VALUE_DEVICE_ID_TYPE_UDID) {
-#ifndef STANDARD_SYSTEM
-        int32_t ret = OHOS::AccountSA::OhosAccountKits::GetInstance().GetUdid(deviceId);
-        if (ret != 0) {
-            HAPVERIFY_LOG_ERROR(LABEL, "obtaining current device id failed (%{public}d).", ret);
-            return PROVISION_DEVICE_UNAUTHORIZED;
-        }
-#else
-        char udid[DEV_UUID_LEN] = {0};
-        int ret = GetDevUdid(udid, sizeof(udid));
-        if (ret != EC_SUCCESS) {
-            HAPVERIFY_LOG_ERROR(LABEL, "obtaining current device id failed (%{public}d).", static_cast<int>(ret));
-            return PROVISION_DEVICE_UNAUTHORIZED;
-        }
-        deviceId = std::string(udid, sizeof(udid) - 1);
-        HAPVERIFY_LOG_INFO(LABEL, "L2 UDID:%{public}s, len:%{public}d.", deviceId.c_str(), deviceId.size());
-#endif // STANDARD_SYSTEM
-    } else {
+
+    if (info.debugInfo.deviceIdType != VALUE_DEVICE_ID_TYPE_UDID) {
         HAPVERIFY_LOG_ERROR(LABEL, "type of device ID is not supported.");
         return PROVISION_UNSUPPORTED_DEVICE_TYPE;
     }
+
+    string deviceId;
+#ifndef STANDARD_SYSTEM
+    int32_t ret = OHOS::AccountSA::OhosAccountKits::GetInstance().GetUdid(deviceId);
+    if (ret != 0) {
+        HAPVERIFY_LOG_ERROR(LABEL, "obtaining current device id failed (%{public}d).", ret);
+        return PROVISION_DEVICE_UNAUTHORIZED;
+    }
+#else
+    char udid[DEV_UUID_LEN] = {0};
+    int ret = GetDevUdid(udid, sizeof(udid));
+    if (ret != EC_SUCCESS) {
+        HAPVERIFY_LOG_ERROR(LABEL, "obtaining current device id failed (%{public}d).", static_cast<int>(ret));
+        return PROVISION_DEVICE_UNAUTHORIZED;
+    }
+    deviceId = std::string(udid, sizeof(udid) - 1);
+    HAPVERIFY_LOG_INFO(LABEL, "L2 UDID:%{public}s, len:%{public}d.", deviceId.c_str(), deviceId.size());
+#endif // STANDARD_SYSTEM
     if (deviceId.empty()) {
         HAPVERIFY_LOG_ERROR(LABEL, "device-id of current device is empty.");
         return PROVISION_DEVICE_UNAUTHORIZED;
     }
-    auto iter = find(info.debugInfo.deviceIds.begin(), info.debugInfo.deviceIds.end(), deviceId);
-    if (iter == info.debugInfo.deviceIds.end()) {
-        HAPVERIFY_LOG_ERROR(LABEL, "current device is not authorized.");
+
+    if (!CheckDeviceID(info.debugInfo.deviceIds, deviceId)) {
         return PROVISION_DEVICE_UNAUTHORIZED;
     }
     return PROVISION_OK;

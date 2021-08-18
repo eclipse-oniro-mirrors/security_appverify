@@ -61,11 +61,11 @@ bool TrustedRootCa::EnableDebug()
 
 void TrustedRootCa::DisableDebug()
 {
+    isDebug = false;
     for (auto& rootCert : rootCertsForTest) {
         X509_free(rootCert.second);
     }
     rootCertsForTest.clear();
-    isDebug = false;
 }
 
 bool TrustedRootCa::Init()

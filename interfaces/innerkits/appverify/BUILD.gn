@@ -30,6 +30,7 @@ ohos_shared_library("libhapverify") {
     "src/common/hap_byte_buffer_data_source.cpp",
     "src/common/hap_file_data_source.cpp",
     "src/common/random_access_file.cpp",
+    "src/init/device_type_manager.cpp",
     "src/init/hap_crl_manager.cpp",
     "src/init/json_parser_utils.cpp",
     "src/init/trusted_root_ca.cpp",
@@ -52,7 +53,7 @@ ohos_shared_library("libhapverify") {
     "-fvisibility=hidden",
   ]
 
-  ldflags = [ "-Wl,--exclude-libs,ALL" ]
+  ldflags = [ "-Wl,--exclude-libs=libcrypto_static.a" ]
 
   deps = [
     "//third_party/openssl:libcrypto_static",
@@ -72,6 +73,11 @@ ohos_shared_library("libhapverify") {
       "ipc:ipc_core",
       "os_account:libaccountkits",
     ]
+
+    if (!build_public_version) {
+      deps += [ "//base/security/securityadapter/interfaces/innerkits/securitydiagnose:libsecuritydiagnose_static" ]
+      defines = [ "SUPPORT_GET_DEVICE_TYPES" ]
+    }
   }
 
   part_name = "appverify"
