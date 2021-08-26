@@ -26,6 +26,7 @@
 
 #include "mbedtls/base64.h"
 #include "securec.h"
+
 namespace {
     const int MAX_FILE_LEN = 1000000;
     const int ONCE_WRITE = 2000;
@@ -54,7 +55,7 @@ int CopyFile(const char *org, const char *dest)
     }
     (void)memset_s(buffer.get(), wholeLen, 0, wholeLen);
     int len = 0;
-    mbedtls_base64_decode(static_cast<unsigned char *>(buffer.get()), (size_t)wholeLen, (size_t *)&len,
+    mbedtls_base64_decode(reinterpret_cast<unsigned char *>(buffer.get()), (size_t)wholeLen, (size_t *)&len,
         (unsigned char *)org, (size_t)wholeLen);
     int num = 0;
     while (num < len) {
@@ -69,7 +70,6 @@ int CopyFile(const char *org, const char *dest)
     ret = 0;
 EXIT:
     close(in);
-    free(buffer);
     return ret;
 }
 

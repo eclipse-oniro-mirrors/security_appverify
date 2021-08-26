@@ -89,7 +89,7 @@ static const unsigned char DEBUG_MODE_ROOT_CERT_IN_PEM[] =
     "J6LzteOvjLTEV5iebQMz/nS1j7/oj3Rsqg==\r\n"
     "-----END CERTIFICATE-----\r\n";
 static mbedtls_x509_crt g_ohosRootCert;
-static const unsigned char  OHOS_ROOT_CERT_IN_PEM[] =
+static const unsigned char OHOS_ROOT_CERT_IN_PEM[] =
     "-----BEGIN CERTIFICATE-----\r\n"
     "MIICRDCCAcmgAwIBAgIED+E4izAMBggqhkjOPQQDAwUAMGgxCzAJBgNVBAYTAkNO\r\n"
     "MRQwEgYDVQQKEwtPcGVuSGFybW9ueTEZMBcGA1UECxMQT3Blbkhhcm1vbnkgVGVh\r\n"

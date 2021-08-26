@@ -14,6 +14,12 @@
 import("//build/lite/config/component/lite_component.gni")
 import("//build/lite/config/test.gni")
 
+config("app_verify_test_config") {
+  cflags_cc = [
+    "-std=c++17",
+  ]
+}
+
 unittest("app_verify_test") {
   output_extension = "bin"
   output_dir = "$root_out_dir/test/unittest/security"
@@ -27,6 +33,8 @@ unittest("app_verify_test") {
     "src/hap_verify_test.cpp",
     "src/write_file.cpp",
   ]
+
+  configs = [":app_verify_test_config"]
 
   include_dirs = [
     "src",
