@@ -55,7 +55,7 @@
 
 static mbedtls_x509_crt g_rootCaG2Cert;
 static bool g_rootCertLoaded;
-static const unsigned char g_rootCaG2CertInPem[] =
+static const unsigned char ROOT_CA_G2_CERT_IN_PEM[] =
     "-----BEGIN CERTIFICATE-----\r\n"
     "MIICGjCCAaGgAwIBAgIIShhpn519jNAwCgYIKoZIzj0EAwMwUzELMAkGA1UEBhMC\r\n"
     "Q04xDzANBgNVBAoMBkh1YXdlaTETMBEGA1UECwwKSHVhd2VpIENCRzEeMBwGA1UE\r\n"
@@ -73,7 +73,7 @@ static const unsigned char g_rootCaG2CertInPem[] =
 
 static mbedtls_x509_crt g_debugModeRootCert;
 static bool g_debugModeEnabled;
-static const unsigned char g_debugModeRootCertInPem[] =
+static const unsigned char DEBUG_MODE_ROOT_CERT_IN_PEM[] =
     "-----BEGIN CERTIFICATE-----\r\n"
     "MIICJTCCAaugAwIBAgIIb/9KnVieVTgwCgYIKoZIzj0EAwMwWDELMAkGA1UEBhMC\r\n"
     "Q04xDzANBgNVBAoMBkh1YXdlaTETMBEGA1UECwwKSHVhd2VpIENCRzEjMCEGA1UE\r\n"
@@ -89,7 +89,7 @@ static const unsigned char g_debugModeRootCertInPem[] =
     "J6LzteOvjLTEV5iebQMz/nS1j7/oj3Rsqg==\r\n"
     "-----END CERTIFICATE-----\r\n";
 static mbedtls_x509_crt g_ohosRootCert;
-static const unsigned char g_ohosRootCertInPem[] =
+static const unsigned char OHOS_ROOT_CERT_IN_PEM[] =
     "-----BEGIN CERTIFICATE-----\r\n"
     "MIICRDCCAcmgAwIBAgIED+E4izAMBggqhkjOPQQDAwUAMGgxCzAJBgNVBAYTAkNO\r\n"
     "MRQwEgYDVQQKEwtPcGVuSGFybW9ueTEZMBcGA1UECxMQT3Blbkhhcm1vbnkgVGVh\r\n"
@@ -917,7 +917,7 @@ static int LoadRootCert(void)
     int rc = 0;
     if (!g_rootCertLoaded) {
         mbedtls_x509_crt_init(&g_rootCaG2Cert);
-        rc = mbedtls_x509_crt_parse(&g_rootCaG2Cert, g_rootCaG2CertInPem, sizeof(g_rootCaG2CertInPem));
+        rc = mbedtls_x509_crt_parse(&g_rootCaG2Cert, ROOT_CA_G2_CERT_IN_PEM, sizeof(ROOT_CA_G2_CERT_IN_PEM));
         if (rc) {
             LOG_ERROR("load root ca failed");
             return rc;
@@ -939,9 +939,9 @@ static void UnLoadRootCert(void)
 
 static int LoadDebugModeRootCert(void)
 {
-    int rc;
     mbedtls_x509_crt_init(&g_debugModeRootCert);
-    rc = mbedtls_x509_crt_parse(&g_debugModeRootCert, g_debugModeRootCertInPem, sizeof(g_debugModeRootCertInPem));
+    int rc = mbedtls_x509_crt_parse(&g_debugModeRootCert, DEBUG_MODE_ROOT_CERT_IN_PEM,
+        sizeof(DEBUG_MODE_ROOT_CERT_IN_PEM));
     if (rc) {
         LOG_ERROR("load debug mode root ca failed %d", rc);
         return rc;
@@ -958,9 +958,8 @@ static int UnLoadDebugModeRootCert(void)
 
 static int LoadSelfSignedCert(void)
 {
-    int rc;
     mbedtls_x509_crt_init(&g_ohosRootCert);
-    rc = mbedtls_x509_crt_parse(&g_ohosRootCert, g_ohosRootCertInPem, sizeof(g_ohosRootCertInPem));
+    int rc = mbedtls_x509_crt_parse(&g_ohosRootCert, OHOS_ROOT_CERT_IN_PEM, sizeof(OHOS_ROOT_CERT_IN_PEM));
     if (rc) {
         LOG_ERROR("load self signed ca failed %d", rc);
         return rc;
