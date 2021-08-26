@@ -22,10 +22,10 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <memory>
 
 #include "mbedtls/base64.h"
 #include "securec.h"
-
 namespace {
     const int MAX_FILE_LEN = 1000000;
     const int ONCE_WRITE = 2000;
@@ -47,19 +47,19 @@ int CopyFile(const char *org, const char *dest)
         close(in);
         return -1;
     }
-    auto *buffer = reinterpret_cast<char*>(malloc(wholeLen));
+    std::unique_ptr<char[]> buffer = std::make_unique<char[]>(wholeLen);
     if (buffer == nullptr) {
         close(in);
         return -1;
     }
-    (void)memset_s(buffer, wholeLen, 0, wholeLen);
+    (void)memset_s(buffer.get(), wholeLen, 0, wholeLen);
     int len = 0;
-    mbedtls_base64_decode((unsigned char *)buffer, (size_t)wholeLen, (size_t *)&len,
+    mbedtls_base64_decode(static_cast<unsigned char *>(buffer.get()), (size_t)wholeLen, (size_t *)&len,
         (unsigned char *)org, (size_t)wholeLen);
     int num = 0;
     while (num < len) {
         int trueLen = ((len - num) >= ONCE_WRITE) ? ONCE_WRITE : (len - num);
-        char *temp = buffer + num;
+        char *temp = buffer.get() + num;
         num += trueLen;
         ret = write(in, temp, trueLen);
         if (ret < 0) {
