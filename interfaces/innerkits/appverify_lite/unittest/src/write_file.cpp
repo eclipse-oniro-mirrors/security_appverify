@@ -47,7 +47,7 @@ int CopyFile(const char *org, const char *dest)
         close(in);
         return -1;
     }
-    char *buffer = (char *)malloc(wholeLen);
+    auto *buffer = reinterpret_cast<char*>(malloc(wholeLen));
     if (buffer == nullptr) {
         close(in);
         return -1;
