@@ -68,6 +68,7 @@ bool DeviceTypeManager::GetDeviceTypeInfo()
             HAPVERIFY_LOG_ERROR(LABEL, "Enable debug failed");
             rootCertsObj.DisableDebug();
             trustedAppSourceManager.DisableDebug();
+            getDeviceTypeMtx.unlock();
             return currentDeviceType;
         }
     } else {
