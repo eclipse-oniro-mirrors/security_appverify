@@ -43,7 +43,7 @@ private:
     void WriteCrlIfNeed(const Pkcs7Context& pkcs7Context, const bool& profileNeedWriteCrl);
     DLL_EXPORT bool ParseAndVerifyProfileIfNeed(const std::string& profile, ProvisionInfo& provisionInfo,
         bool isCallParseAndVerify);
-    bool IsAppDistributedTypeAllowInstall(const AppDistType& type) const;
+    bool IsAppDistributedTypeAllowInstall(const AppDistType& type, const ProvisionInfo& provisionInfo) const;
     DLL_EXPORT bool VerifyProfileInfo(const Pkcs7Context& pkcs7Context, const Pkcs7Context& profileContext,
         ProvisionInfo& provisionInfo);
     bool CheckProfileSignatureIsRight(const MatchingStates& matchState, const ProvisionType& type);
