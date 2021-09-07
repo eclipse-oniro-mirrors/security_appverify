@@ -33,7 +33,7 @@ enum TicketVerifyResultCode {
     TICKET_NOT_MATCH = -4,
     TICKET_DEVICE_INVALID = -5,
     TICKET_PARSE_FAIL = -6,
-    TICKET_PERMISSION_ERROR = -7, 
+    TICKET_PERMISSION_ERROR = -7,
     TICKET_READ_FAIL = -8,
 };
 

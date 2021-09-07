@@ -170,6 +170,5 @@ HWTEST_F (TrustedTicketTest, IsTrustedSourceTest002, TestSize.Level1)
      */
     std::string certSubject9 = "C=CN, O=Other, OU=MemberCenter, CN=MemberShip ticket Release V9a";
     ASSERT_TRUE(trustedticketsource.IsTrustedSource(certSubject9, certIssuer, 3).matchState == DO_NOT_MATCH);
-
 }
 }

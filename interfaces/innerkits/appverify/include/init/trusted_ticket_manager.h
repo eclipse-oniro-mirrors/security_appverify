@@ -50,7 +50,7 @@ private:
 
     /* Forbid external replication constructs and external replication */
     TrustedTicketManager(const TrustedTicketManager& trustedSource) = delete;
-    TrustedTicketManager& operator = (const TrustedTicketManager& trustedSource) = delete;
+    TrustedTicketManager& operator =(const TrustedTicketManager& trustedSource) = delete;
 
     bool GetTicketTrustedSources(TicketSourceInfoVec& trustedTicketSources, std::string& sourcesVersion,
         std::string& sourcesReleaseTime, const std::string& filePath);

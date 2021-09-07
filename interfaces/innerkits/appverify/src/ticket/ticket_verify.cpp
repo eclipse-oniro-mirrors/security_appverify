@@ -39,9 +39,8 @@
 namespace {
 const int MAXIMUM_DEVICES = 100;
 const int TICKET_MAX_SIZE = 18432;
-const std::string TICKET_FILE_PATH = "/data/misc/ticket/";
+const std::string TICKET_FILE_PATH = "/data/misc_ce/0/ticket/";
 const std::string VALUE_DEVICE_TYPE_UDID = "udid";
-const std::string TICKET_PATTERN = "[^]*.p7b$";
 } // namespace
 
 namespace OHOS {
@@ -55,10 +54,6 @@ bool CheckTicketFilePath(const std::string& filePath, std::string& standardFileP
         return false;
     }
     standardFilePath = std::string(path);
-    if (!std::regex_match(standardFilePath, std::regex(TICKET_PATTERN))) {
-        HAPVERIFY_LOG_ERROR(LABEL, "file is not p7b, %{public}s", standardFilePath.c_str());
-        return false;
-    }
     return true;
 }
 
@@ -133,6 +128,10 @@ int CompareTicketAndProfile(const ProvisionInfo& ticketInfo, const ProvisionInfo
 {
     if (ticketInfo.bundleInfo.bundleName != profileInfo.bundleInfo.bundleName) {
         HAPVERIFY_LOG_ERROR(LABEL, "ticket bundlename doesn't match");
+        return TICKET_NOT_MATCH;
+    }
+
+    if (ticketInfo.type != profileInfo.type) {
         return TICKET_NOT_MATCH;
     }
 
