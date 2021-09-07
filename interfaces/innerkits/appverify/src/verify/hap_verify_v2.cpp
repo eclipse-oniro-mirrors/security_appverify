@@ -27,6 +27,7 @@
 #include "util/hap_profile_verify_utils.h"
 #include "util/hap_signing_block_utils.h"
 #include "util/signature_info.h"
+#include "ticket/ticket_verify.h"
 
 namespace OHOS {
 namespace Security {
@@ -238,7 +239,7 @@ bool HapVerifyV2::VerifyProfileInfo(const Pkcs7Context& pkcs7Context, const Pkcs
     }
     std::string& certInProfile = provisionInfo.bundleInfo.developmentCertificate;
     if (provisionInfo.type == ProvisionType::RELEASE) {
-        if (!IsAppDistributedTypeAllowInstall(provisionInfo.distributionType)) {
+        if (!IsAppDistributedTypeAllowInstall(provisionInfo.distributionType, provisionInfo)) {
             HAPVERIFY_LOG_ERROR(LABEL, "untrusted source app with release profile distributionType: %{public}d",
                 static_cast<int>(provisionInfo.distributionType));
             return false;
@@ -255,11 +256,16 @@ bool HapVerifyV2::VerifyProfileInfo(const Pkcs7Context& pkcs7Context, const Pkcs
     return true;
 }
 
-bool HapVerifyV2::IsAppDistributedTypeAllowInstall(const AppDistType& type) const
+bool HapVerifyV2::IsAppDistributedTypeAllowInstall(const AppDistType& type, const ProvisionInfo& provisionInfo) const
 {
     switch (type) {
         case AppDistType::NONE_TYPE:
+            return false;
         case AppDistType::APP_GALLERY:
+            if (CheckTicketSource(provisionInfo)) {
+                HAPVERIFY_LOG_INFO(LABEL, "current device is allowed to install opentest application");
+                return true;
+            }
             return false;
         case AppDistType::ENTERPRISE:
         case AppDistType::OS_INTEGRATION:

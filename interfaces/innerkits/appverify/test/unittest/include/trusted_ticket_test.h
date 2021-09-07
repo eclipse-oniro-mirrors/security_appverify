@@ -12,32 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef HAP_MATCHING_RESULT_H
-#define HAP_MATCHING_RESULT_H
+#ifndef HAP_TRUSTED_TICKET_TEST_H
+#define HAP_TRUSTED_TICKET_TEST_H
 
-namespace OHOS {
-namespace Security {
-namespace Verify {
-enum TrustedSources {
-    OTHER_TRUSTED_SOURCE = 0,
-    APP_GALLARY,
-    APP_SYSTEM,
-    APP_THIRD_PARTY_PRELOAD,
-};
+#include "test_const.h"
 
-enum MatchingStates {
-    DO_NOT_MATCH = 0,
-    MATCH_WITH_SIGN,
-    MATCH_WITH_PROFILE,
-    MATCH_WITH_PROFILE_DEBUG,
-    MATCH_WITH_TICKET,
-};
-
-struct MatchingResult {
-    MatchingStates matchState;
-    TrustedSources source;
-};
-} // namespace Verify
-} // namespace Security
-} // namespace OHOS
-#endif // HAP_MATCHING_RESULT_H
+int CreatTrustedTicketCA001(void);
+int IsTrustedSourceTest001(void);
+int IsTrustedSourceTest002(void);
+#endif // HAP_TRUSTED_TICKET_TEST_H
