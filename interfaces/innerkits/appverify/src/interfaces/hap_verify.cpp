@@ -21,6 +21,7 @@
 #include "init/hap_crl_manager.h"
 #include "init/trusted_root_ca.h"
 #include "init/trusted_source_manager.h"
+#include "init/trusted_ticket_manager.h"
 #include "verify/hap_verify_v2.h"
 
 namespace OHOS {
@@ -35,12 +36,14 @@ bool HapVerifyInit()
     TrustedSourceManager& trustedAppSourceManager = TrustedSourceManager::GetInstance();
     HapCrlManager& hapCrlManager = HapCrlManager::GetInstance();
     DeviceTypeManager& deviceTypeManager = DeviceTypeManager::GetInstance();
+    TrustedTicketManager& trustedTicketSourceManager = TrustedTicketManager::GetInstance();
     g_mtx.lock();
     g_isInit = rootCertsObj.Init() && trustedAppSourceManager.Init();
     if (!g_isInit) {
         rootCertsObj.Recovery();
         trustedAppSourceManager.Recovery();
     }
+    trustedTicketSourceManager.Init();
     hapCrlManager.Init();
     deviceTypeManager.GetDeviceTypeInfo();
     g_mtx.unlock();

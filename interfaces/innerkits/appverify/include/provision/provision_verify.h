@@ -28,7 +28,7 @@ enum AppProvisionVerifyResult {
     PROVISION_OK, // Passed
     PROVISION_UNSUPPORTED_DEVICE_TYPE, // Failed to get device id
     PROVISION_NUM_DEVICE_EXCEEDED, // No. of device exceeds maximum number
-    PROVISION_DEVICE_UNAUTHORIZED // Device id not included
+    PROVISION_DEVICE_UNAUTHORIZED, // Device id not included
 };
 
 /**
@@ -38,6 +38,14 @@ enum AppProvisionVerifyResult {
  * @return AppProvisionVerifyResult Verification result.
  */
 DLL_EXPORT AppProvisionVerifyResult ParseAndVerify(const std::string& appProvision, ProvisionInfo& info);
+
+/**
+ * @brief Parse app provision
+ * @param appProvision The app provision json string.
+ * @param info Out param, the parsed app provision structure.
+ * @return AppProvisionVerifyResult parse result.
+ */
+DLL_EXPORT AppProvisionVerifyResult ParseProvision(const std::string& appProvision, ProvisionInfo& info);
 } // namespace Verify
 } // namespace Security
 } // namespace OHOS
