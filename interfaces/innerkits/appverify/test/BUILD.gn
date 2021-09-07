@@ -43,6 +43,7 @@ ohos_unittest("verify_test") {
     "unittest/src/provision_verify_test.cpp",
     "unittest/src/random_access_file_test.cpp",
     "unittest/src/trusted_root_ca_test.cpp",
+    "unittest/src/trusted_ticket_test.cpp",
   ]
 
   configs = [ ":verify_test_config" ]

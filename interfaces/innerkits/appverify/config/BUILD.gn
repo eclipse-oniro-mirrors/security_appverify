@@ -48,3 +48,10 @@ ohos_prebuilt_etc("trusted_root_ca_test") {
   subsystem_name = "security"
   relative_install_dir = "security"
 }
+
+ohos_prebuilt_etc("trusted_tickets_sources") {
+  source = "trusted_tickets_sources.json"
+  part_name = "appverify"
+  subsystem_name = "security"
+  relative_install_dir = "security"
+}
