@@ -11,7 +11,8 @@
         "//base/security/appverify/interfaces/innerkits/appverify/config:trusted_apps_sources",
         "//base/security/appverify/interfaces/innerkits/appverify/config:trusted_apps_sources_test",
         "//base/security/appverify/interfaces/innerkits/appverify/config:trusted_root_ca",
-        "//base/security/appverify/interfaces/innerkits/appverify/config:trusted_root_ca_test"
+        "//base/security/appverify/interfaces/innerkits/appverify/config:trusted_root_ca_test",
+        "//base/security/appverify/interfaces/innerkits/appverify/config:trusted_tickets_sources"
       ],
       "inner_kits": [
         {
