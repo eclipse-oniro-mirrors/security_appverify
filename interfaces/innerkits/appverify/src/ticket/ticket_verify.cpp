@@ -30,7 +30,6 @@
 #include "common/hap_byte_buffer.h"
 #include "common/hap_verify_log.h"
 #include "common/random_access_file.h"
-#include "init/device_type_manager.h"
 #include "init/trusted_ticket_manager.h"
 #include "util/hap_cert_verify_openssl_utils.h"
 #include "util/hap_verify_openssl_utils.h"
@@ -150,7 +149,7 @@ int CompareTicketAndProfile(const ProvisionInfo& ticketInfo, const ProvisionInfo
 
     if (!ticketInfo.permissions.restrictedCapabilities.empty()) {
         if (!CheckPermissions(ticketInfo.permissions.restrictedCapabilities,
-                              profileInfo.permissions.restrictedCapabilities)) {
+            profileInfo.permissions.restrictedCapabilities)) {
             HAPVERIFY_LOG_ERROR(LABEL, "ticket restrictedCapabilities doesn't match");
             return TICKET_PERMISSION_ERROR;
         }
@@ -158,7 +157,7 @@ int CompareTicketAndProfile(const ProvisionInfo& ticketInfo, const ProvisionInfo
 
     if (!ticketInfo.permissions.restrictedPermissions.empty()) {
         if (!CheckPermissions(ticketInfo.permissions.restrictedPermissions,
-                              profileInfo.permissions.restrictedPermissions)) {
+            profileInfo.permissions.restrictedPermissions)) {
             HAPVERIFY_LOG_ERROR(LABEL, "ticket restrictedPermissions doesn't match");
             return TICKET_PERMISSION_ERROR;
         }
@@ -205,10 +204,10 @@ bool VerifyTicketSignature(HapByteBuffer& ticketBlock, Pkcs7Context& pkcs7Contex
     return true;
 }
 
-int TicketParseAndVerify(const std::string& Ticket, ProvisionInfo& ticketInfo,
+int TicketParseAndVerify(const std::string& ticket, ProvisionInfo& ticketInfo,
     const ProvisionInfo& profileInfo)
 {
-    if (ParseProvision(Ticket, ticketInfo) != PROVISION_OK) {
+    if (ParseProvision(ticket, ticketInfo) != PROVISION_OK) {
         return TICKET_PARSE_FAIL;
     }
     int ret = CompareTicketAndProfile(ticketInfo, profileInfo);
@@ -224,19 +223,19 @@ int TicketParseAndVerify(const std::string& Ticket, ProvisionInfo& ticketInfo,
 int VerifyTicket(const std::string& filePath, const ProvisionInfo& profileInfo)
 {
     HAPVERIFY_LOG_DEBUG(LABEL, "Enter Ticket Verify");
-    RandomAccessFile TicketFile;
-    if (!TicketFile.Init(filePath)) {
+    RandomAccessFile ticketFile;
+    if (!ticketFile.Init(filePath)) {
         HAPVERIFY_LOG_ERROR(LABEL, "open %{public}s failed", filePath.c_str());
         return OPEN_TICKET_FILE_ERROR;
     }
-    long long fileLength = TicketFile.GetLength();
+    long long fileLength = ticketFile.GetLength();
     if (fileLength > TICKET_MAX_SIZE) {
         HAPVERIFY_LOG_ERROR(LABEL, "file length %{public}lld is too larger", fileLength);
         return OPEN_TICKET_FILE_ERROR;
     }
     int fileLen = static_cast<int>(fileLength);
     HapByteBuffer ticketBlock(fileLen);
-    long long ret = TicketFile.ReadFileFullyFromOffset(ticketBlock, 0);
+    long long ret = ticketFile.ReadFileFullyFromOffset(ticketBlock, 0);
     if (ret < 0) {
         HAPVERIFY_LOG_ERROR(LABEL, "read data from ticket error: %{public}lld", ret);
         return TICKET_READ_FAIL;

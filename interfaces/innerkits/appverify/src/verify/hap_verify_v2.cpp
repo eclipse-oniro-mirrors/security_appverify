@@ -24,10 +24,10 @@
 #include "common/hap_verify_log.h"
 #include "init/hap_crl_manager.h"
 #include "init/trusted_source_manager.h"
+#include "ticket/ticket_verify.h"
 #include "util/hap_profile_verify_utils.h"
 #include "util/hap_signing_block_utils.h"
 #include "util/signature_info.h"
-#include "ticket/ticket_verify.h"
 
 namespace OHOS {
 namespace Security {
@@ -41,6 +41,7 @@ const std::string HapVerifyV2::HAP_APP_PATTERN = "[^]*.hap$";
 
 int HapVerifyV2::Verify(const std::string& filePath, HapVerifyResult& hapVerifyV1Result)
 {
+    HAPVERIFY_LOG_DEBUG(LABEL, "Start Verify");
     std::string standardFilePath;
     if (!CheckFilePath(filePath, standardFilePath)) {
         return FILE_PATH_INVALID;
