@@ -55,7 +55,7 @@ private:
     bool GetTicketTrustedSources(TicketSourceInfoVec& trustedTicketSources, std::string& sourcesVersion,
         std::string& sourcesReleaseTime, const std::string& filePath);
     bool ParseTrustedTicketSourceJson(TicketSourceInfoVec& trustedTicketSources,
-        const JsonObjVec& trustedTicketSourceJson);
+        const JsonObjVec& trustedTicketJson);
     std::string EncapTrustedTicketSourceString(const HapTicketSourceInfo& ticketSourceInfo);
     MatchingResult MatchTrustedSource(const TicketSourceInfoVec& trustedTicketSources, const std::string& certSubject,
         const std::string& certIssuer, int certListPath) const;
