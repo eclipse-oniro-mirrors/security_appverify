@@ -89,12 +89,12 @@ bool TrustedTicketManager::GetTicketTrustedSources(TicketSourceInfoVec& trustedT
         HAPVERIFY_LOG_ERROR(LABEL, "get releaseTime failed");
         return false;
     }
-    JsonObjVec trustedTicketSourceJson;
-    if (!JsonParserUtils::ParseJsonToObjVec(trustedSourceJson, KEY_OF_TICKET_TRUSTED_SOURCE, trustedTicketSourceJson)) {
+    JsonObjVec trustedTicketJson;
+    if (!JsonParserUtils::ParseJsonToObjVec(trustedSourceJson, KEY_OF_TICKET_TRUSTED_SOURCE, trustedTicketJson)) {
         HAPVERIFY_LOG_ERROR(LABEL, "get JsonObjVec failed");
         return false;
     }
-    if (!ParseTrustedTicketSourceJson(trustedTicketSources, trustedTicketSourceJson)) {
+    if (!ParseTrustedTicketSourceJson(trustedTicketSources, trustedTicketJson)) {
         HAPVERIFY_LOG_ERROR(LABEL, "parse JsonObjVec failed");
         return false;
     }
@@ -106,9 +106,9 @@ bool TrustedTicketManager::GetTicketTrustedSources(TicketSourceInfoVec& trustedT
 }
 
 bool TrustedTicketManager::ParseTrustedTicketSourceJson(TicketSourceInfoVec& trustedTicketSources,
-    const JsonObjVec& trustedTicketSourceJson)
+    const JsonObjVec& trustedTicketJson)
 {
-    for (auto TicketSource : trustedTicketSourceJson) {
+    for (auto TicketSource : trustedTicketJson) {
         HapTicketSourceInfo hapTicketSource;
         if (!JsonParserUtils::GetJsonString(TicketSource, KEY_OF_SOURCE_NAME, hapTicketSource.sourceName)) {
             HAPVERIFY_LOG_ERROR(LABEL, "Get sourceName Failed");
