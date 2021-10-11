@@ -19,10 +19,10 @@
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
+#include <memory>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <memory>
 
 #include "mbedtls/base64.h"
 #include "securec.h"
