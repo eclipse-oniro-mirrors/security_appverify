@@ -263,11 +263,10 @@ bool CheckTicketSource(const ProvisionInfo& profileInfo)
     std::string ticketfilepath;
 #ifndef STANDARD_SYSTEM
     int32_t userId;
-    int32_t err = OHOS::AccountSA::OhosAccountKits::GetInstance().GetUdid(userId);
+    int32_t err = OHOS::AccountSA::OhosAccountKits::GetInstance().QueryDeviceAccountId(userId);
     if (err != ERR_OK) {
         userId = 0;
-        HAPVERIFY_LOG_ERROR(LABEL, "query device account id failed, errorCode =
-            %{public}d, use initial value.", err);
+        HAPVERIFY_LOG_ERROR(LABEL, "query device account id failed, errorCode = %{public}d", err);
         return false;
     }
     std::string userIdString = std::to_string(userId);
