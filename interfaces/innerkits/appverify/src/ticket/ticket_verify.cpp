@@ -38,8 +38,7 @@
 namespace {
 const int MAXIMUM_DEVICES = 100;
 const int TICKET_MAX_SIZE = 18432;
-const std::string TICKET_FILE_PATH = "/data/misc_ce/";
-const std::string TICKET_PATH = "/ticket/";
+const std::string TICKET_FILE_PATH = "/data/update/ticket/";
 const std::string VALUE_DEVICE_TYPE_UDID = "udid";
 } // namespace
 
@@ -260,20 +259,7 @@ int VerifyTicket(const std::string& filePath, const ProvisionInfo& profileInfo)
 
 bool CheckTicketSource(const ProvisionInfo& profileInfo)
 {
-    std::string ticketfilepath;
-#ifndef STANDARD_SYSTEM
-    int32_t userId;
-    int32_t err = OHOS::AccountSA::OhosAccountKits::GetInstance().QueryDeviceAccountId(userId);
-    if (err != ERR_OK) {
-        userId = 0;
-        HAPVERIFY_LOG_ERROR(LABEL, "query device account id failed, errorCode = %{public}d", err);
-        return false;
-    }
-    std::string userIdString = std::to_string(userId);
-    ticketfilepath = TICKET_FILE_PATH + userIdString + TICKET_PATH + profileInfo.bundleInfo.bundleName + ".p7b";
-#else
-    ticketfilepath = TICKET_FILE_PATH + "0" + TICKET_PATH + profileInfo.bundleInfo.bundleName + ".p7b";
-#endif // STANDARD_SYSTEM
+    std::string ticketfilepath = TICKET_FILE_PATH + profileInfo.bundleInfo.bundleName + ".p7b";
     std::string standardFilePath;
     if (!CheckTicketFilePath(ticketfilepath, standardFilePath)) {
         return false;
