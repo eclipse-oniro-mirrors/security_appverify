@@ -42,6 +42,7 @@
         ],
         "features": [],
         "adapted_system_type": [
+            "small",
             "standard"
         ],
         "rom": "",
