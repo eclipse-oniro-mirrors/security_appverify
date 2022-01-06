@@ -10,6 +10,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import("//build/lite/config/component/lite_component.gni")
 import("//build/lite/config/hap_pack.gni")
 
 config("app_verify_config") {
@@ -49,8 +50,11 @@ shared_library("verify") {
   ]
 }
 
-if (ohos_build_type == "debug" && ohos_kernel_type == "liteos_a") {
-  group("unittest") {
-    deps = [ "//base/security/appverify/interfaces/innerkits/appverify_lite/unittest:unittest" ]
+lite_component("verify_lite") {
+  features =
+      [ "//base/security/appverify/interfaces/innerkits/appverify_lite:verify" ]
+
+  if (ohos_build_type == "debug" && ohos_kernel_type == "liteos_a") {
+    features += [ "//base/security/appverify/interfaces/innerkits/appverify_lite/unittest:unittest" ]
   }
 }
