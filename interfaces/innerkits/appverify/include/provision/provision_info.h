@@ -38,7 +38,12 @@ struct BundleInfo {
     std::string developmentCertificate;
     std::string distributionCertificate;
     std::string bundleName;
+    std::string apl;
     std::string appFeature;
+};
+
+struct Acls {
+    std::vector<std::string> allowedAcls;
 };
 
 struct Permissions {
@@ -58,6 +63,7 @@ struct ProvisionInfo {
     ProvisionType type = DEBUG;
     AppDistType distributionType = NONE_TYPE;
     BundleInfo bundleInfo;
+    Acls acls;
     Permissions permissions;
     DebugInfo debugInfo;
     std::string issuer;
