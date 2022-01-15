@@ -43,7 +43,10 @@ const string KEY_DEVELOPER_ID = "developer-id";
 const string KEY_DEVELOPMENT_CERTIFICATE = "development-certificate";
 const string KEY_DISTRIBUTION_CERTIFICATE = "distribution-certificate";
 const string KEY_BUNDLE_NAME = "bundle-name";
+const string KEY_APL = "apl";
 const string KEY_APP_FEATURE = "app-feature";
+const string KEY_ACLS = "acls";
+const string KEY_ALLOWED_ACLS = "allowed-acls";
 const string KEY_PERMISSIONS = "permissions";
 const string KEY_RESTRICTED_PERMISSIONS = "restricted-permissions";
 const string KEY_RESTRICTED_CAPABILITIES = "restricted-capabilities";
@@ -59,7 +62,8 @@ const string VALUE_DEVICE_ID_TYPE_UDID = "udid";
 
 const string GENERIC_BUNDLE_NAME = ".*";
 
-const int MAXIMUM_NUM_DEVICES = 100;
+const int32_t MAXIMUM_NUM_DEVICES = 100;
+const int32_t VERSION_CODE_TWO = 2;
 
 inline void GetStringIfExist(const json& obj, const string& key, string& out)
 {
@@ -126,7 +130,16 @@ void ParseBundleInfo(const json& obj, ProvisionInfo& out)
         GetStringIfExist(bundleInfo, KEY_DEVELOPMENT_CERTIFICATE, out.bundleInfo.developmentCertificate);
         GetStringIfExist(bundleInfo, KEY_DISTRIBUTION_CERTIFICATE, out.bundleInfo.distributionCertificate);
         GetStringIfExist(bundleInfo, KEY_BUNDLE_NAME, out.bundleInfo.bundleName);
+        GetStringIfExist(bundleInfo, KEY_APL, out.bundleInfo.apl);
         GetStringIfExist(bundleInfo, KEY_APP_FEATURE, out.bundleInfo.appFeature);
+    }
+}
+
+void ParseAcls(const json& obj, ProvisionInfo& out)
+{
+    if (IsObjectExist(obj, KEY_ACLS)) {
+        auto& acls = obj[KEY_ACLS];
+        GetStringArrayIfExist(acls, KEY_ALLOWED_ACLS, out.acls.allowedAcls);
     }
 }
 
@@ -158,6 +171,7 @@ void from_json(const json& obj, ProvisionInfo& out)
     ParseType(obj, out);
     ParseAppDistType(obj, out);
     ParseBundleInfo(obj, out);
+    ParseAcls(obj, out);
     ParsePermissions(obj, out);
     ParseDebugInfo(obj, out);
     GetStringIfExist(obj, KEY_ISSUER, out.issuer);
@@ -197,6 +211,9 @@ AppProvisionVerifyResult ParseProvision(const string& appProvision, ProvisionInf
     RETURN_IF_STRING_IS_EMPTY(info.bundleInfo.bundleName, "Tag bundle-name is empty.")
     if (info.bundleInfo.bundleName == GENERIC_BUNDLE_NAME) {
         HAPVERIFY_LOG_DEBUG(LABEL, "generic package name: %{public}s, is used.", GENERIC_BUNDLE_NAME.c_str());
+    }
+    if (info.versionCode >= VERSION_CODE_TWO) {
+        RETURN_IF_STRING_IS_EMPTY(info.bundleInfo.apl, "Tag apl is empty.");
     }
     RETURN_IF_STRING_IS_EMPTY(info.bundleInfo.appFeature, "Tag app-feature is empty.")
 
