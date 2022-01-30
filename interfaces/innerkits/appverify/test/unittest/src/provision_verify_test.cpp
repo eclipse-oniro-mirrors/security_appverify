@@ -50,9 +50,29 @@ const std::string INVALID_PROVISION_2 = R"(
             "development-certificate": "ABCD",
             "distribution-certificate": "1234",
             "bundle-name": "com.test1_1",
+            "apl": "normal",
             "app-feature": "hos_normal_app"
         }
     }})";   // brackets mismatching
+const std::string INVALID_PROVISION_3 = R"(
+    {
+        "version-code": 2,
+        "version-name": "2.0.0",
+        "uuid": "uuid_2",
+        "type": "release",
+        "app-distribution-type": "os_integration",
+        "validity": {
+            "not-before": 1262275200,
+            "not-after": 2524579300
+        },
+        "bundle-info": {
+            "developer-id": "developer_id_2",
+            "development-certificate": "ABCDEFG",
+            "distribution-certificate": "123456789",
+            "bundle-name": "com.test2",
+            "app-feature": "hos_normal_app"
+        }
+    })";  // apl not exist
 /* validity: 2010 - 2030 */
 const std::string VALID_PROVISION = R"(
     {
@@ -70,6 +90,7 @@ const std::string VALID_PROVISION = R"(
             "development-certificate": "ABCDEFG",
             "distribution-certificate": "123456789",
             "bundle-name": "com.test2",
+            "apl": "normal",
             "app-feature": "hos_normal_app"
         }
     })";
@@ -89,6 +110,7 @@ const std::string VALID_PROVISION_PERMISSION = R"(
             "development-certificate": "ABCDEFGH",
             "distribution-certificate": "1234567890",
             "bundle-name": "com.test3",
+            "apl": "normal",
             "app-feature": "hos_normal_app"
         },
         "permissions" : {
@@ -113,6 +135,7 @@ const std::string UNAUTHORIZED_DEVICE_EMPTY_DEVICE_LIST_PROVISION = R"(
             "development-certificate": "ABCDEFGHIJ",
             "distribution-certificate": "1234567890123",
             "bundle-name": "com.test6",
+            "apl": "normal",
             "app-feature": "hos_normal_app"
         },
         "debug-info": {
@@ -135,6 +158,7 @@ const std::string UNSUPPORTED_DEVICE_TYPE_PROVISION = R"(
             "development-certificate": "ABCDEFGHIJM",
             "distribution-certificate": "12345678901231",
             "bundle-name": "com.test7",
+            "apl": "normal",
             "app-feature": "hos_normal_app"
         },
         "debug-info": {
@@ -158,6 +182,7 @@ const std::string DEVICE_UNAUTH_PROVISION = R"(
             "development-certificate": "ABCDEFGHIJK",
             "distribution-certificate": "12345678901234",
             "bundle-name": "com.test8",
+            "apl": "normal",
             "app-feature": "hos_normal_app"
         },
         "debug-info": {
@@ -211,6 +236,8 @@ HWTEST_F(ProvisionVerifyTest, ProvisionVerify001, TestSize.Level1)
     int ret = ParseAndVerify(INVALID_PROVISION_1, info);
     ASSERT_EQ(ret, AppProvisionVerifyResult::PROVISION_INVALID);
     ret = ParseAndVerify(INVALID_PROVISION_2, info);
+    ASSERT_EQ(ret, AppProvisionVerifyResult::PROVISION_INVALID);
+    ret = ParseAndVerify(INVALID_PROVISION_3, info);
     ASSERT_EQ(ret, AppProvisionVerifyResult::PROVISION_INVALID);
 }
 
@@ -387,6 +414,7 @@ HWTEST_F(ProvisionVerifyTest, ProvisionVerify008, TestSize.Level1)
             "development-certificate": "ABCDEFG",
             "distribution-certificate": "123456789",
             "bundle-name": "com.hello",
+            "apl": "normal",
             "app-feature": "hos_normal_app"
         },
         "debug-info": {
