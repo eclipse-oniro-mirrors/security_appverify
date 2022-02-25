@@ -27,8 +27,10 @@
 namespace OHOS {
 namespace Security {
 namespace Verify {
-const long long HapSigningBlockUtils::HAP_SIG_BLOCK_MAGIC_LOW = 2334950737560224072LL;
-const long long HapSigningBlockUtils::HAP_SIG_BLOCK_MAGIC_HIGH = 3617552046287187010LL;
+const long long HapSigningBlockUtils::HAP_SIG_BLOCK_MAGIC_LOW_OLD = 2334950737560224072LL;
+const long long HapSigningBlockUtils::HAP_SIG_BLOCK_MAGIC_HIGH_OLD = 3617552046287187010LL;
+const long long HapSigningBlockUtils::HAP_SIG_BLOCK_MAGIC_LOW = 7451613641622775868LL;
+const long long HapSigningBlockUtils::HAP_SIG_BLOCK_MAGIC_HIGH = 4497797983070462062LL;
 
 /* 1MB = 1024 * 1024 Bytes */
 const long long HapSigningBlockUtils::CHUNK_SIZE = 1048576LL;
@@ -250,8 +252,15 @@ bool HapSigningBlockUtils::FindHapSigningBlock(RandomAccessFile& hapFile, long l
 
 bool HapSigningBlockUtils::CheckSignBlockHead(const HapSignBlockHead& hapSignBlockHead)
 {
-    if ((hapSignBlockHead.hapSignBlockMagicLo != HAP_SIG_BLOCK_MAGIC_LOW) ||
-        (hapSignBlockHead.hapSignBlockMagicHi != HAP_SIG_BLOCK_MAGIC_HIGH)) {
+    long long magic_low = HAP_SIG_BLOCK_MAGIC_LOW;
+    long long magic_high = HAP_SIG_BLOCK_MAGIC_HIGH;
+    if (hapSignBlockHead.version < VERSION_FOR_NEW_MAGIC_NUM) {
+        magic_low = HAP_SIG_BLOCK_MAGIC_LOW_OLD;
+        magic_high = HAP_SIG_BLOCK_MAGIC_HIGH_OLD;
+    }
+
+    if ((hapSignBlockHead.hapSignBlockMagicLo != magic_low) ||
+        (hapSignBlockHead.hapSignBlockMagicHi != magic_high)) {
         HAPVERIFY_LOG_ERROR(LABEL, "No HAP Signing Block before ZIP Central Directory");
         return false;
     }
