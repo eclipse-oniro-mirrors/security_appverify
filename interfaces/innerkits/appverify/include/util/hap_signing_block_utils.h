@@ -60,6 +60,8 @@ public:
         SignatureInfo& signInfo);
 
 private:
+    DLL_EXPORT static const long long HAP_SIG_BLOCK_MAGIC_HIGH_OLD;
+    DLL_EXPORT static const long long HAP_SIG_BLOCK_MAGIC_LOW_OLD;
     DLL_EXPORT static const long long HAP_SIG_BLOCK_MAGIC_HIGH;
     DLL_EXPORT static const long long HAP_SIG_BLOCK_MAGIC_LOW;
     DLL_EXPORT static const int ZIP_HEAD_OF_SIGNING_BLOCK_LENGTH;
@@ -76,6 +78,7 @@ private:
     /* the specifications of hap sign block */
     static constexpr long long MAX_HAP_SIGN_BLOCK_SIZE = 1024 * 1024 * 10LL; // 10MB
     static constexpr int MAX_BLOCK_COUNT = 10;
+    static constexpr int VERSION_FOR_NEW_MAGIC_NUM = 3;
 
 private:
     DLL_EXPORT static bool FindEocdInHap(RandomAccessFile& hapFile, std::pair<HapByteBuffer, long long>& eocd);
