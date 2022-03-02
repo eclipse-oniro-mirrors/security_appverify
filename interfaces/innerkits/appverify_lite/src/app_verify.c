@@ -98,9 +98,9 @@ static void SignHeadN2H(HwSignHead *signHead)
 
 static void BlockHeadN2H(BlockHead *blockHead)
 {
-    blockHead->type = HapGetInt((unsigned char *)&blockHead->type, sizeof(blockHead->type));
-    blockHead->length = HapGetInt((unsigned char *)&blockHead->length, sizeof(blockHead->length));
-    blockHead->offset = HapGetInt((unsigned char *)&blockHead->offset, sizeof(blockHead->offset));
+    blockHead->type = HapGetUnsignedInt((unsigned char *)&blockHead->type, sizeof(blockHead->type));
+    blockHead->length = HapGetUnsignedInt((unsigned char *)&blockHead->length, sizeof(blockHead->length));
+    blockHead->offset = HapGetUnsignedInt((unsigned char *)&blockHead->offset, sizeof(blockHead->offset));
     return;
 }
 

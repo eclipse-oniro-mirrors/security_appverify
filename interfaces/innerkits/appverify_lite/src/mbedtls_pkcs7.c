@@ -1147,7 +1147,7 @@ static bool IsIncludeRoot(const SignerInfo *signer)
     return false;
 }
 
-static size_t GetSignerSignningCertDepth(const SignerInfo *signer)
+static int GetSignerSignningCertDepth(const SignerInfo *signer)
 {
     if (IsIncludeRoot(signer)) {
         return signer->certPath.depth;

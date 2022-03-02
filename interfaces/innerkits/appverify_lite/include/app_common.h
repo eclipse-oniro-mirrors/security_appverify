@@ -103,6 +103,7 @@ do { \
 
 long long HapGetInt64(const unsigned char *buf, int len);
 int HapGetInt(const unsigned char *buf, int len);
+unsigned int HapGetUnsignedInt(const unsigned char *buf, int len);
 short HapGetShort(const unsigned char *buf, int len);
 void HapPutInt32(unsigned char *buf, int len, int value);
 #ifdef __cplusplus
