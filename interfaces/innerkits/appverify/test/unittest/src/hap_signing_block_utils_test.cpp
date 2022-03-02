@@ -70,9 +70,9 @@ long long CreatTestZipFile(const std::string& pathFile, SignatureInfo& signInfo)
     long long signBlockSize = (sizeof(HapSubSignBlockHead) + sizeof(block)) * TEST_FILE_BLOCK_COUNT +
         HapSigningBlockUtils::ZIP_HEAD_OF_SIGNING_BLOCK_LENGTH;
     hapFile.write(reinterpret_cast<char*>(&signBlockSize), sizeof(signBlockSize));
-    long long magic = HapSigningBlockUtils::HAP_SIG_BLOCK_MAGIC_LOW;
+    long long magic = HapSigningBlockUtils::HAP_SIG_BLOCK_MAGIC_LOW_OLD;
     hapFile.write(reinterpret_cast<char*>(&magic), sizeof(magic));
-    magic = HapSigningBlockUtils::HAP_SIG_BLOCK_MAGIC_HIGH;
+    magic = HapSigningBlockUtils::HAP_SIG_BLOCK_MAGIC_HIGH_OLD;
     hapFile.write(reinterpret_cast<char*>(&magic), sizeof(magic));
     int version = 1;
     hapFile.write(reinterpret_cast<char*>(&version), sizeof(version));
