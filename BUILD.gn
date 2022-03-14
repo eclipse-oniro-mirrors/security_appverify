@@ -13,5 +13,28 @@
 
 group("testcase_packages") {
   testonly = true
-  deps = [ "//base/security/appverify/interfaces/innerkits/appverify/test:unittest" ]
+  if (os_level == "standard") {
+    deps = [
+      "//base/security/appverify/interfaces/innerkits/appverify/test:unittest",
+    ]
+  } else {
+    deps = [ "//base/security/appverify/interfaces/innerkits/appverify_lite/unittest:unittest" ]
+  }
+}
+
+group("appverify_components") {
+  if (os_level == "standard") {
+    deps = [
+      "//base/security/appverify/interfaces/innerkits/appverify:libhapverify",
+      "//base/security/appverify/interfaces/innerkits/appverify/config:trusted_apps_sources",
+      "//base/security/appverify/interfaces/innerkits/appverify/config:trusted_apps_sources_test",
+      "//base/security/appverify/interfaces/innerkits/appverify/config:trusted_root_ca",
+      "//base/security/appverify/interfaces/innerkits/appverify/config:trusted_root_ca_test",
+      "//base/security/appverify/interfaces/innerkits/appverify/config:trusted_tickets_sources",
+    ]
+  } else {
+    deps = [
+      "//base/security/appverify/interfaces/innerkits/appverify_lite:verify",
+    ]
+  }
 }
