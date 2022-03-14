@@ -143,7 +143,13 @@ static int GetSignHead(const FileRead *file, SignatureInfo *signInfo)
         return V_ERR_GET_SIGNHEAD;
     }
     SignHeadN2H(signHead);
-    if (signHead->magicLow != HAP_SIG_BLOCK_MAGIC_LO || signHead->magicHigh != HAP_SIG_BLOCK_MAGIC_HI) {
+    unsigned long long magicLow = HAP_SIG_BLOCK_MAGIC_LO;
+    unsigned long long magicHigh = HAP_SIG_BLOCK_MAGIC_HI;
+    if (signHead->version < VERSION_FOR_NEW_MAGIC_NUM) {
+        magicLow = HAP_SIG_BLOCK_MAGIC_LO_OLD;
+        magicHigh = HAP_SIG_BLOCK_MAGIC_HI_OLD;
+    }
+    if (signHead->magicLow != magicLow || signHead->magicHigh != magicHigh) {
         LOG_ERROR("sign head magic invalid");
         APPV_FREE(signHead);
         return V_ERR_GET_SIGNHEAD;
