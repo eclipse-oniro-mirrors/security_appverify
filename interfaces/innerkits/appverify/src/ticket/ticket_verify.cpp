@@ -109,8 +109,6 @@ AppProvisionVerifyResult CheckDevice(ProvisionInfo& info)
         return PROVISION_DEVICE_UNAUTHORIZED;
     }
     deviceId = std::string(udid, sizeof(udid) - 1);
-    HAPVERIFY_LOG_INFO(LABEL, "L2 UDID:%{public}s, len:%{public}d.", deviceId.c_str(),
-        static_cast<int>(deviceId.size()));
 #endif // STANDARD_SYSTEM
     if (deviceId.empty()) {
         HAPVERIFY_LOG_ERROR(LABEL, "device-id of current device is empty.");
