@@ -124,7 +124,7 @@ int HapVerifyV2::Verify(RandomAccessFile& hapFile, HapVerifyResult& hapVerifyV1R
 bool HapVerifyV2::VerifyAppPkcs7(Pkcs7Context& pkcs7Context, const HapByteBuffer& hapSignatureBlock)
 {
     const unsigned char* pkcs7Block = reinterpret_cast<const unsigned char*>(hapSignatureBlock.GetBufferPtr());
-    unsigned int pkcs7Len = hapSignatureBlock.GetCapacity();
+    unsigned int pkcs7Len = static_cast<unsigned int>(hapSignatureBlock.GetCapacity());
     if (!HapVerifyOpensslUtils::ParsePkcs7Package(pkcs7Block, pkcs7Len, pkcs7Context)) {
         HAPVERIFY_LOG_ERROR(LABEL, "parse pkcs7 failed");
         return false;
