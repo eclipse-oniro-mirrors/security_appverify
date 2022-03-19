@@ -165,7 +165,7 @@ int CompareTicketAndProfile(const ProvisionInfo& ticketInfo, const ProvisionInfo
 bool VerifyTicketSignature(HapByteBuffer& ticketBlock, Pkcs7Context& pkcs7Context, std::string& ticket)
 {
     const unsigned char* pkcs7Block = reinterpret_cast<const unsigned char*>(ticketBlock.GetBufferPtr());
-    unsigned int pkcs7Len = ticketBlock.GetCapacity();
+    unsigned int pkcs7Len = static_cast<unsigned int>(ticketBlock.GetCapacity());
     if (!HapVerifyOpensslUtils::ParsePkcs7Package(pkcs7Block, pkcs7Len, pkcs7Context)) {
         HAPVERIFY_LOG_ERROR(LABEL, "Parse ticket pkcs7 failed");
         return false;

@@ -31,7 +31,7 @@ bool HapProfileVerifyUtils::ParseProfile(Pkcs7Context& profilePkcs7Context, cons
         return true;
     }
     const unsigned char* pkcs7Block = reinterpret_cast<const unsigned char*>(pkcs7ProfileBlock.GetBufferPtr());
-    unsigned int pkcs7Len = pkcs7ProfileBlock.GetCapacity();
+    unsigned int pkcs7Len = static_cast<unsigned int>(pkcs7ProfileBlock.GetCapacity());
     if (!HapVerifyOpensslUtils::ParsePkcs7Package(pkcs7Block, pkcs7Len, profilePkcs7Context)) {
         HAPVERIFY_LOG_ERROR(LABEL, "parse pkcs7 failed");
         return false;

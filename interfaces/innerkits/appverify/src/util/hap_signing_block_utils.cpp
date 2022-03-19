@@ -103,7 +103,7 @@ bool HapSigningBlockUtils::FindEocdInHap(RandomAccessFile& hapFile, unsigned sho
         return false;
     }
 
-    int searchRange = maxCommentSize + ZIP_EOCD_SEG_MIN_SIZE;
+    int searchRange = static_cast<int>(maxCommentSize) + ZIP_EOCD_SEG_MIN_SIZE;
     if (fileLength < static_cast<long long>(searchRange)) {
         searchRange = static_cast<int>(fileLength);
     }
@@ -182,14 +182,14 @@ bool HapSigningBlockUtils::GetCentralDirectoryOffset(HapByteBuffer& eocd, long l
         return false;
     }
 
-    centralDirectoryOffset = offsetValue;
+    centralDirectoryOffset = static_cast<long long>(offsetValue);
     if (centralDirectoryOffset > eocdOffset) {
         HAPVERIFY_LOG_ERROR(LABEL, "centralDirOffset %{public}lld is larger than eocdOffset %{public}lld",
             centralDirectoryOffset, eocdOffset);
         return false;
     }
 
-    long long centralDirectorySize = sizeValue;
+    long long centralDirectorySize = static_cast<long long>(sizeValue);
     if (centralDirectoryOffset + centralDirectorySize != eocdOffset) {
         HAPVERIFY_LOG_ERROR(LABEL, "centralDirOffset %{public}lld add centralDirSize %{public}lld is not equal\
             to eocdOffset %{public}lld", centralDirectoryOffset, centralDirectorySize, eocdOffset);
@@ -345,7 +345,7 @@ bool HapSigningBlockUtils::FindHapSubSigningBlock(RandomAccessFile& hapFile, int
             HAPVERIFY_LOG_ERROR(LABEL, "read %{public}dst subblock error: %{public}lld", i, ret);
             return false;
         }
-        readLen += subSignBlockHead.length;
+        readLen += static_cast<long long>(subSignBlockHead.length);
 
         if (!ClassifyHapSubSigningBlock(signInfo, signBuffer, subSignBlockHead.type)) {
             HAPVERIFY_LOG_ERROR(LABEL, "ClassifyHapSubSigningBlock error, type is %{public}d",
@@ -381,7 +381,7 @@ bool HapSigningBlockUtils::ClassifyHapSubSigningBlock(SignatureInfo& signInfo,
         case PROOF_ROTATION_BLOB:
         case PROPERTY_BLOB: {
             OptionalBlock optionalBlock;
-            optionalBlock.optionalType = type;
+            optionalBlock.optionalType = static_cast<int>(type);
             optionalBlock.optionalBlockValue = subBlock;
             signInfo.optionBlocks.push_back(optionalBlock);
             ret = true;
