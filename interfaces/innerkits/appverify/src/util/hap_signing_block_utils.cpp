@@ -328,24 +328,26 @@ bool HapSigningBlockUtils::FindHapSubSigningBlock(RandomAccessFile& hapFile, int
             return false;
         }
 
+        long long headOffset = static_cast<long long>(subSignBlockHead.offset);
+        long long headLength = static_cast<long long>(subSignBlockHead.length);
         /* check subSignBlockHead */
-        if ((offsetMax - subSignBlockHead.offset) < hapSignBlockOffset) {
+        if ((offsetMax - headOffset) < hapSignBlockOffset) {
             HAPVERIFY_LOG_ERROR(LABEL, "Find %{public}dst subblock data offset error", i);
             return false;
         }
-        if ((blockArrayLen - subSignBlockHead.length) < readLen) {
+        if ((blockArrayLen - headLength) < readLen) {
             HAPVERIFY_LOG_ERROR(LABEL, "no enough data to be read for %{public}dst subblock", i);
             return false;
         }
 
-        long long dataOffset = hapSignBlockOffset + subSignBlockHead.offset;
+        long long dataOffset = hapSignBlockOffset + headOffset;
         HapByteBuffer signBuffer(subSignBlockHead.length);
         ret = hapFile.ReadFileFullyFromOffset(signBuffer, dataOffset);
         if (ret < 0) {
             HAPVERIFY_LOG_ERROR(LABEL, "read %{public}dst subblock error: %{public}lld", i, ret);
             return false;
         }
-        readLen += static_cast<long long>(subSignBlockHead.length);
+        readLen += headLength;
 
         if (!ClassifyHapSubSigningBlock(signInfo, signBuffer, subSignBlockHead.type)) {
             HAPVERIFY_LOG_ERROR(LABEL, "ClassifyHapSubSigningBlock error, type is %{public}d",
