@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Huawei Device Co., Ltd.
+ * Copyright (c) 2020-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -143,7 +143,13 @@ static int GetSignHead(const FileRead *file, SignatureInfo *signInfo)
         return V_ERR_GET_SIGNHEAD;
     }
     SignHeadN2H(signHead);
-    if (signHead->magicLow != HAP_SIG_BLOCK_MAGIC_LO || signHead->magicHigh != HAP_SIG_BLOCK_MAGIC_HI) {
+    unsigned long long magicLow = HAP_SIG_BLOCK_MAGIC_LO;
+    unsigned long long magicHigh = HAP_SIG_BLOCK_MAGIC_HI;
+    if (signHead->version < VERSION_FOR_NEW_MAGIC_NUM) {
+        magicLow = HAP_SIG_BLOCK_MAGIC_LO_OLD;
+        magicHigh = HAP_SIG_BLOCK_MAGIC_HI_OLD;
+    }
+    if (signHead->magicLow != magicLow || signHead->magicHigh != magicHigh) {
         LOG_ERROR("sign head magic invalid");
         APPV_FREE(signHead);
         return V_ERR_GET_SIGNHEAD;
