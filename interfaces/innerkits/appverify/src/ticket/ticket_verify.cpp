@@ -49,7 +49,7 @@ bool CheckTicketFilePath(const std::string& filePath, std::string& standardFileP
 {
     char path[PATH_MAX + 1] = { 0x00 };
     if (filePath.size() > PATH_MAX || realpath(filePath.c_str(), path) == nullptr) {
-        HAPVERIFY_LOG_ERROR(LABEL, "It is not a standard path, %{public}s", filePath.c_str());
+        HAPVERIFY_LOG_ERROR(LABEL, "filePath is not a standard path");
         return false;
     }
     standardFilePath = std::string(path);
