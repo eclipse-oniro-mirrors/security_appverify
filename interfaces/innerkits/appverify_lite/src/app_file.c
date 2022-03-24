@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Huawei Device Co., Ltd.
+ * Copyright (c) 2020-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,7 +46,7 @@ int InitVerify(FileRead *file, const char *filePath, int *handle)
     *handle = open(path, O_RDONLY, 0);
     if (*handle < 0) {
         APPV_FREE(path);
-        LOG_PRINT_STR("file open error %s", path);
+        LOG_PRINT_STR("file open error");
         return V_ERR_FILE_OPEN;
     }
     if (g_memoryPageSize == 0) {

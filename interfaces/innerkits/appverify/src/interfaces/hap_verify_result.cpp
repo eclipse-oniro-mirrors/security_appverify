@@ -56,12 +56,12 @@ void HapVerifyResult::SetOptionalBlocks(const std::vector<OptionalBlock>& option
     optionalBlocks = option;
 }
 
-std::vector<std::string> HapVerifyResult::GetPublicKey()
+std::vector<std::string> HapVerifyResult::GetPublicKey() const
 {
     return publicKeys;
 }
 
-std::vector<std::string> HapVerifyResult::GetSignature()
+std::vector<std::string> HapVerifyResult::GetSignature() const
 {
     return signatures;
 }
@@ -76,16 +76,16 @@ void HapVerifyResult::SetSignature(const std::vector<std::string>& inputSignatur
     signatures = inputSignatures;
 }
 
-int HapVerifyResult::GetProperty(std::string& property)
+int HapVerifyResult::GetProperty(std::string& property) const
 {
     return GetBlockFromOptionalBlocks(PROPERTY_BLOB, property);
 }
 
-int HapVerifyResult::GetBlockFromOptionalBlocks(int blockType, std::string& block)
+int HapVerifyResult::GetBlockFromOptionalBlocks(int blockType, std::string& block) const
 {
     for (unsigned long i = 0; i < optionalBlocks.size(); i++) {
         if (optionalBlocks[i].optionalType == blockType) {
-            HapByteBuffer& option = optionalBlocks[i].optionalBlockValue;
+            const HapByteBuffer& option = optionalBlocks[i].optionalBlockValue;
             block += std::string(option.GetBufferPtr(), option.GetCapacity());
             return GET_SUCCESS;
         }
@@ -98,7 +98,7 @@ void HapVerifyResult::SetProvisionInfo(const ProvisionInfo &info)
     provisionInfo = info;
 }
 
-ProvisionInfo HapVerifyResult::GetProvisionInfo()
+ProvisionInfo HapVerifyResult::GetProvisionInfo() const
 {
     return provisionInfo;
 }

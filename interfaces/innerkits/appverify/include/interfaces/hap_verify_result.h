@@ -63,15 +63,15 @@ public:
     DLL_EXPORT void SetPkcs7ProfileBlock(const HapByteBuffer& pkcs7);
     DLL_EXPORT void SetOptionalBlocks(const std::vector<OptionalBlock>& option);
     DLL_EXPORT void SetProvisionInfo(const ProvisionInfo& info);
-    DLL_EXPORT int GetProperty(std::string& property);
-    DLL_EXPORT ProvisionInfo GetProvisionInfo();
-    DLL_EXPORT std::vector<std::string> GetPublicKey();
-    DLL_EXPORT std::vector<std::string> GetSignature();
+    DLL_EXPORT int GetProperty(std::string& property) const;
+    DLL_EXPORT ProvisionInfo GetProvisionInfo() const;
+    DLL_EXPORT std::vector<std::string> GetPublicKey() const;
+    DLL_EXPORT std::vector<std::string> GetSignature() const;
     void SetPublicKey(const std::vector<std::string>& inputPubkeys);
     void SetSignature(const std::vector<std::string>& inputSignatures);
 
 private:
-    DLL_EXPORT int GetBlockFromOptionalBlocks(int blockType, std::string& block);
+    DLL_EXPORT int GetBlockFromOptionalBlocks(int blockType, std::string& block) const;
 
 private:
     int version;

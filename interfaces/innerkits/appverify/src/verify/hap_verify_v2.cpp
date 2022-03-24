@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -49,12 +49,11 @@ int HapVerifyV2::Verify(const std::string& filePath, HapVerifyResult& hapVerifyV
 
     RandomAccessFile hapFile;
     if (!hapFile.Init(standardFilePath)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "open %{public}s failed", standardFilePath.c_str());
+        HAPVERIFY_LOG_ERROR(LABEL, "open standard file failed");
         return OPEN_FILE_ERROR;
     }
 
     int resultCode = Verify(hapFile, hapVerifyV1Result);
-    HAPVERIFY_LOG_INFO(LABEL, "Hap verify %{public}s, result: %{public}d", standardFilePath.c_str(), resultCode);
     return resultCode;
 }
 
@@ -62,12 +61,12 @@ bool HapVerifyV2::CheckFilePath(const std::string& filePath, std::string& standa
 {
     char path[PATH_MAX + 1] = { 0x00 };
     if (filePath.size() > PATH_MAX || realpath(filePath.c_str(), path) == nullptr) {
-        HAPVERIFY_LOG_ERROR(LABEL, "It is not a standard path, %{public}s", filePath.c_str());
+        HAPVERIFY_LOG_ERROR(LABEL, "filePath is not a standard path");
         return false;
     }
     standardFilePath = std::string(path);
     if (!std::regex_match(standardFilePath, std::regex(HAP_APP_PATTERN))) {
-        HAPVERIFY_LOG_ERROR(LABEL, "file is not hap package, %{public}s", standardFilePath.c_str());
+        HAPVERIFY_LOG_ERROR(LABEL, "file is not hap package");
         return false;
     }
     return true;

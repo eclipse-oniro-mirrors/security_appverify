@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -36,7 +36,7 @@ const std::string TrustedSourceManager::KEY_OF_PROFILE_DEBUG_SIGNING_CERTIFICATE
 const std::string TrustedSourceManager::KEY_OF_ISSUER = "issuer-ca";
 const std::string TrustedSourceManager::KEY_OF_MAX_CERTS_PATH = "max-certs-path";
 const std::string TrustedSourceManager::KEY_OF_CRITIALCAL_CERT_EXTENSION = "critialcal-cert-extension";
-const std::string TrustedSourceManager::APP_GALLARY_SOURCE_NAME = "huawei app gallery";
+const std::string TrustedSourceManager::APP_GALLERY_SOURCE_NAME = "huawei app gallery";
 const std::string TrustedSourceManager::APP_SYSTEM_SOURCE_NAME = "huawei system apps";
 const std::string TrustedSourceManager::APP_THIRD_PARTY_PRELOAD_SOURCE_NAME = "third_party app preload";
 
@@ -252,7 +252,7 @@ MatchingStates TrustedSourceManager::TrustedSourceListCompare(const std::string&
 
 TrustedSources TrustedSourceManager::GetTrustedSource(std::string& sourceName)
 {
-    if (APP_GALLARY_SOURCE_NAME == sourceName) {
+    if (APP_GALLERY_SOURCE_NAME == sourceName) {
         return APP_GALLARY;
     }
 

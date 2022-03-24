@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -49,7 +49,7 @@ bool CheckTicketFilePath(const std::string& filePath, std::string& standardFileP
 {
     char path[PATH_MAX + 1] = { 0x00 };
     if (filePath.size() > PATH_MAX || realpath(filePath.c_str(), path) == nullptr) {
-        HAPVERIFY_LOG_ERROR(LABEL, "It is not a standard path, %{public}s", filePath.c_str());
+        HAPVERIFY_LOG_ERROR(LABEL, "filePath is not a standard path");
         return false;
     }
     standardFilePath = std::string(path);
