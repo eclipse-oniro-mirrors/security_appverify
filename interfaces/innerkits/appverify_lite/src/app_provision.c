@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Huawei Device Co., Ltd.
+ * Copyright (c) 2020-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,8 +23,8 @@
 
 static void ProfInit(ProfileProf *pf)
 {
-    int ret = memset_s(pf, sizeof(ProfileProf), 0, sizeof(ProfileProf));
-    if (ret != V_OK) {
+    errno_t ret = memset_s(pf, sizeof(ProfileProf), 0, sizeof(ProfileProf));
+    if (ret != EOK) {
         LOG_ERROR("memset failed");
         return;
     }
@@ -48,8 +48,8 @@ static char *GetStringTag(const cJSON *root, const char *tag)
         LOG_ERROR("malloc error: %d", objLen + 1);
         return NULL;
     }
-    int ret = strcpy_s(value, objLen + 1, jsonObj->valuestring);
-    if (ret != V_OK) {
+    errno_t ret = strcpy_s(value, objLen + 1, jsonObj->valuestring);
+    if (ret != EOK) {
         APPV_FREE(value);
         LOG_ERROR("strcpy error: %d", ret);
         return NULL;
@@ -85,7 +85,11 @@ static char **GetStringArrayTag(const cJSON *root, const char *tag, int *numRetu
         return NULL;
     }
     char **value = APPV_MALLOC(sizeof(char *) * num);
-    P_NULL_RETURN_NULL_WTTH_LOG(value);
+    if (value == NULL) {
+        LOG_ERROR("value is null");
+        *numReturn = 0;
+        return NULL;
+    }
     (void)memset_s(value, sizeof(char *) * num, 0, sizeof(char *) * num);
 
     for (int i = 0; i < num; i++) {
@@ -96,8 +100,8 @@ static char **GetStringArrayTag(const cJSON *root, const char *tag, int *numRetu
         value[i] = APPV_MALLOC(len + 1);
         P_NULL_GOTO_WTTH_LOG(value[i]);
 
-        int ret = strcpy_s(value[i], len + 1, item->valuestring);
-        if (ret != V_OK) {
+        errno_t ret = strcpy_s(value[i], len + 1, item->valuestring);
+        if (ret != EOK) {
             LOG_ERROR("str cpy error : %d", ret);
             FreeStringAttay(value, num);
             return NULL;
@@ -207,8 +211,8 @@ static int GetProfIssuerInfo(const cJSON *root, ProfileProf *pf)
         if (pf->issuer == NULL) {
             return V_ERR;
         }
-        int ret = strcpy_s(pf->issuer, len + 1, APP_STORE);
-        if (ret != V_OK) {
+        errno_t ret = strcpy_s(pf->issuer, len + 1, APP_STORE);
+        if (ret != EOK) {
             APPV_FREE(pf->issuer);
             LOG_ERROR("str cpy error: %d", ret);
         }
@@ -312,7 +316,7 @@ int ParseProfile(const char *buf, int len, ProfileProf *pf)
     ret = GetProfIssuerInfo(root, pf);
     P_ERR_GOTO_WTTH_LOG(ret);
 
-    LOG_INFO("parse profile json sucess");
+    LOG_INFO("parse profile json success");
     cJSON_Delete(root);
     return V_OK;
 

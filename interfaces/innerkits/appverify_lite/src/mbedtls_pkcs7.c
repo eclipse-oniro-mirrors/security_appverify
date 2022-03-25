@@ -48,7 +48,7 @@
     do { \
         if ((rc) != PKCS7_SUCC) \
         { \
-            LOG_ERROR("%s:%u, error occured, ret:%d", __FUNCTION__, __LINE__, (rc)); \
+            LOG_ERROR("%s:%u, error occurred, ret:%d", __FUNCTION__, __LINE__, (rc)); \
             return rc; \
         } \
     } while (0)
