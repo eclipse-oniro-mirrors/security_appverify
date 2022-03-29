@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -160,7 +160,7 @@ bool HapVerifyOpensslUtils::VerifyPkcs7SignedData(Pkcs7Context& pkcs7Context)
         GetOpensslErrorMessage();
         return false;
     }
-    char buf[OPENSSL_READ_DATA_LEN_EACH_TIME];
+    char buf[OPENSSL_READ_DATA_LEN_EACH_TIME] = {0};
     int readLen = BIO_read(p7Bio, buf, sizeof(buf));
     int readTime = 0;
     while ((readLen > 0) && (++readTime < OPENSSL_READ_DATA_MAX_TIME)) {
@@ -235,7 +235,7 @@ bool HapVerifyOpensslUtils::IsEnablePss(const PKCS7_SIGNER_INFO* signInfo)
         return false;
     }
     int len = OBJ_obj2txt(oId, sizeof(oId), signInfo->digest_enc_alg->algorithm, 1);
-    if (len < 0 || len > MAX_OID_LENGTH) {
+    if (len < 0 || len >= MAX_OID_LENGTH) {
         HAPVERIFY_LOG_ERROR(LABEL, "Get length of oId failed");
         return false;
     }

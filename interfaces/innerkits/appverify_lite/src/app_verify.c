@@ -329,7 +329,7 @@ static int VerifyRawHash(const SignatureInfo *signInfo, const FileRead *fileRead
     P_NULL_RETURN_WTTH_LOG(content);
 
     ret = memcpy_s(content, sizeof(ContentInfo), input, inputLen);
-    if (ret != V_OK) {
+    if (ret != EOK) {
         LOG_ERROR("mem cpy error, ret: %d", ret);
         APPV_FREE(content);
         return ret;
@@ -497,7 +497,7 @@ static int VerifyProfileSignGetRaw(const char *buf, int len, char **profileConte
     int ret = PKCS7_ParseSignedData((unsigned char *)buf, (size_t)len, pkcs7);
     P_ERR_GOTO_WTTH_LOG(ret);
 
-    LOG_INFO("pkcs7 parse message sucess");
+    LOG_INFO("pkcs7 parse message success");
 
     /* verify sign, rawdata */
     ret = PKCS7_VerifyCertsChain(pkcs7);
@@ -554,7 +554,7 @@ static unsigned char *GetRsaPk(const mbedtls_pk_context *pk, int *len)
         return NULL;
     }
     int ret = memset_s(buf, MAX_PK_BUF, 0, MAX_PK_BUF);
-    if (ret != V_OK) {
+    if (ret != EOK) {
         LOG_ERROR("memset error");
         APPV_FREE(buf);
         return NULL;
@@ -564,23 +564,27 @@ static unsigned char *GetRsaPk(const mbedtls_pk_context *pk, int *len)
     LOG_INFO("GetRsaPk pkLen %d", pkLen);
     if (pkLen < 0 || pkLen > MAX_PK_BUF) {
         LOG_ERROR("get pk buf error");
+        (void)memset_s(buf, MAX_PK_BUF, 0, MAX_PK_BUF);
         APPV_FREE(buf);
         return NULL;
     }
     unsigned char *pkBuf = APPV_MALLOC(pkLen);
     if (pkBuf == NULL) {
         LOG_ERROR("malloc error");
+        (void)memset_s(buf, MAX_PK_BUF, 0, MAX_PK_BUF);
         APPV_FREE(buf);
         return NULL;
     }
     ret = memcpy_s(pkBuf, pkLen, c, pkLen);
-    if (ret != V_OK) {
+    if (ret != EOK) {
         LOG_ERROR("mem copy error: %d", ret);
+        (void)memset_s(buf, MAX_PK_BUF, 0, MAX_PK_BUF);
         APPV_FREE(buf);
         APPV_FREE(pkBuf);
         return NULL;
     }
     *len = pkLen;
+    (void)memset_s(buf, MAX_PK_BUF, 0, MAX_PK_BUF);
     APPV_FREE(buf);
     return pkBuf;
 }
@@ -597,10 +601,17 @@ static unsigned char *GetEcPk(const mbedtls_pk_context *pk, int *len)
         LOG_ERROR("malloc error");
         return NULL;
     }
-    int ret = mbedtls_ecp_point_write_binary(&ecCtx->grp, &ecCtx->Q,
-                                             MBEDTLS_ECP_PF_UNCOMPRESSED, (size_t *)len, buf, MBEDTLS_ECP_MAX_PT_LEN);
+    int ret = memset_s(buf, MBEDTLS_ECP_MAX_PT_LEN, 0, MBEDTLS_ECP_MAX_PT_LEN);
+    if (ret != EOK) {
+        LOG_ERROR("memset error");
+        APPV_FREE(buf);
+        return NULL;
+    }
+    ret = mbedtls_ecp_point_write_binary(&ecCtx->grp, &ecCtx->Q, MBEDTLS_ECP_PF_UNCOMPRESSED,
+        (size_t *)len, buf, MBEDTLS_ECP_MAX_PT_LEN);
     if (ret != V_OK) {
         LOG_ERROR("get ecc pk key error");
+        (void)memset_s(buf, MBEDTLS_ECP_MAX_PT_LEN, 0, MBEDTLS_ECP_MAX_PT_LEN);
         APPV_FREE(buf);
         return NULL;
     }
@@ -612,12 +623,14 @@ static unsigned char *GetEcPk(const mbedtls_pk_context *pk, int *len)
     unsigned char *pkBuf = APPV_MALLOC(*len);
     if (pkBuf == NULL) {
         LOG_ERROR("malloc error");
+        (void)memset_s(buf, MBEDTLS_ECP_MAX_PT_LEN, 0, MBEDTLS_ECP_MAX_PT_LEN);
         APPV_FREE(buf);
         return NULL;
     }
     ret = memcpy_s(pkBuf, *len, buf, *len);
-    if (ret != V_OK) {
+    if (ret != EOK) {
         LOG_ERROR("mem copy error: %d", ret);
+        (void)memset_s(buf, MBEDTLS_ECP_MAX_PT_LEN, 0, MBEDTLS_ECP_MAX_PT_LEN);
         APPV_FREE(buf);
         APPV_FREE(pkBuf);
         return NULL;
@@ -811,7 +824,7 @@ static int CmpCert(const mbedtls_x509_crt *certA, const CertInfo *binSignCert)
     }
 
     if (memcmp(bufA, binSignCert->pkBuf, lenA)) {
-        LOG_ERROR("pk content diffrent");
+        LOG_ERROR("pk content different");
         APPV_FREE(bufA);
         return V_ERR;
     }
@@ -910,7 +923,7 @@ static int CheckAppSignCertWithProfile(int appCertType, CertInfo *binSignCert, P
 static int CertInfoInit(CertInfo *certInfo)
 {
     int ret = memset_s(certInfo, sizeof(CertInfo), 0, sizeof(CertInfo));
-    if (ret != V_OK) {
+    if (ret != EOK) {
         LOG_ERROR("memset error");
     }
     return ret;
@@ -963,7 +976,7 @@ static int GetCertInfo(const mbedtls_x509_crt *ctr, CertInfo **binSignCert)
     }
     certInfo->issuer[certInfo->issuerLen] = '\0';
     ret = memcpy_s(certInfo->issuer, certInfo->issuerLen, ctr->issuer_raw.p, ctr->issuer_raw.len);
-    if (ret != V_OK) {
+    if (ret != EOK) {
         ret = V_ERR_MEMCPY;
         goto EXIT;
     }
@@ -974,7 +987,7 @@ static int GetCertInfo(const mbedtls_x509_crt *ctr, CertInfo **binSignCert)
     }
     certInfo->subject[certInfo->subjectLen] = '\0';
     ret = memcpy_s(certInfo->subject, certInfo->subjectLen, ctr->subject_raw.p, ctr->subject_raw.len);
-    if (ret != V_OK) {
+    if (ret != EOK) {
         ret = V_ERR_MEMCPY;
         goto EXIT;
     }
@@ -1091,7 +1104,7 @@ static int VerifyBinSign(SignatureInfo *signInfo, int fp, CertInfo **signCert, i
         return V_ERR_PARSE_PKC7_DATA;
     }
     /* pkcs7 handle the content of signBuf, do not free signBuf */
-    LOG_INFO("pkcs7 parse message sucess");
+    LOG_INFO("pkcs7 parse message success");
 
     /* raw buf len = sign block head offset */
     fileRead = GetFileRead(fp, 0, blockHead.offset);
@@ -1187,6 +1200,7 @@ int APPVERI_AppVerify(const char *filePath, VerifyResult *verifyRst)
         LOG_PRINT_STR("malloc error");
         close(handle);
         APPV_FREE(signHead);
+        ProfFreeData(&verifyRst->profile);
         return V_ERR_MALLOC;
     }
     ret = fstat(handle, fileSt);
@@ -1194,6 +1208,7 @@ int APPVERI_AppVerify(const char *filePath, VerifyResult *verifyRst)
         LOG_ERROR("fstat error");
         close(handle);
         APPV_FREE(signHead);
+        ProfFreeData(&verifyRst->profile);
         APPV_FREE(fileSt);
         return V_ERR_FILE_STAT;
     }

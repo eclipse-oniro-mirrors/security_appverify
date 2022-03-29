@@ -40,7 +40,7 @@ DeviceTypeManager::~DeviceTypeManager()
 {
 }
 
-bool DeviceTypeManager::GetDeviceType()
+bool DeviceTypeManager::GetDeviceType() const
 {
 #ifndef SUPPORT_GET_DEVICE_TYPES
     return false;

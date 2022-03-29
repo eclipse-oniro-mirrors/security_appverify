@@ -149,7 +149,7 @@ typedef struct {
  *               bufLen  - pkcs7 signed data length
  * Output      : pkcs7   - resolved pkcs7 data, caller provide this arg, malloc
  *                         from heap memory or use stack memory, if malloced
- *                         from heap memory, caller must freed the memroy after
+ *                         from heap memory, caller must freed the memory after
  *                         called PKCS7_FreeRes
  * Return      : 0 on success, others on fail
  * Note        : need to call PKCS7_FreeRes to free the resource when success
@@ -216,7 +216,7 @@ int PKCS7_GetDigestInSignerAuthAttr(const SignerInfo *signer, unsigned char **di
  * Function    : PKCS7_GetSignerAuthAttr
  * Description : get the signer's auth attribute content, which maybe signed by
  *               signer, so upper layer can call this to get to-be-signed data,
- *               then caculate digest of it for signature verification
+ *               then calculate digest of it for signature verification
  * Input       : signer  - pkcs7 signer info
  * Output      : data    - pointer to signer's auth attribute start location
  *                         user need not to free this var
@@ -229,7 +229,7 @@ int PKCS7_GetSignerAuthAttr(const SignerInfo *signer, unsigned char **data, size
  * Function    : PKCS7_VerifySignerSignature
  * Description : Verify all of signer's signature
  * Input       : pkcs7   - pkcs7 signed data header
- *               calcDigest - callback function for upper layer user to caculate
+ *               calcDigest - callback function for upper layer user to calculate
  *                            the digest of signature
  * Output      : NA
  * Return      : 0 on success, others on fail

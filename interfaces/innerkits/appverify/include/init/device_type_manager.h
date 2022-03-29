@@ -35,7 +35,7 @@ private:
     DeviceTypeManager();
     ~DeviceTypeManager();
 
-    bool GetDeviceType();
+    bool GetDeviceType() const;
 
 private:
     /* true: debugging type; false: commercial type */
