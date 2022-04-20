@@ -35,7 +35,7 @@ int GetDigestAlgorithmId(unsigned int signAlgorithm)
         case ALGORITHM_PKCS1_SHA512:
             return HASH_ALG_SHA512;
         default:
-            LOG_ERROR("signAlgorithm: %d error", signAlgorithm);
+            LOG_ERROR("signAlgorithm: %u error", signAlgorithm);
             return V_ERR;
     }
 }
