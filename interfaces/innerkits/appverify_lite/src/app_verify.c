@@ -226,7 +226,7 @@ char *GetSignBlockByType(const SignatureInfo *signInfo, int fp, int blockType, i
     lseek(fp, signInfo->fullSignBlockOffset + blockHead->offset, SEEK_SET);
     int readLen = read(fp, buf, blockHead->length);
     if (readLen != blockHead->length) {
-        LOG_ERROR("read error: %d, %d", readLen, blockHead->length);
+        LOG_ERROR("read error: %d, %u", readLen, blockHead->length);
         APPV_FREE(buf);
         return NULL;
     }
