@@ -59,7 +59,7 @@ ohos_unittest("verify_test") {
 
     external_deps = [
       "hiviewdfx_hilog_native:libhilog",
-      "startup_l2:syspara",
+      "init:libbegetutil",
     ]
   } else {
     external_deps = [
