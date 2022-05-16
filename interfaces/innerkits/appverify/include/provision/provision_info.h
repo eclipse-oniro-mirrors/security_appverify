@@ -68,6 +68,7 @@ struct ProvisionInfo {
     DebugInfo debugInfo;
     std::string issuer;
     std::string appId;
+    std::string fingerprint;
 };
 } // namespace Verify
 } // namespace Security
