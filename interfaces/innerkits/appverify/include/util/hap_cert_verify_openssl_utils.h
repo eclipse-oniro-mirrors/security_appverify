@@ -45,6 +45,7 @@ public:
     DLL_EXPORT static bool CompareX509Cert(const X509* certA, const std::string& base64Cert);
     DLL_EXPORT static void WriteX509CrlToStream(std::ofstream& crlFile, X509_CRL* crl);
     DLL_EXPORT static bool GetPublickeyBase64FromPemCert(const std::string& certStr, std::string& publicKey);
+    DLL_EXPORT static bool GetFingerprintBase64FromPemCert(const std::string& certStr, std::string& fingerprint);
     DLL_EXPORT static bool X509NameCompare(const X509_NAME* a, const X509_NAME* b);
     DLL_EXPORT static bool GetPublickeyBase64(const X509* cert, std::string& publicKey);
     DLL_EXPORT static int CalculateLenAfterBase64Encode(int len);

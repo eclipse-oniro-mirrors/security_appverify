@@ -90,6 +90,22 @@ HWTEST_F(HapVerifyV2Test, GenerateAppIdTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: Test GenerateFingerprint function
+ * @tc.desc: The static function will return whether generate fingerprint successfully;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyV2Test, GenerateFingerprintTest001, TestSize.Level1)
+{
+    /*
+     * @tc.steps: step1. input a null ProvisionInfo.
+     * @tc.expected: step1. the return will be false.
+     */
+    HapVerifyV2 v2;
+    ProvisionInfo provisionInfo;
+    ASSERT_FALSE(v2.GenerateFingerprint(provisionInfo));
+}
+
+/**
  * @tc.name: Test VerifyProfileInfo function
  * @tc.desc: The static function will return result of verify profile info;
  * @tc.type: FUNC
