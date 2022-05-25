@@ -439,4 +439,105 @@ HWTEST_F(ProvisionVerifyTest, ProvisionVerify008, TestSize.Level1)
     int ret = ParseAndVerify(prefixValidDeviceInfoProvision, info);
     ASSERT_EQ(ret, AppProvisionVerifyResult::PROVISION_OK);
 }
+
+/**
+ * @tc.name: Test HarmonyAppProvision ProvisionVerify009 function
+ * @tc.desc: The static function will return verify result;
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProvisionVerifyTest, ProvisionVerify009, TestSize.Level1)
+{
+    std::string prefixValidDeviceInfoProvision = R"(
+    {
+        "version-code": 9,
+        "version-name": "9.0.0",
+        "uuid": "test_uuid",
+        "type": "debug",
+        "app-distribution-type": "crowdtesting",
+        "validity": {
+            "not-before": 1262275200,
+            "not-after": 2524579300
+        },
+        "bundle-info": {
+            "developer-id": "test_developer_9",
+            "development-certificate": "ABCDEFG",
+            "distribution-certificate": "123456789",
+            "bundle-name": "com.hello",
+            "apl": "normal",
+            "app-feature": "hos_normal_app"
+        },
+        "debug-info": {
+            "device-id-type": "udid",
+            "device-ids" : [")";
+    std::string postfixValidDeviceInfoProvision = R"("]
+        },
+        "issuer": "App Gallery"
+    })";
+    string deviceId = "";
+#ifndef STANDARD_SYSTEM
+    OHOS::AccountSA::OhosAccountKits::GetInstance().GetUdid(deviceId);
+#else
+    char udid[DEV_UUID_LEN] = {0};
+    int udidRet = GetDevUdid(udid, sizeof(udid));
+    ASSERT_EQ(udidRet, EC_SUCCESS);
+    deviceId = std::string(udid, sizeof(udid) - 1);
+#endif
+    prefixValidDeviceInfoProvision += deviceId;
+    prefixValidDeviceInfoProvision += postfixValidDeviceInfoProvision;
+    ProvisionInfo info;
+    int ret = ParseAndVerify(prefixValidDeviceInfoProvision, info);
+    ASSERT_EQ(ret, AppProvisionVerifyResult::PROVISION_OK);
+    ASSERT_EQ(info.distributionType, AppDistType::CROWDTESTING);
+    ASSERT_EQ(info.type, ProvisionType::DEBUG);
+}
+/**
+ * @tc.name: Test HarmonyAppProvision ProvisionVerify009 function
+ * @tc.desc: The static function will return verify result;
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProvisionVerifyTest, ProvisionVerify010, TestSize.Level1)
+{
+    std::string prefixValidDeviceInfoProvision = R"(
+    {
+        "version-code": 9,
+        "version-name": "9.0.0",
+        "uuid": "test_uuid",
+        "type": "release",
+        "app-distribution-type": "crowdtesting",
+        "validity": {
+            "not-before": 1262275200,
+            "not-after": 2524579300
+        },
+        "bundle-info": {
+            "developer-id": "test_developer_9",
+            "development-certificate": "ABCDEFG",
+            "distribution-certificate": "123456789",
+            "bundle-name": "com.hello",
+            "apl": "normal",
+            "app-feature": "hos_normal_app"
+        },
+        "debug-info": {
+            "device-id-type": "udid",
+            "device-ids" : [")";
+    std::string postfixValidDeviceInfoProvision = R"("]
+        },
+        "issuer": "App Gallery"
+    })";
+    string deviceId = "";
+#ifndef STANDARD_SYSTEM
+    OHOS::AccountSA::OhosAccountKits::GetInstance().GetUdid(deviceId);
+#else
+    char udid[DEV_UUID_LEN] = {0};
+    int udidRet = GetDevUdid(udid, sizeof(udid));
+    ASSERT_EQ(udidRet, EC_SUCCESS);
+    deviceId = std::string(udid, sizeof(udid) - 1);
+#endif
+    prefixValidDeviceInfoProvision += deviceId;
+    prefixValidDeviceInfoProvision += postfixValidDeviceInfoProvision;
+    ProvisionInfo info;
+    int ret = ParseAndVerify(prefixValidDeviceInfoProvision, info);
+    ASSERT_EQ(ret, AppProvisionVerifyResult::PROVISION_OK);
+    ASSERT_EQ(info.distributionType, AppDistType::CROWDTESTING);
+    ASSERT_EQ(info.type, ProvisionType::RELEASE);
+}
 } // namespace

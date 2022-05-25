@@ -31,6 +31,7 @@ enum AppDistType {
     APP_GALLERY = 1,
     ENTERPRISE = 2,
     OS_INTEGRATION = 3,
+    CROWDTESTING = 4,
 };
 
 struct BundleInfo {
