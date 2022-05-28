@@ -58,6 +58,7 @@ const string VALUE_TYPE_RELEASE = "release";
 const string VALUE_DIST_TYPE_APP_GALLERY = "app_gallery";
 const string VALUE_DIST_TYPE_ENTERPRISE = "enterprise";
 const string VALUE_DIST_TYPE_OS_INTEGRATION = "os_integration";
+const string VALUE_DIST_TYPE_CROWDTESTING = "crowdtesting";
 const string VALUE_DEVICE_ID_TYPE_UDID = "udid";
 
 const string GENERIC_BUNDLE_NAME = ".*";
@@ -117,6 +118,8 @@ void ParseAppDistType(const json& obj, ProvisionInfo& out)
         out.distributionType = AppDistType::ENTERPRISE;
     } else if (distType == VALUE_DIST_TYPE_OS_INTEGRATION) {
         out.distributionType = AppDistType::OS_INTEGRATION;
+    } else if (distType == VALUE_DIST_TYPE_CROWDTESTING) {
+        out.distributionType = AppDistType::CROWDTESTING;
     } else {
         out.distributionType = AppDistType::NONE_TYPE;
     }
