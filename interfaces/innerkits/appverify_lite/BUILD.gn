@@ -29,7 +29,6 @@ if (os_level == "small" || os_level == "mini") {
     if (ohos_sign_haps_by_server) {
       defines += [ "OHOS_SIGN_HAPS_BY_SERVER" ]
     }
-    cflags = [ "-Wall" ]
   }
 
   shared_library("verify") {

@@ -17,7 +17,6 @@ config("verify_base_config") {
     "//base/security/appverify/interfaces/innerkits/appverify_lite/products/ipcamera",
     "//base/startup/syspara_lite/interfaces/kits",
   ]
-  cflags = [ "-Wall" ]
 }
 
 shared_library("verify_base") {
