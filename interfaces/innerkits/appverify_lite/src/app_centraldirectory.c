@@ -46,7 +46,7 @@ void HapPutData(const HapBuf *hapBuffer, int offset, const unsigned char *data, 
         return;
     }
     if ((data != NULL) && (offset >= 0) && len > 0 && ((hapBuffer->len - offset) >= len)) {
-        if (memcpy_s((hapBuffer->buffer + offset), (hapBuffer->len - offset), data, len) != EOK) {
+        if (memcpy_s(((unsigned char *)hapBuffer->buffer + offset), (hapBuffer->len - offset), data, len) != EOK) {
             LOG_ERROR("memcpy_s fail");
         }
     }
