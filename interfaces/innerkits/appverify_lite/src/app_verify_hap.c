@@ -126,16 +126,17 @@ static int ComputeDigestsWithOptionalBlock(const int digestAlgorithm, int fp, co
     P_NULL_RETURN_WTTH_LOG(mdCtx);
     mbedtls_md_init(mdCtx);
     ret = mbedtls_md_setup(mdCtx, mdInfo, 0);
+    int rawLen = 0;
+    BlockHead blockHead = {0};
+
     P_ERR_GOTO_WTTH_LOG(ret);
     ret = mbedtls_md_starts(mdCtx);
     P_ERR_GOTO_WTTH_LOG(ret);
-
-    BlockHead blockHead = {0};
     readLen = chunkDigest->len;
     LOG_INFO("readLen %d", readLen);
     ret = mbedtls_md_update(mdCtx, chunkDigest->buffer, readLen);
     P_ERR_GOTO_WTTH_LOG(ret);
-    int rawLen = 0;
+
     rawBuf = GetSignBlockByType(signInfo, fp, PROFILE_BLOCK_WITHSIGN_TYPE, &rawLen, &blockHead);
     P_NULL_GOTO_WTTH_LOG(rawBuf);
     readLen = rawLen;
