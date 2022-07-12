@@ -10,7 +10,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import("//build/ohos.gni")
 
 config("verify_base_config") {
   include_dirs = [
@@ -26,8 +25,9 @@ shared_library("verify_base") {
     "app_verify_base.c",
   ]
   configs += [ ":verify_base_config" ]
-  external_deps = [ "init:libbegetutil" ]
+
   public_deps = [
     "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
+    "//base/startup/syspara_lite/frameworks/parameter:parameter",
   ]
 }
