@@ -29,6 +29,9 @@ using namespace testing::ext;
 using namespace OHOS::Security::Verify;
 
 namespace {
+const std::string ERROR_CERTIFICATE = "errorCertificate";
+const std::string TEST_CERTIFICATE = "-----BEGIN CERTIFICATE-----\nMIICMzCCAbegAwIBAgIEaOC/zDAMBggqhkjOPQQDAwUAMGMxCzAJBgNVBAYTAkNO\nMRQwEgYDVQQKEwtPcGVuSGFybW9ueTEZMBcGA1UECxMQT3Blbkhhcm1vbnkgVGVh\nbTEjMCEGA1UEAxMaT3Blbkhhcm1vbnkgQXBwbGljYXRpb24gQ0EwHhcNMjEwMjAy\nMTIxOTMxWhcNNDkxMjMxMTIxOTMxWjBoMQswCQYDVQQGEwJDTjEUMBIGA1UEChML\nT3Blbkhhcm1vbnkxGTAXBgNVBAsTEE9wZW5IYXJtb255IFRlYW0xKDAmBgNVBAMT\nH09wZW5IYXJtb255IEFwcGxpY2F0aW9uIFJlbGVhc2UwWTATBgcqhkjOPQIBBggq\nhkjOPQMBBwNCAATbYOCQQpW5fdkYHN45v0X3AHax12jPBdEDosFRIZ1eXmxOYzSG\nJwMfsHhUU90E8lI0TXYZnNmgM1sovubeQqATo1IwUDAfBgNVHSMEGDAWgBTbhrci\nFtULoUu33SV7ufEFfaItRzAOBgNVHQ8BAf8EBAMCB4AwHQYDVR0OBBYEFPtxruhl\ncRBQsJdwcZqLu9oNUVgaMAwGCCqGSM49BAMDBQADaAAwZQIxAJta0PQ2p4DIu/ps\nLMdLCDgQ5UH1l0B4PGhBlMgdi2zf8nk9spazEQI/0XNwpft8QAIwHSuA2WelVi/o\nzAlF08DnbJrOOtOnQq5wHOPlDYB4OtUzOYJk9scotrEnJxJzGsh/\n-----END CERTIFICATE-----\n";
+
 class HapVerifyV2Test : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -87,6 +90,90 @@ HWTEST_F(HapVerifyV2Test, GenerateAppIdTest001, TestSize.Level1)
     HapVerifyV2 v2;
     ProvisionInfo provisionInfo;
     ASSERT_FALSE(v2.GenerateAppId(provisionInfo));
+}
+
+/**
+ * @tc.name: Test GenerateFingerprint function
+ * @tc.desc: The static function will return whether generate fingerprint successfully;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyV2Test, GenerateFingerprintTest001, TestSize.Level1)
+{
+    /*
+     * @tc.steps: step1. input a null ProvisionInfo.
+     * @tc.expected: step1. the return will be false.
+     */
+    HapVerifyV2 v2;
+    ProvisionInfo provisionInfo;
+    ASSERT_FALSE(v2.GenerateFingerprint(provisionInfo));
+}
+
+/**
+ * @tc.name: Test GenerateFingerprint function
+ * @tc.desc: The static function will return whether generate fingerprint successfully;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyV2Test, GenerateFingerprintTest002, TestSize.Level1)
+{
+    /*
+     * @tc.steps: step1. input ProvisionInfo with error distributionCertificate.
+     * @tc.expected: step1. the return will be false.
+     */
+    HapVerifyV2 v2;
+    ProvisionInfo provisionInfo;
+    provisionInfo.bundleInfo.distributionCertificate = ERROR_CERTIFICATE;
+    ASSERT_FALSE(v2.GenerateFingerprint(provisionInfo));
+}
+
+/**
+ * @tc.name: Test GenerateFingerprint function
+ * @tc.desc: The static function will return whether generate fingerprint successfully;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyV2Test, GenerateFingerprintTest003, TestSize.Level1)
+{
+    /*
+     * @tc.steps: step1. input ProvisionInfo with error distributionCertificate.
+     * @tc.expected: step1. the return will be false.
+     */
+    HapVerifyV2 v2;
+    ProvisionInfo provisionInfo;
+    provisionInfo.bundleInfo.developmentCertificate = ERROR_CERTIFICATE;
+    ASSERT_FALSE(v2.GenerateFingerprint(provisionInfo));
+}
+
+/**
+ * @tc.name: Test GenerateFingerprint function
+ * @tc.desc: The static function will return whether generate fingerprint successfully;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyV2Test, GenerateFingerprintTest004, TestSize.Level1)
+{
+    /*
+     * @tc.steps: step1. input ProvisionInfo with error distributionCertificate.
+     * @tc.expected: step1. the return will be false.
+     */
+    HapVerifyV2 v2;
+    ProvisionInfo provisionInfo;
+    provisionInfo.bundleInfo.distributionCertificate = TEST_CERTIFICATE;
+    ASSERT_TRUE(v2.GenerateFingerprint(provisionInfo));
+}
+
+/**
+ * @tc.name: Test GenerateFingerprint function
+ * @tc.desc: The static function will return whether generate fingerprint successfully;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyV2Test, GenerateFingerprintTest005, TestSize.Level1)
+{
+    /*
+     * @tc.steps: step1. input ProvisionInfo with correct distributionCertificate.
+     * @tc.expected: step1. the return will be true.
+     */
+    HapVerifyV2 v2;
+    ProvisionInfo provisionInfo;
+    provisionInfo.bundleInfo.developmentCertificate = TEST_CERTIFICATE;
+    ASSERT_TRUE(v2.GenerateFingerprint(provisionInfo));
 }
 
 /**

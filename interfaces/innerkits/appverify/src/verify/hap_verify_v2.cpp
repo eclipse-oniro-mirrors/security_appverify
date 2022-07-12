@@ -193,8 +193,8 @@ bool HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context,
         return false;
     }
 
-    if (!GenerateAppId(provisionInfo)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "GenerateAppId failed");
+    if (!GenerateAppId(provisionInfo) || !GenerateFingerprint(provisionInfo)) {
+        HAPVERIFY_LOG_ERROR(LABEL, "Generate appId or generate fingerprint failed");
         return false;
     }
 
@@ -228,6 +228,23 @@ bool HapVerifyV2::GenerateAppId(ProvisionInfo& provisionInfo)
     }
     provisionInfo.appId = publicKey;
     HAPVERIFY_LOG_DEBUG(LABEL, "provisionInfo.appId: %{public}s", provisionInfo.appId.c_str());
+    return true;
+}
+
+bool HapVerifyV2::GenerateFingerprint(ProvisionInfo& provisionInfo)
+{
+    std::string& certInProfile = provisionInfo.bundleInfo.distributionCertificate;
+    if (provisionInfo.bundleInfo.distributionCertificate.empty()) {
+        certInProfile = provisionInfo.bundleInfo.developmentCertificate;
+        HAPVERIFY_LOG_DEBUG(LABEL, "use development Certificate");
+    }
+    std::string fingerprint;
+    if (!HapCertVerifyOpensslUtils::GetFingerprintBase64FromPemCert(certInProfile, fingerprint)) {
+        HAPVERIFY_LOG_ERROR(LABEL, "Generate fingerprint from pem certificate failed");
+        return false;
+    }
+    provisionInfo.fingerprint = fingerprint;
+    HAPVERIFY_LOG_DEBUG(LABEL, "fingerprint is : %{public}s", fingerprint.c_str());
     return true;
 }
 
@@ -269,6 +286,7 @@ bool HapVerifyV2::IsAppDistributedTypeAllowInstall(const AppDistType& type, cons
             return false;
         case AppDistType::ENTERPRISE:
         case AppDistType::OS_INTEGRATION:
+        case AppDistType::CROWDTESTING:
             return true;
         default:
             return false;

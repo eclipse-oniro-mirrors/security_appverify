@@ -19,10 +19,12 @@
 #include <fstream>
 
 #include "openssl/pem.h"
+#include "openssl/sha.h"
 
 #include "common/hap_verify_log.h"
 #include "init/hap_crl_manager.h"
 #include "init/trusted_root_ca.h"
+#include "securec.h"
 #include "util/hap_verify_openssl_utils.h"
 
 namespace OHOS {
@@ -33,6 +35,7 @@ const int HapCertVerifyOpensslUtils::OPENSSL_READ_CRL_MAX_TIME = 1048576; // 102
 const int HapCertVerifyOpensslUtils::OPENSSL_READ_CRL_LEN_EACH_TIME = 1024;
 const int HapCertVerifyOpensslUtils::BASE64_ENCODE_LEN_OF_EACH_GROUP_DATA = 4;
 const int HapCertVerifyOpensslUtils::BASE64_ENCODE_PACKET_LEN = 3;
+constexpr int BUFF_SIZE = 3;
 
 X509* HapCertVerifyOpensslUtils::GetX509CertFromPemString(const std::string& pemString)
 {
@@ -90,6 +93,56 @@ bool HapCertVerifyOpensslUtils::GetPublickeyBase64FromPemCert(const std::string&
         return false;
     }
     X509_free(cert);
+    return true;
+}
+
+bool HapCertVerifyOpensslUtils::GetFingerprintBase64FromPemCert(const std::string& certStr, std::string& fingerprint)
+{
+    HAPVERIFY_LOG_DEBUG(LABEL, "GetFingerprintBase64FromPemCert begin");
+    X509* cert = GetX509CertFromPemString(certStr);
+    if (cert == nullptr) {
+        HAPVERIFY_LOG_ERROR(LABEL, "GetX509CertFromPemString failed");
+        return false;
+    }
+    int certLen = i2d_X509(cert, nullptr);
+    if (certLen <= 0) {
+        HAPVERIFY_LOG_ERROR(LABEL, "certLen %{public}d, i2d_X509 failed", certLen);
+        HapVerifyOpensslUtils::GetOpensslErrorMessage();
+        X509_free(cert);
+        return false;
+    }
+
+    std::unique_ptr<unsigned char[]> derCertificate = std::make_unique<unsigned char[]>(certLen);
+    if (derCertificate == nullptr) {
+        HAPVERIFY_LOG_ERROR(LABEL, "make_unique failed");
+        X509_free(cert);
+        return false;
+    }
+
+    unsigned char* derCertificateBackup = derCertificate.get();
+    if (i2d_X509(cert, &derCertificateBackup) <= 0) {
+        HAPVERIFY_LOG_ERROR(LABEL, "i2d_X509 failed");
+        HapVerifyOpensslUtils::GetOpensslErrorMessage();
+        X509_free(cert);
+        return false;
+    }
+    SHA256_CTX sha256;
+    SHA256_Init(&sha256);
+    SHA256_Update(&sha256, derCertificate.get(), certLen);
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    SHA256_Final(hash, &sha256);
+    char buff[BUFF_SIZE] = {0};
+    for (int index = 0; index < SHA256_DIGEST_LENGTH; ++index) {
+        if (sprintf_s(buff, sizeof(buff), "%02X", hash[index]) < 0) {
+            fingerprint.clear();
+            HAPVERIFY_LOG_ERROR(LABEL, "transforms hash string to hexadecimal string failed");
+            X509_free(cert);
+            return false;
+        }
+        fingerprint += buff;
+    }
+    X509_free(cert);
+    HAPVERIFY_LOG_DEBUG(LABEL, "GetFingerprintBase64FromPemCert end %{public}s", fingerprint.c_str());
     return true;
 }
 

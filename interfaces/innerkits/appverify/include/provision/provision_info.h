@@ -31,6 +31,7 @@ enum AppDistType {
     APP_GALLERY = 1,
     ENTERPRISE = 2,
     OS_INTEGRATION = 3,
+    CROWDTESTING = 4,
 };
 
 struct BundleInfo {
@@ -68,6 +69,7 @@ struct ProvisionInfo {
     DebugInfo debugInfo;
     std::string issuer;
     std::string appId;
+    std::string fingerprint;
 };
 } // namespace Verify
 } // namespace Security

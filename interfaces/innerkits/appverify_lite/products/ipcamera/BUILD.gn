@@ -16,18 +16,30 @@ config("verify_base_config") {
     "//base/security/appverify/interfaces/innerkits/appverify_lite/include",
     "//base/security/appverify/interfaces/innerkits/appverify_lite/products/ipcamera",
   ]
-  cflags = [ "-Wall" ]
 }
 
-shared_library("verify_base") {
-  sources = [
-    "../default/app_verify_default.c",
-    "app_verify_base.c",
-  ]
-  configs += [ ":verify_base_config" ]
-
-  public_deps = [
-    "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
-    "//base/startup/syspara_lite/frameworks/parameter:parameter",
-  ]
+if (ohos_kernel_type == "liteos_m") {
+  static_library("verify_base") {
+    sources = [
+      "../default/app_verify_default.c",
+      "app_verify_base.c",
+    ]
+    configs += [ ":verify_base_config" ]
+    public_deps = [
+      "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_static",
+      "//base/startup/syspara_lite/frameworks/parameter:parameter",
+    ]
+  }
+} else {
+  shared_library("verify_base") {
+    sources = [
+      "../default/app_verify_default.c",
+      "app_verify_base.c",
+    ]
+    configs += [ ":verify_base_config" ]
+    public_deps = [
+      "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
+      "//base/startup/syspara_lite/frameworks/parameter:parameter",
+    ]
+  }
 }
