@@ -42,6 +42,7 @@ unittest("app_verify_test") {
     "//third_party/bounds_checking_function/include",
     "//third_party/cJSON",
   ]
+
   deps = [
     "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
     "//base/security/appverify/interfaces/innerkits/appverify_lite:verify",
