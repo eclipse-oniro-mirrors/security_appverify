@@ -15,15 +15,14 @@
 #ifndef HAP_CRL_MANAGER_H
 #define HAP_CRL_MANAGER_H
 
-#include <string>
-#include <vector>
 #include <mutex>
+#include <string>
 #include <unordered_map>
-
-#include "openssl/x509.h"
+#include <vector>
 
 #include "common/export_define.h"
 #include "common/hap_byte_buffer.h"
+#include "openssl/ossl_typ.h"
 #include "util/pkcs7_context.h"
 
 namespace OHOS {

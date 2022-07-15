@@ -14,6 +14,7 @@
  */
 
 #include "common/hap_byte_buffer_data_source.h"
+#include "util/hap_verify_openssl_utils.h"
 
 namespace OHOS {
 namespace Security {

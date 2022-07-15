@@ -17,7 +17,7 @@
 
 #include "common/export_define.h"
 #include "common/hap_byte_buffer.h"
-#include "util/hap_verify_openssl_utils.h"
+#include "util/digest_parameter.h"
 
 namespace OHOS {
 namespace Security {

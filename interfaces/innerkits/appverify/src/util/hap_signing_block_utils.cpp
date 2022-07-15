@@ -16,13 +16,15 @@
 #include "util/hap_signing_block_utils.h"
 
 #include <climits>
-#include <map>
+#include <vector>
 
-#include "securec.h"
-
+#include "algorithm"
 #include "common/hap_byte_buffer_data_source.h"
 #include "common/hap_file_data_source.h"
 #include "common/hap_verify_log.h"
+#include "openssl/evp.h"
+#include "securec.h"
+#include "util/hap_verify_openssl_utils.h"
 
 namespace OHOS {
 namespace Security {

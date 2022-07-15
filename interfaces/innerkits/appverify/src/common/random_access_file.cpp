@@ -17,12 +17,13 @@
 
 #include <cerrno>
 #include <fcntl.h>
+#include <string>
 #include <sys/mman.h>
 #include <unistd.h>
 
-#include "securec.h"
-
 #include "common/hap_verify_log.h"
+#include "securec.h"
+#include "util/hap_verify_openssl_utils.h"
 
 namespace OHOS {
 namespace Security {

@@ -16,11 +16,12 @@
 #ifndef HOSP_DIGESTPARAMETER_H
 #define HOSP_DIGESTPARAMETER_H
 
-#include "openssl/evp.h"
-
 #include "common/export_define.h"
+#include "openssl/ossl_typ.h"
 
-namespace OHOS::Security::Verify {
+namespace OHOS {
+namespace Security {
+namespace Verify {
 class DigestParameter {
 public:
     DLL_EXPORT DigestParameter();
@@ -34,5 +35,7 @@ public:
     const EVP_MD* md;
     EVP_MD_CTX* ptrCtx;
 };
-} // namespace OHOS::Security::Verify
+} // namespace Verify
+} // namespace Security
+} // namespace OHOS
 #endif // HOSP_DIGESTPARAMETER_H

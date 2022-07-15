@@ -16,7 +16,6 @@
 #include "interfaces/hap_verify_result.h"
 
 #include "util/hap_signing_block_utils.h"
-#include "util/hap_verify_openssl_utils.h"
 
 namespace OHOS {
 namespace Security {

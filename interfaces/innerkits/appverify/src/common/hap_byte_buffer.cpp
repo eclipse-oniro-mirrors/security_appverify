@@ -15,9 +15,8 @@
 
 #include "common/hap_byte_buffer.h"
 
-#include "securec.h"
-
 #include "common/hap_verify_log.h"
+#include "securec.h"
 
 namespace OHOS {
 namespace Security {

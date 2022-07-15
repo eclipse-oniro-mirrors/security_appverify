@@ -17,6 +17,7 @@
 
 #include "common/data_source.h"
 #include "common/random_access_file.h"
+#include "util/digest_parameter.h"
 
 namespace OHOS {
 namespace Security {
