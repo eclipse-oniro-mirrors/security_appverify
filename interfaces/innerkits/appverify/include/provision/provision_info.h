@@ -41,6 +41,14 @@ struct BundleInfo {
     std::string bundleName;
     std::string apl;
     std::string appFeature;
+    bool userDataClearable = false;
+    bool multiProcess = false;
+    bool hideDesktopIcon = false;
+    bool queryPriority = false;
+    bool excludeFromMissions = false;
+    bool restartAfterKilled = false;
+    bool usePrivilegeExtension = false;
+    bool formVisibleNotify = false;
 };
 
 struct Acls {

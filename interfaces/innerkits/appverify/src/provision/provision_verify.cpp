@@ -54,6 +54,14 @@ const string KEY_DEBUG_INFO = "debug-info";
 const string KEY_DEVICE_ID_TYPE = "device-id-type";
 const string KEY_DEVICE_IDS = "device-ids";
 const string KEY_ISSUER = "issuer";
+const string KEY_USER_DATA_CLEARABLE = "userDataClearable";
+const string KEY_MULTI_PROCESS = "multiProcess";
+const string KEY_HIDE_DESKTOP_ICON = "hideDesktopIcon";
+const string KEY_QUERY_PRIORITY = "queryPriority";
+const string KEY_EXCLUDE_FROM_MISSIONS = "excludeFromMissions";
+const string KEY_RESTART_AFTER_KILLED = "restartAfterKilled";
+const string KEY_USE_PRIVILEGE_EXTENSION = "usePrivilegeExtension";
+const string KEY_FORM_VISIBLE_NOTIFY = "formVisibleNotify";
 const string VALUE_TYPE_RELEASE = "release";
 const string VALUE_DIST_TYPE_APP_GALLERY = "app_gallery";
 const string VALUE_DIST_TYPE_ENTERPRISE = "enterprise";
@@ -69,6 +77,13 @@ const int32_t VERSION_CODE_TWO = 2;
 inline void GetStringIfExist(const json& obj, const string& key, string& out)
 {
     if (obj.find(key.c_str()) != obj.end() && obj[key.c_str()].is_string()) {
+        obj[key.c_str()].get_to(out);
+    }
+}
+
+inline void GetBoolIfExist(const json& obj, const string& key, bool& out)
+{
+    if (obj.find(key.c_str()) != obj.end() && obj[key.c_str()].is_boolean()) {
         obj[key.c_str()].get_to(out);
     }
 }
@@ -135,6 +150,14 @@ void ParseBundleInfo(const json& obj, ProvisionInfo& out)
         GetStringIfExist(bundleInfo, KEY_BUNDLE_NAME, out.bundleInfo.bundleName);
         GetStringIfExist(bundleInfo, KEY_APL, out.bundleInfo.apl);
         GetStringIfExist(bundleInfo, KEY_APP_FEATURE, out.bundleInfo.appFeature);
+        GetBoolIfExist(bundleInfo, KEY_USER_DATA_CLEARABLE, out.bundleInfo.userDataClearable);
+        GetBoolIfExist(bundleInfo, KEY_MULTI_PROCESS, out.bundleInfo.multiProcess);
+        GetBoolIfExist(bundleInfo, KEY_HIDE_DESKTOP_ICON, out.bundleInfo.hideDesktopIcon);
+        GetBoolIfExist(bundleInfo, KEY_QUERY_PRIORITY, out.bundleInfo.queryPriority);
+        GetBoolIfExist(bundleInfo, KEY_EXCLUDE_FROM_MISSIONS, out.bundleInfo.excludeFromMissions);
+        GetBoolIfExist(bundleInfo, KEY_RESTART_AFTER_KILLED, out.bundleInfo.restartAfterKilled);
+        GetBoolIfExist(bundleInfo, KEY_USE_PRIVILEGE_EXTENSION, out.bundleInfo.usePrivilegeExtension);
+        GetBoolIfExist(bundleInfo, KEY_FORM_VISIBLE_NOTIFY, out.bundleInfo.formVisibleNotify);
     }
 }
 
