@@ -15,6 +15,8 @@
 
 #include "util/digest_parameter.h"
 
+#include "openssl/evp.h"
+
 namespace OHOS::Security::Verify {
 DigestParameter::DigestParameter() : digestOutputSizeBytes(0), md(nullptr), ptrCtx(nullptr)
 {

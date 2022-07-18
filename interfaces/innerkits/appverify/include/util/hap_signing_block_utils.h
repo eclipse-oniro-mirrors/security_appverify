@@ -15,15 +15,16 @@
 #ifndef HAP_SIGNING_BLOCK_UTILS_H
 #define HAP_SIGNING_BLOCK_UTILS_H
 
-#include <string>
 #include <vector>
-#include "openssl/evp.h"
 
 #include "common/data_source.h"
 #include "common/export_define.h"
 #include "common/hap_byte_buffer.h"
 #include "common/random_access_file.h"
-#include "util/hap_verify_openssl_utils.h"
+#include "interfaces/hap_verify_result.h"
+#include "util/digest_parameter.h"
+#include "util/pkcs7_context.h"
+#include "util/signature_info.h"
 #include "util/signature_info.h"
 
 namespace OHOS {

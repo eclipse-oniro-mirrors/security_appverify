@@ -16,9 +16,9 @@
 #ifndef OHOS_DEVICE_TYPE_MANAGER_H
 #define OHOS_DEVICE_TYPE_MANAGER_H
 
-#include "common/export_define.h"
-
 #include <mutex>
+
+#include "common/export_define.h"
 
 namespace OHOS {
 namespace Security {

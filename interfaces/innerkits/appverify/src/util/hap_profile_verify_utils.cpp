@@ -16,7 +16,11 @@
 #include "util/hap_profile_verify_utils.h"
 
 #include "common/hap_verify_log.h"
+#include "init/matching_result.h"
 #include "init/trusted_source_manager.h"
+#include "util/hap_cert_verify_openssl_utils.h"
+#include "util/hap_signing_block_utils.h"
+#include "util/hap_verify_openssl_utils.h"
 
 namespace OHOS {
 namespace Security {

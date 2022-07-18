@@ -16,11 +16,10 @@
 #define HAP_PROFILE_VERIFY_UTILS_H
 
 #include <string>
-#include <vector>
 
 #include "common/export_define.h"
 #include "common/hap_byte_buffer.h"
-#include "util/hap_verify_openssl_utils.h"
+#include "util/pkcs7_context.h"
 
 namespace OHOS {
 namespace Security {

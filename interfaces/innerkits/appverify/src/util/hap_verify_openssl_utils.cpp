@@ -15,10 +15,15 @@
 
 #include "util/hap_verify_openssl_utils.h"
 
-#include "openssl/err.h"
-#include "openssl/pem.h"
-
 #include "common/hap_verify_log.h"
+#include "openssl/asn1.h"
+#include "openssl/bio.h"
+#include "openssl/crypto.h"
+#include "openssl/err.h"
+#include "openssl/obj_mac.h"
+#include "openssl/objects.h"
+#include "openssl/rsa.h"
+#include "openssl/x509.h"
 
 namespace OHOS {
 namespace Security {

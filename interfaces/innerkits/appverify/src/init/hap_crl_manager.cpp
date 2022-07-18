@@ -16,10 +16,15 @@
 #include "init/hap_crl_manager.h"
 
 #include <fstream>
+#include <string>
 
 #include "common/hap_verify_log.h"
 #include "common/random_access_file.h"
+#include "openssl/asn1.h"
+#include "openssl/x509.h"
+#include "unordered_map"
 #include "util/hap_cert_verify_openssl_utils.h"
+#include "utility"
 
 namespace OHOS {
 namespace Security {

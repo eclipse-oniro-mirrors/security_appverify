@@ -18,13 +18,16 @@
 #include <string>
 #include <vector>
 
-#include "openssl/evp.h"
-
 #include "common/export_define.h"
 #include "common/hap_byte_buffer.h"
 #include "interfaces/hap_verify_result.h"
+#include "openssl/evp.h"
+#include "openssl/ossl_typ.h"
+#include "openssl/pkcs7.h"
+#include "openssl/safestack.h"
 #include "util/digest_parameter.h"
 #include "util/hap_cert_verify_openssl_utils.h"
+#include "util/pkcs7_context.h"
 
 namespace OHOS {
 namespace Security {
