@@ -24,12 +24,12 @@
       "deps": {
         "components": [
           "hiviewdfx_hilog_native",
-          "startup_l2"
+          "init",
+          "utils_base"
         ],
         "third_party": [
-          "bounds_checking_function",
-          "mbedtls",
-          "cjson"
+          "json",
+          "openssl"
         ]
       },
       "build": {
