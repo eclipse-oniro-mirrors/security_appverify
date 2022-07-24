@@ -38,7 +38,7 @@ unittest("app_verify_test") {
     "src",
     "//base/security/appverify/interfaces/innerkits/appverify_lite/include",
     "//base/startup/syspara_lite/interfaces/kits",
-    "//base/security/permission/interfaces/innerkits/permission_lite",
+    "//base/security/permission_lite/interfaces/innerkits",
     "//third_party/bounds_checking_function/include",
     "//third_party/cJSON",
   ]
@@ -46,7 +46,7 @@ unittest("app_verify_test") {
   deps = [
     "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
     "//base/security/appverify/interfaces/innerkits/appverify_lite:verify",
-    "//base/security/permission/services/permission_lite/pms_client:pms_client",
+    "//base/security/permission_lite/services/pms_client:pms_client",
     "//base/startup/syspara_lite/frameworks/parameter:parameter",
     "//build/lite/config/component/cJSON:cjson_shared",
     "//third_party/bounds_checking_function:libsec_shared",
