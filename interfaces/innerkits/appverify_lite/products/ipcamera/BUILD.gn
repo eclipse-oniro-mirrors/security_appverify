@@ -15,7 +15,7 @@ config("verify_base_config") {
   include_dirs = [
     "//base/security/appverify/interfaces/innerkits/appverify_lite/include",
     "//base/security/appverify/interfaces/innerkits/appverify_lite/products/ipcamera",
-    "//base/startup/syspara_lite/interfaces/kits",
+    "//base/startup/init/interfaces/innerkits/include/syspara",
   ]
 }
 
@@ -28,7 +28,7 @@ if (ohos_kernel_type == "liteos_m") {
     configs += [ ":verify_base_config" ]
     public_deps = [
       "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_static",
-      "//base/startup/syspara_lite/frameworks/parameter:parameter",
+      "//base/startup/init/interfaces/innerkits:libbegetutil",
     ]
   }
 } else {
@@ -40,7 +40,7 @@ if (ohos_kernel_type == "liteos_m") {
     configs += [ ":verify_base_config" ]
     public_deps = [
       "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
-      "//base/startup/syspara_lite/frameworks/parameter:parameter",
+      "//base/startup/init/interfaces/innerkits:libbegetutil",
     ]
   }
 }

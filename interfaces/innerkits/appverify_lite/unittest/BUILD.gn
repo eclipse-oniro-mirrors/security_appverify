@@ -37,7 +37,7 @@ unittest("app_verify_test") {
   include_dirs = [
     "src",
     "//base/security/appverify/interfaces/innerkits/appverify_lite/include",
-    "//base/startup/syspara_lite/interfaces/kits",
+    "//base/startup/init/interfaces/innerkits/include/syspara",
     "//base/security/permission_lite/interfaces/innerkits",
     "//third_party/bounds_checking_function/include",
     "//third_party/cJSON",
@@ -47,7 +47,7 @@ unittest("app_verify_test") {
     "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
     "//base/security/appverify/interfaces/innerkits/appverify_lite:verify",
     "//base/security/permission_lite/services/pms_client:pms_client",
-    "//base/startup/syspara_lite/frameworks/parameter:parameter",
+    "//base/startup/init/interfaces/innerkits:libbegetutil",
     "//build/lite/config/component/cJSON:cjson_shared",
     "//third_party/bounds_checking_function:libsec_shared",
     "//third_party/mbedtls:mbedtls_shared",
