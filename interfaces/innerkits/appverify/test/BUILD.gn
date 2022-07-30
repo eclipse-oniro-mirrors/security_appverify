@@ -22,7 +22,7 @@ config("verify_test_config") {
     "//base/security/appverify/interfaces/innerkits/appverify/include",
     "//third_party/openssl/include",
     "//third_party/json/single_include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
   ]
   cflags = [ "-fvisibility=hidden" ]
   ldflags = [ "-Wl,--exclude-libs,ALL" ]
@@ -51,18 +51,19 @@ ohos_unittest("verify_test") {
     "//base/security/appverify/interfaces/innerkits/appverify:libhapverify",
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_static",
-    "//utils/native/base:utils",
   ]
 
   if (is_standard_system) {
     defines = [ "STANDARD_SYSTEM" ]
 
     external_deps = [
+      "c_utils:utils",
       "hiviewdfx_hilog_native:libhilog",
       "init:libbegetutil",
     ]
   } else {
     external_deps = [
+      "c_utils:utils",
       "hilog_native:libhilog",
       "ipc:ipc_core",
       "os_account:libaccountkits",

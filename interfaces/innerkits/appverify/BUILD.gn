@@ -57,7 +57,7 @@ if (os_level == "standard") {
 
     deps = [ "//third_party/openssl:libcrypto_shared" ]
 
-    external_deps = [ "utils_base:utils" ]
+    external_deps = [ "c_utils:utils" ]
 
     if (is_standard_system) {
       defines = [ "STANDARD_SYSTEM" ]
