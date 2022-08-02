@@ -38,6 +38,7 @@ const int HapVerifyV2::DIGEST_ALGORITHM_OFFSET = 12;
 const int HapVerifyV2::DIGEST_LEN_OFFSET = 16;
 const int HapVerifyV2::DIGEST_OFFSET_IN_CONTENT = 20;
 const std::string HapVerifyV2::HAP_APP_PATTERN = "[^]*.hap$";
+const std::string HapVerifyV2::HQF_APP_PATTERN = "[^]*.hqf$";
 
 int HapVerifyV2::Verify(const std::string& filePath, HapVerifyResult& hapVerifyV1Result)
 {
@@ -65,8 +66,9 @@ bool HapVerifyV2::CheckFilePath(const std::string& filePath, std::string& standa
         return false;
     }
     standardFilePath = std::string(path);
-    if (!std::regex_match(standardFilePath, std::regex(HAP_APP_PATTERN))) {
-        HAPVERIFY_LOG_ERROR(LABEL, "file is not hap package");
+    if (!std::regex_match(standardFilePath, std::regex(HAP_APP_PATTERN)) &&
+        !std::regex_match(standardFilePath, std::regex(HQF_APP_PATTERN))) {
+        HAPVERIFY_LOG_ERROR(LABEL, "file is not hap or hqf package");
         return false;
     }
     return true;
