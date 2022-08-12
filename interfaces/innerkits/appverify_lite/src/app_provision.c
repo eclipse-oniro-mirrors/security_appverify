@@ -278,7 +278,10 @@ int ParseProfile(const char *buf, int len, ProfileProf *pf)
     P_NULL_RETURN_WTTH_LOG(buf);
     ProfInit(pf);
     int ret;
-    cJSON *root = cJSON_Parse(buf);
+    char *pfStr = strchr(buf, '{');
+    P_NULL_RETURN_WTTH_LOG(pfStr);
+
+    cJSON *root = cJSON_Parse(pfStr);
     P_NULL_RETURN_WTTH_LOG(root);
 
     cJSON *jsonObj = cJSON_GetObjectItem(root, "version-code");
