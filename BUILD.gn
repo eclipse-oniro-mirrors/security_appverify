@@ -17,7 +17,7 @@ group("testcase_packages") {
     deps = [
       "//base/security/appverify/interfaces/innerkits/appverify/test:unittest",
     ]
-  } else {
+  } else if (os_level == "small") {
     deps = [ "//base/security/appverify/interfaces/innerkits/appverify_lite/unittest:unittest" ]
   }
 }
