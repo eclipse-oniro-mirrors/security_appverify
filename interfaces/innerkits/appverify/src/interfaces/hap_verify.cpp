@@ -64,6 +64,16 @@ bool EnableDebugMode()
     return ret;
 }
 
+void DisableDebugMode()
+{
+    TrustedRootCa& rootCertsObj = TrustedRootCa::GetInstance();
+    TrustedSourceManager& trustedAppSourceManager = TrustedSourceManager::GetInstance();
+    g_mtx.lock();
+    rootCertsObj.DisableDebug();
+    trustedAppSourceManager.DisableDebug();
+    g_mtx.unlock();
+}
+
 int HapVerify(const std::string& filePath, HapVerifyResult& hapVerifyResult)
 {
     if (!g_isInit && !HapVerifyInit()) {
