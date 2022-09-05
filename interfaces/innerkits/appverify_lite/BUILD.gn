@@ -48,7 +48,7 @@ if (os_level == "small" || os_level == "mini") {
         "//base/security/appverify/interfaces/innerkits/appverify_lite/products/ipcamera:verify_base",
         "//build/lite/config/component/cJSON:cjson_static",
         "//third_party/bounds_checking_function:libsec_static",
-        "//third_party/mbedtls:mbedtls_static",
+        "//third_party/mbedtls",
       ]
       if (board_toolchain_type == "iccarm") {
         cflags = [
