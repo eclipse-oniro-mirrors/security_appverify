@@ -46,6 +46,14 @@ DLL_EXPORT AppProvisionVerifyResult ParseAndVerify(const std::string& appProvisi
  * @return AppProvisionVerifyResult parse result.
  */
 DLL_EXPORT AppProvisionVerifyResult ParseProvision(const std::string& appProvision, ProvisionInfo& info);
+
+/**
+ * @brief Parse app provision profile
+ * @param appProvision The app provision json string.
+ * @param info Out param, the parsed app provision structure.
+ * @return AppProvisionVerifyResult parse result.
+ */
+DLL_EXPORT AppProvisionVerifyResult ParseProfile(const std::string& appProvision, ProvisionInfo& info);
 } // namespace Verify
 } // namespace Security
 } // namespace OHOS

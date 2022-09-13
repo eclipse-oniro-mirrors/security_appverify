@@ -374,6 +374,53 @@ bool HapVerifyV2::GetDigestAndAlgorithm(Pkcs7Context& digest)
     digest.content.Slice();
     return true;
 }
+
+int HapVerifyV2::ParseHapProfile(const std::string& filePath, HapVerifyResult& hapVerifyV1Result)
+{
+    HAPVERIFY_LOG_INFO(LABEL, "start to ParseHapProfile");
+    std::string standardFilePath;
+    if (!CheckFilePath(filePath, standardFilePath)) {
+        return FILE_PATH_INVALID;
+    }
+
+    RandomAccessFile hapFile;
+    if (!hapFile.Init(standardFilePath)) {
+        HAPVERIFY_LOG_ERROR(LABEL, "open standard file failed");
+        return OPEN_FILE_ERROR;
+    }
+
+    SignatureInfo hapSignInfo;
+    if (!HapSigningBlockUtils::FindHapSignature(hapFile, hapSignInfo)) {
+        return SIGNATURE_NOT_FOUND;
+    }
+
+    int profileIndex = 0;
+    if (!HapSigningBlockUtils::GetOptionalBlockIndex(hapSignInfo.optionBlocks, PROFILE_BLOB, profileIndex)) {
+        return NO_PROFILE_BLOCK_FAIL;
+    }
+    auto pkcs7ProfileBlock = hapSignInfo.optionBlocks[profileIndex].optionalBlockValue;
+    const unsigned char* pkcs7Block = reinterpret_cast<const unsigned char*>(pkcs7ProfileBlock.GetBufferPtr());
+    unsigned int pkcs7Len = static_cast<unsigned int>(pkcs7ProfileBlock.GetCapacity());
+    Pkcs7Context profileContext;
+    if (!HapVerifyOpensslUtils::ParsePkcs7Package(pkcs7Block, pkcs7Len, profileContext)) {
+        HAPVERIFY_LOG_ERROR(LABEL, "parse pkcs7 failed");
+        return false;
+    }
+    std::string profile = std::string(profileContext.content.GetBufferPtr(), profileContext.content.GetCapacity());
+    HAPVERIFY_LOG_DEBUG(LABEL, "profile is %{public}s", profile.c_str());
+    ProvisionInfo info;
+    auto ret = ParseProfile(profile, info);
+    if (ret != PROVISION_OK) {
+        return PROFILE_PARSE_FAIL;
+    }
+
+    if (!GenerateFingerprint(info)) {
+        HAPVERIFY_LOG_ERROR(LABEL, "Generate appId or generate fingerprint failed");
+        return PROFILE_PARSE_FAIL;
+    }
+    hapVerifyV1Result.SetProvisionInfo(info);
+    return VERIFY_SUCCESS;
+}
 } // namespace Verify
 } // namespace Security
 } // namespace OHOS

@@ -66,8 +66,11 @@ constexpr int TEST_CERT_CHAIN_LEN = 3;
 constexpr int TEST_FILE_NUM = 2;
 constexpr int TEST_PFOFILE_PKCS7_DATA_INDEX = 5110;
 constexpr int TEST_APP_PKCS7_DATA_INDEX = 7000;
+constexpr int TEST_VERSION_CODE = 1;
 
 const std::string TEST_ANS_TIME = "000000000000Z";
+const std::string TEST_FINGERPRINT = "7A1B38212FE86369DECE606D901CB66C7199CC1BDC4EFF52A86EFBFFB1B99A19";
+const std::string TEST_VERSION_NAME = "1.0.0";
 
 constexpr char miniHapFile[] = {
     80, 75, 3, 4, 10, 0, 0, 8, 0, 0, 0, 0, 33, 58, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 18, 0,

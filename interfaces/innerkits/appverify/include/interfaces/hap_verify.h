@@ -26,6 +26,7 @@ namespace Verify {
 DLL_EXPORT bool EnableDebugMode();
 DLL_EXPORT void DisableDebugMode();
 DLL_EXPORT int HapVerify(const std::string& filePath, HapVerifyResult& hapVerifyResult);
+DLL_EXPORT int ParseHapProfile(const std::string& filePath, HapVerifyResult& hapVerifyV1Result);
 } // namespace Verify
 } // namespace Security
 } // namespace OHOS
