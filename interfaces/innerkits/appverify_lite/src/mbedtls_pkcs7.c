@@ -345,7 +345,7 @@ static int CompareX509NameList(const mbedtls_x509_name *first, const mbedtls_x50
         if (first->oid.tag != second->oid.tag ||
             first->oid.len != second->oid.len ||
             memcmp(first->oid.p, second->oid.p, second->oid.len) != 0 ||
-            first->next_merged != second->next_merged ||
+            first->MBEDTLS_PRIVATE(next_merged) != second->MBEDTLS_PRIVATE(next_merged) ||
             first->val.len != second->val.len) {
             return -1;
         }
@@ -897,7 +897,7 @@ int PKCS7_VerifySignerSignature(const Pkcs7 *pkcs7, PKCS7_CalcDigest calcDigest)
         }
         /* if is rsassa-pss, need to set padding version to V21, RFC3447 */
         if (!MBEDTLS_OID_CMP(MBEDTLS_OID_RSASSA_PSS, &signer->digestEncAlgId)) {
-            mbedtls_rsa_set_padding(pk->pk_ctx, MBEDTLS_RSA_PKCS_V21, 0);
+            mbedtls_rsa_set_padding(pk->MBEDTLS_PRIVATE(pk_ctx), MBEDTLS_RSA_PKCS_V21, 0);
         }
         rc = mbedtls_pk_verify(pk, digAlg, hash, hashLen, sig, sigLen);
         (void)memset_s(hash, MAX_HASH_SIZE, 0, MAX_HASH_SIZE);
@@ -1345,8 +1345,8 @@ int PKCS7_ParseSignedData(const unsigned char *buf, size_t bufLen, Pkcs7 *pkcs7)
         goto EXIT;
     }
     if (format == PEM_FORMAT_SINGED_DATA) {
-        start = pkcs7->pem.buf;
-        bufLen = pkcs7->pem.buflen;
+        start = pkcs7->pem.MBEDTLS_PRIVATE(buf);
+        bufLen = pkcs7->pem.MBEDTLS_PRIVATE(buflen);
     }
 #endif
     end = start + bufLen;

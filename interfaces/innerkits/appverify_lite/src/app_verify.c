@@ -607,8 +607,8 @@ static unsigned char *GetEcPk(const mbedtls_pk_context *pk, int *len)
         APPV_FREE(buf);
         return NULL;
     }
-    ret = mbedtls_ecp_point_write_binary(&ecCtx->grp, &ecCtx->Q, MBEDTLS_ECP_PF_UNCOMPRESSED,
-        (size_t *)len, buf, MBEDTLS_ECP_MAX_PT_LEN);
+    ret = mbedtls_ecp_point_write_binary(&ecCtx->MBEDTLS_PRIVATE(grp), &ecCtx->MBEDTLS_PRIVATE(Q),
+        MBEDTLS_ECP_PF_UNCOMPRESSED, (size_t *)len, buf, MBEDTLS_ECP_MAX_PT_LEN);
     if (ret != V_OK) {
         LOG_ERROR("get ecc pk key error");
         (void)memset_s(buf, MBEDTLS_ECP_MAX_PT_LEN, 0, MBEDTLS_ECP_MAX_PT_LEN);
