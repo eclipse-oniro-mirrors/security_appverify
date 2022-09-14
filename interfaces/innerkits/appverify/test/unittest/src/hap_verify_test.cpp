@@ -230,4 +230,32 @@ HWTEST_F(HapVerifyTest, HapVerify002, TestSize.Level0)
         ASSERT_TRUE(HapVerify(errorfilePath[i], verifyRet) == VERIFY_APP_PKCS7_FAIL);
     }
 }
+
+/**
+ * @tc.name: HapVerifyTest.HapVerify003
+ * @tc.desc: The static function will return verify result of signed file;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyTest, HapVerify003, TestSize.Level0)
+{
+    std::string fileContent = HAP_FILE_ECC_SIGN_BASE64;
+    std::string filePath = "./signed_ecc.hap";
+    HapByteBuffer hapFileEccSign;
+    ASSERT_TRUE(Base64StringDecode(fileContent, hapFileEccSign));
+    std::ofstream hapFile;
+    hapFile.open(filePath.c_str(), std::ios::binary | std::ios::out | std::ios::trunc);
+    ASSERT_TRUE(hapFile.is_open());
+    hapFile.seekp(0, std::ios_base::beg);
+    hapFile.write(hapFileEccSign.GetBufferPtr(), hapFileEccSign.GetCapacity());
+    hapFile.close();
+    HapVerifyResult hapVerifyResult;
+    ASSERT_TRUE(ParseHapProfile(filePath, hapVerifyResult) == VERIFY_SUCCESS);
+
+    ProvisionInfo profile = hapVerifyResult.GetProvisionInfo();
+    ASSERT_EQ(profile.type, ProvisionType::RELEASE);
+    ASSERT_EQ(profile.fingerprint, TEST_FINGERPRINT);
+    ASSERT_EQ(profile.versionCode, TEST_VERSION_CODE);
+    ASSERT_EQ(profile.versionName, TEST_VERSION_NAME);
+    ASSERT_EQ(profile.distributionType, AppDistType::OS_INTEGRATION);
+}
 }

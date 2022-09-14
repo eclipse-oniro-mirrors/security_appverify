@@ -300,6 +300,17 @@ AppProvisionVerifyResult ParseAndVerify(const string& appProvision, ProvisionInf
     HAPVERIFY_LOG_DEBUG(LABEL, "Leave HarmonyAppProvision Verify");
     return PROVISION_OK;
 }
+
+AppProvisionVerifyResult ParseProfile(const std::string& appProvision, ProvisionInfo& info)
+{
+    json obj = json::parse(appProvision, nullptr, false);
+    if (!obj.is_structured()) {
+        HAPVERIFY_LOG_ERROR(LABEL, "Parsing appProvision failed. json: %{public}s", appProvision.c_str());
+        return PROVISION_INVALID;
+    }
+    obj.get_to(info);
+    return PROVISION_OK;
+}
 } // namespace Verify
 } // namespace Security
 } // namespace OHOS

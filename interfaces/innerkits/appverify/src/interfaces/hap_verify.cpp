@@ -22,6 +22,7 @@
 #include "init/trusted_root_ca.h"
 #include "init/trusted_source_manager.h"
 #include "init/trusted_ticket_manager.h"
+#include "provision/provision_verify.h"
 #include "verify/hap_verify_v2.h"
 
 namespace OHOS {
@@ -81,6 +82,12 @@ int HapVerify(const std::string& filePath, HapVerifyResult& hapVerifyResult)
     }
     HapVerifyV2 hapVerifyV2;
     return hapVerifyV2.Verify(filePath, hapVerifyResult);
+}
+
+int ParseHapProfile(const std::string& filePath, HapVerifyResult& hapVerifyV1Result)
+{
+    HapVerifyV2 hapVerifyV2;
+    return hapVerifyV2.ParseHapProfile(filePath, hapVerifyV1Result);
 }
 } // namespace Verify
 } // namespace Security

@@ -29,6 +29,7 @@ namespace Verify {
 class HapVerifyV2 {
 public:
     int Verify(const std::string& filePath, HapVerifyResult& hapVerifyV1Result);
+    int ParseHapProfile(const std::string& filePath, HapVerifyResult& hapVerifyV1Result);
 
 private:
     int Verify(RandomAccessFile& hapFile, HapVerifyResult& hapVerifyV1Result);
