@@ -391,7 +391,7 @@ static int VerifyUdid(const ProfileProf *pf)
             return V_OK;
         }
     }
-    LOG_ERROR("udid invalid, udid: %s", udid);
+    LOG_ERROR("udid invalid");
     free(udid);
     udid = NULL;
     return V_ERR;
