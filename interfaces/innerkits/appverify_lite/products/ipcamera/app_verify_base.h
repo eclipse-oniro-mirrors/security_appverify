@@ -24,11 +24,17 @@ extern "C" {
 #endif
 #endif
 
-#define LOG_INFO(fmt, args...) HILOG_INFO(LOG_CORE, "["__FILE__":%d] :"fmt, __LINE__, ##args)
-#define LOG_DEBUG(fmt, args...) HILOG_DEBUG(LOG_CORE, "["__FILE__":%d] :"fmt, __LINE__, ##args)
-#define LOG_WARN(fmt, args...) HILOG_WARN(LOG_CORE, "["__FILE__":%d] :"fmt, __LINE__, ##args)
-#define LOG_ERROR(fmt, args...) HILOG_ERROR(LOG_CORE, "["__FILE__":%d] :"fmt, __LINE__, ##args)
-#define LOG_PRINT_STR(fmt, args...) HILOG_INFO(LOG_CORE, "["__FILE__":%d] :"fmt, __LINE__, ##args)
+#undef LOG_TAG
+#define LOG_TAG "appverify"
+#undef LOG_DOMAIN
+#define LOG_DOMAIN 0xD001100
+
+#define LOG_INFO(fmt, args...) HILOG_INFO(LOG_DOMAIN, "%{public}s(%{public}d): "fmt, __FUNCTION__, __LINE__, ##args)
+#define LOG_DEBUG(fmt, args...) HILOG_DEBUG(LOG_DOMAIN, "%{public}s(%{public}d): "fmt, __FUNCTION__, __LINE__, ##args)
+#define LOG_WARN(fmt, args...) HILOG_WARN(LOG_DOMAIN, "%{public}s(%{public}d): "fmt, __FUNCTION__, __LINE__, ##args)
+#define LOG_ERROR(fmt, args...) HILOG_ERROR(LOG_DOMAIN, "%{public}s(%{public}d): "fmt, __FUNCTION__, __LINE__, ##args)
+#define LOG_PRINT_STR(fmt, args...) HILOG_INFO(LOG_DOMAIN, "%{public}s(%{public}d): "fmt,  \
+    __FUNCTION__, __LINE__, ##args)
 
 void RegistProductFunc(ProductDiff *productFunc);
 #ifdef __cplusplus
