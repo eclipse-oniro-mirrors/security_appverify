@@ -34,7 +34,7 @@ static void ProfInit(ProfileProf *pf)
 static char *GetStringTag(const cJSON *root, const char *tag)
 {
     cJSON *jsonObj = cJSON_GetObjectItem(root, tag);
-    if (jsonObj == NULL) {
+    if ((jsonObj == NULL) || (jsonObj->valuestring == NULL)) {
         LOG_PRINT_STR("failed to get %s", tag);
         return NULL;
     }
@@ -95,7 +95,10 @@ static char **GetStringArrayTag(const cJSON *root, const char *tag, int *numRetu
     for (int i = 0; i < num; i++) {
         cJSON *item = cJSON_GetArrayItem(jsonObj, i);
         P_NULL_GOTO_WTTH_LOG(item);
-
+        if (item->valuestring == NULL) {
+            LOG_ERROR("valuestring is NULL");
+            return NULL;
+        }
         int len = strlen(item->valuestring);
         value[i] = APPV_MALLOC(len + 1);
         P_NULL_GOTO_WTTH_LOG(value[i]);
