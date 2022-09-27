@@ -29,12 +29,11 @@ extern "C" {
 #undef LOG_DOMAIN
 #define LOG_DOMAIN 0xD001100
 
-#define LOG_INFO(fmt, args...) HILOG_INFO(LOG_DOMAIN, "%{public}s(%{public}d): "fmt, __FUNCTION__, __LINE__, ##args)
-#define LOG_DEBUG(fmt, args...) HILOG_DEBUG(LOG_DOMAIN, "%{public}s(%{public}d): "fmt, __FUNCTION__, __LINE__, ##args)
-#define LOG_WARN(fmt, args...) HILOG_WARN(LOG_DOMAIN, "%{public}s(%{public}d): "fmt, __FUNCTION__, __LINE__, ##args)
-#define LOG_ERROR(fmt, args...) HILOG_ERROR(LOG_DOMAIN, "%{public}s(%{public}d): "fmt, __FUNCTION__, __LINE__, ##args)
-#define LOG_PRINT_STR(fmt, args...) HILOG_INFO(LOG_DOMAIN, "%{public}s(%{public}d): "fmt,  \
-    __FUNCTION__, __LINE__, ##args)
+#define LOG_INFO(fmt, args...) HILOG_INFO(LOG_DOMAIN, "[%s:%d]: "fmt, __FUNCTION__, __LINE__, ##args)
+#define LOG_DEBUG(fmt, args...) HILOG_DEBUG(LOG_DOMAIN, "[%s:%d]: "fmt, __FUNCTION__, __LINE__, ##args)
+#define LOG_WARN(fmt, args...) HILOG_WARN(LOG_DOMAIN, "[%s:%d]: "fmt, __FUNCTION__, __LINE__, ##args)
+#define LOG_ERROR(fmt, args...) HILOG_ERROR(LOG_DOMAIN, "[%s:%d]: "fmt, __FUNCTION__, __LINE__, ##args)
+#define LOG_PRINT_STR(fmt, args...) HILOG_INFO(LOG_DOMAIN, "[%s:%d]: "fmt, __FUNCTION__, __LINE__, ##args)
 
 void RegistProductFunc(ProductDiff *productFunc);
 #ifdef __cplusplus
