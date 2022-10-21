@@ -112,9 +112,6 @@ static char **GetStringArrayTag(const cJSON *root, const char *tag, int *numRetu
     }
     *numReturn = num;
     return value;
-EXIT:
-    FreeStringAttay(value, num);
-    return NULL;
 }
 
 static int GetProfValidity(const cJSON *root, ProfValidity *profVal)
@@ -325,11 +322,6 @@ int ParseProfile(const char *buf, int len, ProfileProf *pf)
     LOG_INFO("parse profile json success");
     cJSON_Delete(root);
     return V_OK;
-
-EXIT:
-    cJSON_Delete(root);
-    ProfFreeData(pf);
-    return V_ERR;
 }
 
 static int VerifyAppTypeAndDistribution(const ProfileProf *pf)

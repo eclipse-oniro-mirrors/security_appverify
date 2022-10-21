@@ -150,7 +150,7 @@ void ParseAcls(const json& obj, ProvisionInfo& out)
 void ParsePermissions(const json& obj, ProvisionInfo& out)
 {
     if (IsObjectExist(obj, KEY_PERMISSIONS)) {
-        auto& permissions = obj[KEY_PERMISSIONS];
+        const auto& permissions = obj[KEY_PERMISSIONS];
         GetStringArrayIfExist(permissions, KEY_RESTRICTED_PERMISSIONS, out.permissions.restrictedPermissions);
         GetStringArrayIfExist(permissions, KEY_RESTRICTED_CAPABILITIES, out.permissions.restrictedCapabilities);
     }

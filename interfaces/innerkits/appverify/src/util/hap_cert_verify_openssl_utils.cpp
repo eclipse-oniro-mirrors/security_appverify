@@ -60,10 +60,6 @@ X509* HapCertVerifyOpensslUtils::GetX509CertFromPemString(const std::string& pem
 X509* HapCertVerifyOpensslUtils::GetX509CertFromBase64String(const std::string& base64String)
 {
     std::unique_ptr<unsigned char[]> decodeBuffer = std::make_unique<unsigned char[]>(base64String.size());
-    if (decodeBuffer == nullptr) {
-        HAPVERIFY_LOG_ERROR(LABEL, "make_unique failed");
-        return nullptr;
-    }
 
     const unsigned char* input = reinterpret_cast<const unsigned char *>(base64String.c_str());
     int len = EVP_DecodeBlock(decodeBuffer.get(), input, base64String.size());
@@ -113,11 +109,6 @@ bool HapCertVerifyOpensslUtils::GetFingerprintBase64FromPemCert(const std::strin
     }
 
     std::unique_ptr<unsigned char[]> derCertificate = std::make_unique<unsigned char[]>(certLen);
-    if (derCertificate == nullptr) {
-        HAPVERIFY_LOG_ERROR(LABEL, "make_unique failed");
-        X509_free(cert);
-        return false;
-    }
 
     unsigned char* derCertificateBackup = derCertificate.get();
     if (i2d_X509(cert, &derCertificateBackup) <= 0) {
@@ -164,10 +155,6 @@ bool HapCertVerifyOpensslUtils::GetPublickeyBase64(const X509* cert, std::string
     std::unique_ptr<unsigned char[]> derPublicKey = std::make_unique<unsigned char[]>(keyLen);
     int base64KeyLen = CalculateLenAfterBase64Encode(keyLen);
     std::unique_ptr<unsigned char[]> base64PublicKey = std::make_unique<unsigned char[]>(base64KeyLen);
-    if (derPublicKey == nullptr || base64PublicKey == nullptr) {
-        HAPVERIFY_LOG_ERROR(LABEL, "make_unique failed");
-        return false;
-    }
     unsigned char* derCertificateBackup = derPublicKey.get();
     if (i2d_PublicKey(pkey, &derCertificateBackup) <= 0) {
         HAPVERIFY_LOG_ERROR(LABEL, "i2d_PublicKey failed");
@@ -564,9 +551,6 @@ void HapCertVerifyOpensslUtils::GetTextFromX509Name(X509_NAME* name, int nId, st
     }
 
     std::unique_ptr<char[]> buffer = std::make_unique<char[]>(textLen + 1);
-    if (buffer == nullptr) {
-        return;
-    }
 
     if (X509_NAME_get_text_by_NID(name, nId, buffer.get(), textLen + 1) != textLen) {
         return;
