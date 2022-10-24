@@ -150,6 +150,12 @@ static int ComputeDigestsWithOptionalBlock(const int digestAlgorithm, int fp, co
     HapPutData(fianlDigest, 0, outbuf, rootHashLen);
     (void)memset_s(outbuf, rootHashLen, 0, rootHashLen);
     rst = V_OK;
+EXIT:
+    mbedtls_md_free(mdCtx);
+    APPV_FREE(mdCtx);
+    APPV_FREE(rawBuf);
+    APPV_FREE(outbuf);
+    return rst;
 }
 
 static int HapUpdateDigistHead(int digestAlgorithm, mbedtls_md_context_t *mdCtx, const mbedtls_md_info_t *mdInfo,
@@ -235,6 +241,10 @@ static int ComputerFileHash(const SignatureInfo *signInfo, int digestAlgorithm, 
     }
     APPV_FREE(mdCtx);
     return V_OK;
+EXIT:
+    mbedtls_md_free(mdCtx);
+    APPV_FREE(mdCtx);
+    return V_ERR;
 }
 
 static int ComputerCoreDirHash(const SignatureInfo *signInfo, int digestAlgorithm, const int fp,
@@ -321,4 +331,8 @@ bool VerifyIntegrityChunk(int digestAlgorithm, const int fp,
     ClearHapBuffer(&chunkDigest);
     LOG_INFO("finish");
     return true;
+EXIT:
+    LOG_ERROR("exit");
+    ClearHapBuffer(&chunkDigest);
+    return false;
 }

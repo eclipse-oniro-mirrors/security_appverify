@@ -551,7 +551,6 @@ void HapCertVerifyOpensslUtils::GetTextFromX509Name(X509_NAME* name, int nId, st
     }
 
     std::unique_ptr<char[]> buffer = std::make_unique<char[]>(textLen + 1);
-
     if (X509_NAME_get_text_by_NID(name, nId, buffer.get(), textLen + 1) != textLen) {
         return;
     }

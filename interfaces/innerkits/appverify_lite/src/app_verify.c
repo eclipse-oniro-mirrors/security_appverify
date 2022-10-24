@@ -786,6 +786,9 @@ static int VerifyProfGetContent(int fp, const SignatureInfo *signInfo, int certT
     P_ERR_GOTO_WTTH_LOG(ret);
 
     return V_OK;
+EXIT:
+    ProfFreeData(pf);
+    return ret;
 }
 
 static int CmpCert(const mbedtls_x509_crt *certA, const CertInfo *binSignCert)
