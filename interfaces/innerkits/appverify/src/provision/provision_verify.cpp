@@ -129,7 +129,7 @@ void ParseAppDistType(const json& obj, ProvisionInfo& out)
 void ParseBundleInfo(const json& obj, ProvisionInfo& out)
 {
     if (IsObjectExist(obj, KEY_BUNDLE_INFO)) {
-        auto& bundleInfo = obj[KEY_BUNDLE_INFO];
+        const auto& bundleInfo = obj[KEY_BUNDLE_INFO];
         GetStringIfExist(bundleInfo, KEY_DEVELOPER_ID, out.bundleInfo.developerId);
         GetStringIfExist(bundleInfo, KEY_DEVELOPMENT_CERTIFICATE, out.bundleInfo.developmentCertificate);
         GetStringIfExist(bundleInfo, KEY_DISTRIBUTION_CERTIFICATE, out.bundleInfo.distributionCertificate);
@@ -142,7 +142,7 @@ void ParseBundleInfo(const json& obj, ProvisionInfo& out)
 void ParseAcls(const json& obj, ProvisionInfo& out)
 {
     if (IsObjectExist(obj, KEY_ACLS)) {
-        auto& acls = obj[KEY_ACLS];
+        const auto& acls = obj[KEY_ACLS];
         GetStringArrayIfExist(acls, KEY_ALLOWED_ACLS, out.acls.allowedAcls);
     }
 }
@@ -150,7 +150,7 @@ void ParseAcls(const json& obj, ProvisionInfo& out)
 void ParsePermissions(const json& obj, ProvisionInfo& out)
 {
     if (IsObjectExist(obj, KEY_PERMISSIONS)) {
-        auto& permissions = obj[KEY_PERMISSIONS];
+        const auto& permissions = obj[KEY_PERMISSIONS];
         GetStringArrayIfExist(permissions, KEY_RESTRICTED_PERMISSIONS, out.permissions.restrictedPermissions);
         GetStringArrayIfExist(permissions, KEY_RESTRICTED_CAPABILITIES, out.permissions.restrictedCapabilities);
     }
