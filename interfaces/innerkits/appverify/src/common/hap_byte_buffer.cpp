@@ -232,10 +232,6 @@ void HapByteBuffer::Slice()
     }
     int newCapacity = limit - position;
     std::unique_ptr<char[]> newBuffer = std::make_unique<char[]>(newCapacity);
-    if (newBuffer == nullptr) {
-        HAPVERIFY_LOG_ERROR(LABEL, "make_unique failed");
-        return;
-    }
     if (memcpy_s(newBuffer.get(), newCapacity, (buffer.get() + position), (limit - position)) != EOK) {
         HAPVERIFY_LOG_ERROR(LABEL, "memcpy_s failed");
         return;

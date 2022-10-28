@@ -453,10 +453,6 @@ bool HapVerifyOpensslUtils::GetDerCert(X509* ptrX509, std::vector<std::string>& 
     std::unique_ptr<unsigned char[]> derCertificate = std::make_unique<unsigned char[]>(certLen);
     int base64CertLen = HapCertVerifyOpensslUtils::CalculateLenAfterBase64Encode(certLen);
     std::unique_ptr<unsigned char[]> base64Certificate = std::make_unique<unsigned char[]>(base64CertLen);
-    if (derCertificate == nullptr || base64Certificate == nullptr) {
-        HAPVERIFY_LOG_ERROR(LABEL, "make_unique failed");
-        return false;
-    }
     unsigned char* derCertificateBackup = derCertificate.get();
     if (i2d_X509(ptrX509, &derCertificateBackup) <= 0) {
         HAPVERIFY_LOG_ERROR(LABEL, "i2d_X509 failed");
