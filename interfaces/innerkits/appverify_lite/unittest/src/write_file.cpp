@@ -49,14 +49,10 @@ int CopyFile(const char *org, const char *dest)
         return -1;
     }
     std::unique_ptr<char[]> buffer = std::make_unique<char[]>(wholeLen);
-    if (buffer == nullptr) {
-        close(in);
-        return -1;
-    }
     (void)memset_s(buffer.get(), wholeLen, 0, wholeLen);
     int len = 0;
-    mbedtls_base64_decode(reinterpret_cast<unsigned char *>(buffer.get()), (size_t)wholeLen, (size_t *)&len,
-        (unsigned char *)org, (size_t)wholeLen);
+    mbedtls_base64_decode(reinterpret_cast<unsigned char *>(buffer.get()), static_cast<size_t>(wholeLen),
+        reinterpret_cast<size_t *>(&len), reinterpret_cast<const unsigned char *>(org), static_cast<size_t>(wholeLen));
     int num = 0;
     while (num < len) {
         int trueLen = ((len - num) >= ONCE_WRITE) ? ONCE_WRITE : (len - num);
