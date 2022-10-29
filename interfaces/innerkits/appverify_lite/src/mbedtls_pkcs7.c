@@ -897,7 +897,7 @@ int PKCS7_VerifySignerSignature(const Pkcs7 *pkcs7, PKCS7_CalcDigest calcDigest)
         }
         /* if is rsassa-pss, need to set padding version to V21, RFC3447 */
         if (!MBEDTLS_OID_CMP(MBEDTLS_OID_RSASSA_PSS, &signer->digestEncAlgId)) {
-            mbedtls_rsa_set_padding(pk->MBEDTLS_PRIVATE(pk_ctx), MBEDTLS_RSA_PKCS_V21, 0);
+            mbedtls_rsa_set_padding(pk->MBEDTLS_PRIVATE(pk_ctx), MBEDTLS_RSA_PKCS_V21, (mbedtls_md_type_t)0);
         }
         rc = mbedtls_pk_verify(pk, digAlg, hash, hashLen, sig, sigLen);
         (void)memset_s(hash, MAX_HASH_SIZE, 0, MAX_HASH_SIZE);
