@@ -60,6 +60,7 @@ private:
     static const int DIGEST_OFFSET_IN_CONTENT;
     static const std::string HAP_APP_PATTERN;
     static const std::string HQF_APP_PATTERN;
+    static const std::string HSL_APP_PATTERN;
 };
 } // namespace Verify
 } // namespace Security
