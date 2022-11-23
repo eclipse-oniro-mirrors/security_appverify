@@ -31,52 +31,24 @@ if (os_level == "small" || os_level == "mini") {
     }
   }
 
-  if (ohos_kernel_type == "liteos_m") {
-    static_library("verify") {
-      sources = [
-        "src/app_centraldirectory.c",
-        "src/app_common.c",
-        "src/app_file.c",
-        "src/app_provision.c",
-        "src/app_verify.c",
-        "src/app_verify_hal.c",
-        "src/app_verify_hap.c",
-        "src/mbedtls_pkcs7.c",
-      ]
-      configs += [ ":app_verify_config" ]
-      public_deps = [
-        "//base/security/appverify/interfaces/innerkits/appverify_lite/products/ipcamera:verify_base",
-        "//build/lite/config/component/cJSON:cjson_static",
-        "//third_party/bounds_checking_function:libsec_static",
-        "//third_party/mbedtls",
-      ]
-      if (board_toolchain_type == "iccarm") {
-        cflags = [
-          "--diag_suppress",
-          "Pa039",
-        ]
-      }
-    }
-  } else {
-    shared_library("verify") {
-      sources = [
-        "src/app_centraldirectory.c",
-        "src/app_common.c",
-        "src/app_file.c",
-        "src/app_provision.c",
-        "src/app_verify.c",
-        "src/app_verify_hal.c",
-        "src/app_verify_hap.c",
-        "src/mbedtls_pkcs7.c",
-      ]
-      configs += [ ":app_verify_config" ]
-      public_deps = [
-        "//base/security/appverify/interfaces/innerkits/appverify_lite/products/ipcamera:verify_base",
-        "//build/lite/config/component/cJSON:cjson_shared",
-        "//third_party/bounds_checking_function:libsec_shared",
-        "//third_party/mbedtls:mbedtls_shared",
-      ]
-    }
+  shared_library("verify") {
+    sources = [
+      "src/app_centraldirectory.c",
+      "src/app_common.c",
+      "src/app_file.c",
+      "src/app_provision.c",
+      "src/app_verify.c",
+      "src/app_verify_hal.c",
+      "src/app_verify_hap.c",
+      "src/mbedtls_pkcs7.c",
+    ]
+    configs += [ ":app_verify_config" ]
+    public_deps = [
+      "//base/security/appverify/interfaces/innerkits/appverify_lite/products/ipcamera:verify_base",
+      "//build/lite/config/component/cJSON:cjson_shared",
+      "//third_party/bounds_checking_function:libsec_shared",
+      "//third_party/mbedtls:mbedtls_shared",
+    ]
   }
 } else {
   group("verify") {
