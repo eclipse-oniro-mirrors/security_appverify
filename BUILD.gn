@@ -33,8 +33,10 @@ group("appverify_components") {
       "//base/security/appverify/interfaces/innerkits/appverify/config:trusted_tickets_sources",
     ]
   } else {
-    deps = [
-      "//base/security/appverify/interfaces/innerkits/appverify_lite:verify",
-    ]
+    if (ohos_kernel_type != "liteos_m") {
+      deps = [
+        "//base/security/appverify/interfaces/innerkits/appverify_lite:verify",
+      ]
+    }
   }
 }
