@@ -1068,6 +1068,7 @@ static Pkcs7 *GetBinSignPkcs(const char *signBuf, int len)
     int ret = PKCS7_ParseSignedData((unsigned char *)signBuf, (size_t)len, pkcs7);
     if (ret != V_OK) {
         LOG_ERROR("pkcs7parse message failed, ret: %d", ret);
+        PKCS7_FreeRes(pkcs7);
         APPV_FREE(pkcs7);
         return NULL;
     }

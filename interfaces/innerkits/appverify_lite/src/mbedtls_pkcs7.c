@@ -1369,6 +1369,8 @@ int PKCS7_ParseSignedData(const unsigned char *buf, size_t bufLen, Pkcs7 *pkcs7)
     rc = GetContentLenOfContentInfo(&start, end, &len);
     P_ERR_GOTO_WTTH_LOG(rc);
     if (start + len > end) {
+        rc = PKCS7_INVALID_CONTENT_TYPE_OR_NO_CONTENT;
+        LOG_ERROR("The length of input data is invalid");
         goto EXIT;
     }
     rc = ParseSignedData(start, len, &(pkcs7->signedData));
@@ -1378,7 +1380,6 @@ int PKCS7_ParseSignedData(const unsigned char *buf, size_t bufLen, Pkcs7 *pkcs7)
     P_ERR_GOTO_WTTH_LOG(rc);
     return rc;
 EXIT:
-    PKCS7_FreeRes(pkcs7);
     return rc;
 }
 
