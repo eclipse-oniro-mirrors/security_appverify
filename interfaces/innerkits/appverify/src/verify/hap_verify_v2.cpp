@@ -70,7 +70,7 @@ bool HapVerifyV2::CheckFilePath(const std::string& filePath, std::string& standa
     if (!std::regex_match(standardFilePath, std::regex(HAP_APP_PATTERN)) &&
         !std::regex_match(standardFilePath, std::regex(HSP_APP_PATTERN)) &&
         !std::regex_match(standardFilePath, std::regex(HQF_APP_PATTERN))) {
-        HAPVERIFY_LOG_ERROR(LABEL, "file is not hap、hsp or hqf package");
+        HAPVERIFY_LOG_ERROR(LABEL, "file is not hap, hsp or hqf package");
         return false;
     }
     return true;
