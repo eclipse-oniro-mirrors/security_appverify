@@ -62,6 +62,9 @@ const string VALUE_DIST_TYPE_ENTERPRISE = "enterprise";
 const string VALUE_DIST_TYPE_OS_INTEGRATION = "os_integration";
 const string VALUE_DIST_TYPE_CROWDTESTING = "crowdtesting";
 const string VALUE_DEVICE_ID_TYPE_UDID = "udid";
+const string VALUE_VALIDITY = "validity";
+const string VALUE_NOT_BEFORE = "not-before";
+const string VALUE_NOT_AFTER = "not-after";
 
 const string GENERIC_BUNDLE_NAME = ".*";
 const string VALUE_DEVELOPMENT_MODE = "1";
@@ -78,6 +81,13 @@ inline void GetStringIfExist(const json& obj, const string& key, string& out)
 }
 
 inline void GetInt32IfExist(const json& obj, const string& key, int32_t& out)
+{
+    if (obj.find(key.c_str()) != obj.end() && obj[key.c_str()].is_number_integer()) {
+        obj[key.c_str()].get_to(out);
+    }
+}
+
+inline void GetInt64IfExist(const json& obj, const string& key, int64_t& out)
 {
     if (obj.find(key.c_str()) != obj.end() && obj[key.c_str()].is_number_integer()) {
         obj[key.c_str()].get_to(out);
@@ -167,6 +177,14 @@ void ParseDebugInfo(const json& obj, ProvisionInfo& out)
     }
 }
 
+void ParseValidity(const json& obj, Validity& out)
+{
+    if (IsObjectExist(obj, VALUE_VALIDITY)) {
+        GetInt64IfExist(obj[VALUE_VALIDITY], VALUE_NOT_BEFORE, out.notBefore);
+        GetInt64IfExist(obj[VALUE_VALIDITY], VALUE_NOT_AFTER, out.notAfter);
+    }
+}
+
 void from_json(const json& obj, ProvisionInfo& out)
 {
     if (!obj.is_object()) {
@@ -183,6 +201,7 @@ void from_json(const json& obj, ProvisionInfo& out)
     ParseDebugInfo(obj, out);
     GetStringIfExist(obj, KEY_ISSUER, out.issuer);
     GetStringArrayIfExist(obj, KEY_APP_PRIVILEGE_CAPABILITIES, out.appPrivilegeCapabilities);
+    ParseValidity(obj, out.validity);
 }
 
 #define RETURN_IF_STRING_IS_EMPTY(str, msg) \

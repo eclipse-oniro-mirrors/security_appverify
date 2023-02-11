@@ -489,6 +489,8 @@ HWTEST_F(ProvisionVerifyTest, ProvisionVerify009, TestSize.Level1)
     ASSERT_EQ(ret, AppProvisionVerifyResult::PROVISION_OK);
     ASSERT_EQ(info.distributionType, AppDistType::CROWDTESTING);
     ASSERT_EQ(info.type, ProvisionType::DEBUG);
+    ASSERT_EQ(info.validity.notBefore, 1262275200);
+    ASSERT_EQ(info.validity.notAfter, 2524579300);
 }
 /**
  * @tc.name: Test HarmonyAppProvision ProvisionVerify009 function

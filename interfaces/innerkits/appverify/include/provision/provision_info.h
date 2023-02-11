@@ -57,6 +57,11 @@ struct DebugInfo {
     std::vector<std::string> deviceIds;
 };
 
+struct Validity {
+    int64_t notBefore;
+    int64_t notAfter;
+};
+
 struct ProvisionInfo {
     int32_t versionCode = 0;
     std::string versionName;
@@ -71,6 +76,7 @@ struct ProvisionInfo {
     std::string appId;
     std::string fingerprint;
     std::vector<std::string> appPrivilegeCapabilities;
+    Validity validity;
 };
 } // namespace Verify
 } // namespace Security
