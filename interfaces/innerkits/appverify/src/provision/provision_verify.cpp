@@ -63,6 +63,11 @@ const string VALUE_DIST_TYPE_OS_INTEGRATION = "os_integration";
 const string VALUE_DIST_TYPE_CROWDTESTING = "crowdtesting";
 const string VALUE_DEVICE_ID_TYPE_UDID = "udid";
 
+// reserved field
+const string KEY_BASEAPP_INFO = "baseapp-info";
+const string KEY_PACKAGE_NAME = "package-name";
+const string KEY_PACKAGE_CERT = "package-cert";
+
 const string GENERIC_BUNDLE_NAME = ".*";
 const string VALUE_DEVELOPMENT_MODE = "1";
 
@@ -167,6 +172,20 @@ void ParseDebugInfo(const json& obj, ProvisionInfo& out)
     }
 }
 
+void ParseMetadata(const json& obj, ProvisionInfo& out)
+{
+    if (IsObjectExist(obj, KEY_BASEAPP_INFO)) {
+        auto& baseAppInfo = obj[KEY_BASEAPP_INFO];
+        Metadata metadata;
+        metadata.name = KEY_PACKAGE_NAME;
+        GetStringIfExist(baseAppInfo, KEY_PACKAGE_NAME, metadata.value);
+        out.metadatas.emplace_back(metadata);
+        metadata.name = KEY_PACKAGE_CERT;
+        GetStringIfExist(baseAppInfo, KEY_PACKAGE_CERT, metadata.value);
+        out.metadatas.emplace_back(metadata);
+    }
+}
+
 void from_json(const json& obj, ProvisionInfo& out)
 {
     if (!obj.is_object()) {
@@ -183,6 +202,7 @@ void from_json(const json& obj, ProvisionInfo& out)
     ParseDebugInfo(obj, out);
     GetStringIfExist(obj, KEY_ISSUER, out.issuer);
     GetStringArrayIfExist(obj, KEY_APP_PRIVILEGE_CAPABILITIES, out.appPrivilegeCapabilities);
+    ParseMetadata(obj, out);
 }
 
 #define RETURN_IF_STRING_IS_EMPTY(str, msg) \
