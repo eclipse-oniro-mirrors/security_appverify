@@ -57,6 +57,12 @@ struct DebugInfo {
     std::vector<std::string> deviceIds;
 };
 
+struct Metadata {
+    std::string name;
+    std::string value;
+    std::string resource;
+};
+
 struct ProvisionInfo {
     int32_t versionCode = 0;
     std::string versionName;
@@ -71,6 +77,7 @@ struct ProvisionInfo {
     std::string appId;
     std::string fingerprint;
     std::vector<std::string> appPrivilegeCapabilities;
+    std::vector<Metadata> metadatas;
 };
 } // namespace Verify
 } // namespace Security
