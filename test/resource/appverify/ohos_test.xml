@@ -15,8 +15,6 @@
 <configuration ver="2.0">
   <target name="verify_test" timeout="3000">
       <preparer>
-            <option name="remount" value=""/>
-            <option name="push" value="security/appverify/libhapverify.z.so -> /system/lib64/libhapverify.z.so" src="out"/>
       </preparer>
       <cleaner>
       </cleaner>
