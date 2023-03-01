@@ -175,7 +175,7 @@ void ParseDebugInfo(const json& obj, ProvisionInfo& out)
 void ParseMetadata(const json& obj, ProvisionInfo& out)
 {
     if (IsObjectExist(obj, KEY_BASEAPP_INFO)) {
-        auto& baseAppInfo = obj[KEY_BASEAPP_INFO];
+        const auto& baseAppInfo = obj[KEY_BASEAPP_INFO];
         Metadata metadata;
         metadata.name = KEY_PACKAGE_NAME;
         GetStringIfExist(baseAppInfo, KEY_PACKAGE_NAME, metadata.value);
