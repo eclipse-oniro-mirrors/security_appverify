@@ -29,7 +29,7 @@ using namespace OHOS::Security::Verify;
 namespace OHOS {
 namespace Security {
 namespace Verify {
-const std::string HAP_CRL_TEST_BACKUP_FILE_PATH = "/data/system/hap_crl_backup_test";
+const std::string HAP_CRL_TEST_BACKUP_FILE_PATH = "/data/hap_crl_backup_test";
 
 enum CopyFileState {
     NO_SOURCE_FILE = 0,
