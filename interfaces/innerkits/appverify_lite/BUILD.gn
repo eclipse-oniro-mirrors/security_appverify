@@ -25,6 +25,7 @@ if (os_level == "small" || os_level == "mini") {
       "//base/security/appverify/interfaces/innerkits/appverify_lite/products/ipcamera",
     ]
 
+    cflags = [ "-Wno-int-conversion" ]
     defines = [ "PARSE_PEM_FORMAT_SIGNED_DATA" ]
     if (ohos_sign_haps_by_server) {
       defines += [ "OHOS_SIGN_HAPS_BY_SERVER" ]
