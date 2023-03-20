@@ -59,8 +59,9 @@ if (os_level == "standard") {
 
     external_deps = [ "c_utils:utils" ]
 
+    defines = []
     if (is_standard_system) {
-      defines = [ "STANDARD_SYSTEM" ]
+      defines += [ "STANDARD_SYSTEM" ]
 
       external_deps += [
         "hiviewdfx_hilog_native:libhilog",
@@ -75,13 +76,14 @@ if (os_level == "standard") {
 
       if (!build_public_version) {
         deps += [ "//base/security/securityadapter/interfaces/innerkits/securitydiagnose:libsecuritydiagnose_static" ]
-        defines = [ "SUPPORT_GET_DEVICE_TYPES" ]
+        defines += [ "SUPPORT_GET_DEVICE_TYPES" ]
       }
     }
 
     part_name = "appverify"
 
     subsystem_name = "security"
+    defines += [ "OPENSSL_SUPPRESS_DEPRECATED" ]
   }
 } else {
   group("libhapverify") {
