@@ -1,7 +1,7 @@
 {
     "name": "@ohos/appverify",
     "description": "Signature verification for HAP packages",
-    "version": "3.1",
+    "version": "4.0",
     "license": "Apache License 2.0",
     "publishAs": "code-segment",
     "segment": {
@@ -12,7 +12,7 @@
     "component": {
       "name": "appverify",
       "subsystem": "security",
-      "syscap": [ "SystemCapability.Security.AppVerify" ],
+      "syscap": [],
       "features": [],
       "adapted_system_type": [
         "standard",
@@ -25,11 +25,16 @@
         "components": [
           "hiviewdfx_hilog_native",
           "init",
-          "c_utils"
+          "c_utils",
+          "os_account",
+          "shared_library"
         ],
         "third_party": [
           "json",
-          "openssl"
+          "openssl",
+          "cJSON",
+          "bounds_checking_function",
+          "mbedtls"
         ]
       },
       "build": {
