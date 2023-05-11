@@ -22,7 +22,6 @@ config("verify_test_config") {
     "//base/security/appverify/interfaces/innerkits/appverify/include",
     "//third_party/openssl/include",
     "//third_party/json/single_include",
-    "//commonlibrary/c_utils/base/include",
   ]
   cflags = [ "-fvisibility=hidden" ]
   ldflags = [ "-Wl,--exclude-libs,ALL" ]
