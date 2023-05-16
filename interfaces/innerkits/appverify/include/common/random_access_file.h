@@ -41,7 +41,7 @@ public:
 
 private:
     long long DoMMap(int bufCapacity, long long offset, MmapInfo& mmapInfo);
-
+    bool CheckLittleEndian();
     static const int FILE_OPEN_FAIL_ERROR_NUM;
     static int memoryPageSize;
     int fd;
