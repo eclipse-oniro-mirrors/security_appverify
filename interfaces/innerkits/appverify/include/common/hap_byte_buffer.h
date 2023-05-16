@@ -35,45 +35,46 @@ enum ReadFileErrorCode {
 class HapByteBuffer {
 public:
     DLL_EXPORT HapByteBuffer();
-    DLL_EXPORT explicit HapByteBuffer(int bufferCapacity);
+    DLL_EXPORT explicit HapByteBuffer(int32_t bufferCapacity);
     DLL_EXPORT HapByteBuffer(const HapByteBuffer& other);
     DLL_EXPORT ~HapByteBuffer();
     DLL_EXPORT HapByteBuffer& operator=(const HapByteBuffer& other);
     DLL_EXPORT bool GetInt64(long long& value);
-    DLL_EXPORT bool GetInt64(int index, long long& value);
-    DLL_EXPORT bool GetUInt32(int index, unsigned int& value);
-    DLL_EXPORT bool GetInt32(int& value);
-    DLL_EXPORT bool GetInt32(int index, int& value);
-    DLL_EXPORT bool GetUInt16(int index, unsigned short& value);
-    DLL_EXPORT void PutInt32(int offset, int value);
-    DLL_EXPORT void PutByte(int offset, char value);
-    DLL_EXPORT void PutData(int offset, const char data[], int len);
-    DLL_EXPORT int GetCapacity() const;
-    DLL_EXPORT int GetPosition() const;
-    DLL_EXPORT int GetLimit() const;
+    DLL_EXPORT bool GetInt64(int32_t index, long long& value);
+    DLL_EXPORT bool GetUInt32(uint32_t& value);
+    DLL_EXPORT bool GetUInt32(int32_t index, uint32_t& value);
+    DLL_EXPORT bool GetInt32(int32_t& value);
+    DLL_EXPORT bool GetInt32(int32_t index, int32_t& value);
+    DLL_EXPORT bool GetUInt16(int32_t index, uint16_t& value);
+    DLL_EXPORT void PutInt32(int32_t offset, int32_t value);
+    DLL_EXPORT void PutByte(int32_t offset, char value);
+    DLL_EXPORT void PutData(int32_t offset, const char data[], int32_t len);
+    DLL_EXPORT int32_t GetCapacity() const;
+    DLL_EXPORT int32_t GetPosition() const;
+    DLL_EXPORT int32_t GetLimit() const;
     DLL_EXPORT const char* GetBufferPtr() const;
-    DLL_EXPORT void SetPosition(int pos);
-    DLL_EXPORT void SetLimit(int lim);
-    DLL_EXPORT void SetCapacity(int cap);
+    DLL_EXPORT void SetPosition(int32_t pos);
+    DLL_EXPORT void SetLimit(int32_t lim);
+    DLL_EXPORT void SetCapacity(int32_t cap);
     DLL_EXPORT void Slice();
-    DLL_EXPORT int Remaining() const;
+    DLL_EXPORT int32_t Remaining() const;
     DLL_EXPORT bool HasRemaining() const;
-    DLL_EXPORT bool CopyPartialBuffer(const HapByteBuffer& other, int len);
+    DLL_EXPORT bool CopyPartialBuffer(const HapByteBuffer& other, int32_t len);
     DLL_EXPORT void Clear();
     DLL_EXPORT bool IsEqual(const HapByteBuffer& other);
     DLL_EXPORT bool IsEqual(const std::string& other);
 
 private:
-    void Init(int bufferCapacity);
-    bool CheckInputForGettingData(int index, int dataLen);
+    void Init(int32_t bufferCapacity);
+    bool CheckInputForGettingData(int32_t index, int32_t dataLen);
 
 private:
-    static const int MAX_PRINT_LENGTH;
-    static const int HEX_PRINT_LENGTH;
+    static const int32_t MAX_PRINT_LENGTH;
+    static const int32_t HEX_PRINT_LENGTH;
     std::unique_ptr<char[]> buffer;
-    int position;
-    int limit;
-    int capacity;
+    int32_t position;
+    int32_t limit;
+    int32_t capacity;
 };
 } // namespace Verify
 } // namespace Security
