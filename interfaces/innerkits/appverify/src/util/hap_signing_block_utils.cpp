@@ -291,6 +291,13 @@ bool HapSigningBlockUtils::ParseSignBlockHead(HapSignBlockHead& hapSignBlockHead
         hapBlockHead.GetInt32(hapSignBlockHead.version);
 }
 
+bool HapSigningBlockUtils::ParseSubSignBlockHead(HapSubSignBlockHead& subSignBlockHead, HapByteBuffer& hapBlockHead)
+{
+    return hapBlockHead.GetUInt32(subSignBlockHead.type) &&
+        hapBlockHead.GetUInt32(subSignBlockHead.length) &&
+        hapBlockHead.GetUInt32(subSignBlockHead.offset);
+}
+
 /*
  * Hap Sign Block Format:
  * HapSubSignBlock1_Head
@@ -315,11 +322,15 @@ bool HapSigningBlockUtils::FindHapSubSigningBlock(RandomAccessFile& hapFile, int
     HAPVERIFY_LOG_DEBUG(LABEL, "hapSignBlockOffset %{public}lld blockArrayLen: %{public}lld blockCount: %{public}d",
         hapSignBlockOffset, blockArrayLen, blockCount);
     for (int i = 0; i < blockCount; i++) {
-        HapSubSignBlockHead subSignBlockHead;
-        long long ret = hapFile.ReadFileFullyFromOffset(reinterpret_cast<char*>(&subSignBlockHead),
-            readHeadOffset, sizeof(HapSubSignBlockHead));
+        HapByteBuffer hapBlockHead(ZIP_CD_SIZE_OFFSET_IN_EOCD);
+        long long ret = hapFile.ReadFileFullyFromOffset(hapBlockHead, readHeadOffset);
         if (ret < 0) {
-            HAPVERIFY_LOG_ERROR(LABEL, "read %{public}dst subblock head error: %{public}lld", i, ret);
+            HAPVERIFY_LOG_ERROR(LABEL, "read hapBlockHead error: %{public}lld", ret);
+            return false;
+        }
+        HapSubSignBlockHead subSignBlockHead;
+        if (!ParseSubSignBlockHead(subSignBlockHead, hapBlockHead)) {
+            HAPVERIFY_LOG_ERROR(LABEL, "ParseSubSignBlockHead failed");
             return false;
         }
         readLen += sizeof(HapSubSignBlockHead);

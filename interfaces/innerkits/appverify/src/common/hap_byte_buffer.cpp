@@ -21,14 +21,14 @@
 namespace OHOS {
 namespace Security {
 namespace Verify {
-const int HapByteBuffer::MAX_PRINT_LENGTH = 200;
-const int HapByteBuffer::HEX_PRINT_LENGTH = 3;
+const int32_t HapByteBuffer::MAX_PRINT_LENGTH = 200;
+const int32_t HapByteBuffer::HEX_PRINT_LENGTH = 3;
 
 HapByteBuffer::HapByteBuffer() : buffer(nullptr), position(0), limit(0), capacity(0)
 {
 }
 
-HapByteBuffer::HapByteBuffer(int bufferCapacity) : buffer(nullptr), position(0), limit(0), capacity(0)
+HapByteBuffer::HapByteBuffer(int32_t bufferCapacity) : buffer(nullptr), position(0), limit(0), capacity(0)
 {
     Init(bufferCapacity);
 }
@@ -51,7 +51,7 @@ HapByteBuffer::~HapByteBuffer()
     buffer.reset(nullptr);
 }
 
-void HapByteBuffer::Init(int bufferCapacity)
+void HapByteBuffer::Init(int32_t bufferCapacity)
 {
     if (bufferCapacity > 0) {
         buffer = std::make_unique<char[]>(bufferCapacity);
@@ -83,7 +83,7 @@ HapByteBuffer& HapByteBuffer::operator=(const HapByteBuffer& other)
     return *this;
 }
 
-bool HapByteBuffer::CheckInputForGettingData(int index, int dataLen)
+bool HapByteBuffer::CheckInputForGettingData(int32_t index, int32_t dataLen)
 {
     if (buffer == nullptr) {
         HAPVERIFY_LOG_ERROR(LABEL, "buffer is nullptr");
@@ -113,7 +113,7 @@ bool HapByteBuffer::GetInt64(long long& value)
     return true;
 }
 
-bool HapByteBuffer::GetInt64(int index, long long& value)
+bool HapByteBuffer::GetInt64(int32_t index, long long& value)
 {
     if (!CheckInputForGettingData(index, sizeof(long long))) {
         HAPVERIFY_LOG_ERROR(LABEL, "Failed to get Int64");
@@ -137,77 +137,87 @@ const char* HapByteBuffer::GetBufferPtr() const
     return buffer.get();
 }
 
-bool HapByteBuffer::GetInt32(int& value)
+bool HapByteBuffer::GetInt32(int32_t& value)
 {
     if (!GetInt32(0, value)) {
         HAPVERIFY_LOG_ERROR(LABEL, "GetInt32 failed");
         return false;
     }
-    position += sizeof(int);
+    position += sizeof(int32_t);
     return true;
 }
 
-bool HapByteBuffer::GetInt32(int index, int& value)
+bool HapByteBuffer::GetInt32(int32_t index, int32_t& value)
 {
-    if (!CheckInputForGettingData(index, sizeof(int))) {
+    if (!CheckInputForGettingData(index, sizeof(int32_t))) {
         HAPVERIFY_LOG_ERROR(LABEL, "Failed to get Int32");
         return false;
     }
 
-    if (memcpy_s(&value, sizeof(value), (buffer.get() + position + index), sizeof(int)) != EOK) {
+    if (memcpy_s(&value, sizeof(value), (buffer.get() + position + index), sizeof(int32_t)) != EOK) {
         HAPVERIFY_LOG_ERROR(LABEL, "memcpy_s failed");
         return false;
     }
     return true;
 }
 
-bool HapByteBuffer::GetUInt32(int index, unsigned int& value)
+bool HapByteBuffer::GetUInt32(int32_t index, uint32_t& value)
 {
-    if (!CheckInputForGettingData(index, sizeof(unsigned int))) {
+    if (!CheckInputForGettingData(index, sizeof(uint32_t))) {
         HAPVERIFY_LOG_ERROR(LABEL, "Failed to get UInt32");
         return false;
     }
 
-    if (memcpy_s(&value, sizeof(value), (buffer.get() + position + index), sizeof(unsigned int)) != EOK) {
+    if (memcpy_s(&value, sizeof(value), (buffer.get() + position + index), sizeof(uint32_t)) != EOK) {
         HAPVERIFY_LOG_ERROR(LABEL, "memcpy_s failed");
         return false;
     }
     return true;
 }
 
-bool HapByteBuffer::GetUInt16(int index, unsigned short& value)
+bool HapByteBuffer::GetUInt32(uint32_t& value)
 {
-    if (!CheckInputForGettingData(index, sizeof(unsigned short))) {
+    if (!GetUInt32(0, value)) {
+        HAPVERIFY_LOG_ERROR(LABEL, "GetUInt32 failed");
+        return false;
+    }
+    position += sizeof(uint32_t);
+    return true;
+}
+
+bool HapByteBuffer::GetUInt16(int32_t index, uint16_t& value)
+{
+    if (!CheckInputForGettingData(index, sizeof(uint16_t))) {
         HAPVERIFY_LOG_ERROR(LABEL, "Failed to get UInt16");
         return false;
     }
 
-    if (memcpy_s(&value, sizeof(value), (buffer.get() + position + index), sizeof(unsigned short)) != EOK) {
+    if (memcpy_s(&value, sizeof(value), (buffer.get() + position + index), sizeof(uint16_t)) != EOK) {
         HAPVERIFY_LOG_ERROR(LABEL, "memcpy_s failed");
         return false;
     }
     return true;
 }
 
-void HapByteBuffer::PutInt32(int offset, int value)
+void HapByteBuffer::PutInt32(int32_t offset, int32_t value)
 {
-    if (buffer != nullptr && offset >= 0 && limit - offset >= static_cast<int>(sizeof(value))) {
+    if (buffer != nullptr && offset >= 0 && limit - offset >= static_cast<int32_t>(sizeof(value))) {
         if (memcpy_s((buffer.get() + offset), (limit - offset), &value, sizeof(value)) != EOK) {
             HAPVERIFY_LOG_ERROR(LABEL, "memcpy_s failed");
         }
     }
 }
 
-void HapByteBuffer::PutByte(int offset, char value)
+void HapByteBuffer::PutByte(int32_t offset, char value)
 {
-    if (buffer != nullptr && offset >= 0 && limit - offset >= static_cast<int>(sizeof(value))) {
+    if (buffer != nullptr && offset >= 0 && limit - offset >= static_cast<int32_t>(sizeof(value))) {
         if (memcpy_s((buffer.get() + offset), (limit - offset), (&value), sizeof(value)) != EOK) {
             HAPVERIFY_LOG_ERROR(LABEL, "memcpy_s failed");
         }
     }
 }
 
-void HapByteBuffer::PutData(int offset, const char data[], int len)
+void HapByteBuffer::PutData(int32_t offset, const char data[], int32_t len)
 {
     if (buffer != nullptr && data != nullptr && offset >= 0 && len > 0 && (limit - offset) >= len) {
         if (memcpy_s((buffer.get() + offset), (limit - offset), data, len) != EOK) {
@@ -216,7 +226,7 @@ void HapByteBuffer::PutData(int offset, const char data[], int len)
     }
 }
 
-void HapByteBuffer::SetPosition(int pos)
+void HapByteBuffer::SetPosition(int32_t pos)
 {
     if (pos >= 0 && pos <= limit) {
         position = pos;
@@ -230,7 +240,7 @@ void HapByteBuffer::Slice()
             position, capacity, limit);
         return;
     }
-    int newCapacity = limit - position;
+    int32_t newCapacity = limit - position;
     std::unique_ptr<char[]> newBuffer = std::make_unique<char[]>(newCapacity);
     if (memcpy_s(newBuffer.get(), newCapacity, (buffer.get() + position), (limit - position)) != EOK) {
         HAPVERIFY_LOG_ERROR(LABEL, "memcpy_s failed");
@@ -242,24 +252,24 @@ void HapByteBuffer::Slice()
     limit = capacity;
 }
 
-int HapByteBuffer::GetPosition() const
+int32_t HapByteBuffer::GetPosition() const
 {
     return position;
 }
 
-int HapByteBuffer::GetLimit() const
+int32_t HapByteBuffer::GetLimit() const
 {
     return limit;
 }
 
-void HapByteBuffer::SetLimit(int lim)
+void HapByteBuffer::SetLimit(int32_t lim)
 {
     if (lim <= capacity && lim >= position) {
         limit = lim;
     }
 }
 
-int HapByteBuffer::Remaining() const
+int32_t HapByteBuffer::Remaining() const
 {
     return limit - position;
 }
@@ -269,9 +279,9 @@ bool HapByteBuffer::HasRemaining() const
     return position < limit;
 }
 
-bool HapByteBuffer::CopyPartialBuffer(const HapByteBuffer& other, int len)
+bool HapByteBuffer::CopyPartialBuffer(const HapByteBuffer& other, int32_t len)
 {
-    int readableDataLen = other.Remaining();
+    int32_t readableDataLen = other.Remaining();
     if (readableDataLen < len) {
         HAPVERIFY_LOG_ERROR(LABEL, "readableDataLen %{public}d less than len %{public}d", readableDataLen, len);
         return false;
@@ -307,7 +317,7 @@ bool HapByteBuffer::IsEqual(const HapByteBuffer& other)
         return false;
     }
     const char* otherBuffer = other.GetBufferPtr();
-    for (int i = 0; i < capacity; i++) {
+    for (int32_t i = 0; i < capacity; i++) {
         if (buffer[i] != otherBuffer[i]) {
             HAPVERIFY_LOG_ERROR(LABEL, "diff value[%{public}d]: %{public}x %{public}x",
                 i, buffer[i], otherBuffer[i]);
@@ -319,11 +329,11 @@ bool HapByteBuffer::IsEqual(const HapByteBuffer& other)
 
 bool HapByteBuffer::IsEqual(const std::string& other)
 {
-    if (capacity != static_cast<int>(other.size()) || buffer == nullptr) {
+    if (capacity != static_cast<int32_t>(other.size()) || buffer == nullptr) {
         HAPVERIFY_LOG_ERROR(LABEL, "invalid input");
         return false;
     }
-    for (int i = 0; i < capacity; i++) {
+    for (int32_t i = 0; i < capacity; i++) {
         if (buffer[i] != other[i]) {
             HAPVERIFY_LOG_ERROR(LABEL, "diff value[%{public}d]: %{public}x %{public}x",
                 i, buffer[i], other[i]);
@@ -333,7 +343,7 @@ bool HapByteBuffer::IsEqual(const std::string& other)
     return true;
 }
 
-void HapByteBuffer::SetCapacity(int cap)
+void HapByteBuffer::SetCapacity(int32_t cap)
 {
     if (buffer != nullptr) {
         buffer.reset(nullptr);
