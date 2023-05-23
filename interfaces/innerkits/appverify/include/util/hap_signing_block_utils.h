@@ -107,6 +107,7 @@ private:
     DLL_EXPORT static bool GetSumOfChunkDigestLen(DataSource* contents[], int len, int chunkDigestLen,
         int& chunkCount, int& sumOfChunkDigestLen);
     static bool ParseSignBlockHead(HapSignBlockHead& hapSignBlockHead, HapByteBuffer& hapBlockHead);
+    static bool ParseSubSignBlockHead(HapSubSignBlockHead& subSignBlockHead, HapByteBuffer& hapBlockHead);
     static inline bool CheckSignBlockHead(const HapSignBlockHead& hapSignBlockHead);
 };
 } // namespace Verify

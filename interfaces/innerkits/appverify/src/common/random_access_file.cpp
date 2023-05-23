@@ -68,8 +68,22 @@ long long RandomAccessFile::GetLength() const
     return fileLength;
 }
 
+bool RandomAccessFile::CheckLittleEndian()
+{
+    union LittleEndian {
+        int num;
+        char ch;
+    } t;
+    t.num = 1;
+    return (t.ch == 1);
+}
+
 long long RandomAccessFile::DoMMap(int bufCapacity, long long offset, MmapInfo& mmapInfo)
 {
+    if (!CheckLittleEndian()) {
+        HAPVERIFY_LOG_ERROR(LABEL, "CheckLittleEndian: failed");
+        return MMAP_FAILED;
+    }
     mmapInfo.mapAddr = reinterpret_cast<char*>(MAP_FAILED);
     if (fd == FILE_OPEN_FAIL_ERROR_NUM) {
         return FILE_IS_CLOSE;
