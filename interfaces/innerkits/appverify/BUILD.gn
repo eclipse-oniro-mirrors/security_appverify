@@ -64,7 +64,7 @@ if (os_level == "standard") {
       defines += [ "STANDARD_SYSTEM" ]
 
       external_deps += [
-        "hiviewdfx_hilog_native:libhilog",
+        "hilog:libhilog",
         "init:libbegetutil",
       ]
     } else {
