@@ -11,7 +11,7 @@
     "scripts": {},
     "component": {
       "name": "appverify",
-      "subsystem": "bundlemanager",
+      "subsystem": "security",
       "syscap": [],
       "features": [],
       "adapted_system_type": [
