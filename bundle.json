@@ -23,9 +23,9 @@
       "ram": "500kb",
       "deps": {
         "components": [
-          "hiviewdfx_hilog_native",
-          "init",
           "c_utils",
+          "hilog",
+          "init",
           "os_account",
           "shared_library"
         ],
