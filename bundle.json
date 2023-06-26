@@ -5,13 +5,13 @@
     "license": "Apache License 2.0",
     "publishAs": "code-segment",
     "segment": {
-      "destPath": "base/security/appverify"
+      "destPath": "foundation/bundlemanager/appverify"
     },
     "dirs": {},
     "scripts": {},
     "component": {
       "name": "appverify",
-      "subsystem": "security",
+      "subsystem": "bundlemanager",
       "syscap": [],
       "features": [],
       "adapted_system_type": [
@@ -38,12 +38,12 @@
       },
       "build": {
         "sub_component": [
-          "//base/security/appverify:appverify_components"
+          "//foundation/bundlemanager/appverify:appverify_components"
         ],
         "inner_kits": [
           {
             "header": {
-              "header_base": "//base/security/appverify/interfaces/innerkits/appverify/include",
+              "header_base": "//foundation/bundlemanager/appverify/interfaces/innerkits/appverify/include",
               "header_files": [
                 "interfaces/hap_verify_result.h",
                 "interfaces/hap_verify.h",
@@ -52,20 +52,20 @@
                 "provision/provision_info.h"
               ]
             },
-            "name": "//base/security/appverify/interfaces/innerkits/appverify:libhapverify"
+            "name": "//foundation/bundlemanager/appverify/interfaces/innerkits/appverify:libhapverify"
           },
           {
             "header": {
-              "header_base": "//base/security/appverify/interfaces/innerkits/appverify_lite/include",
+              "header_base": "//foundation/bundlemanager/appverify/interfaces/innerkits/appverify_lite/include",
               "header_files": [
                 "app_verify_pub.h"
               ]
             },
-            "name": "//base/security/appverify/interfaces/innerkits/appverify_lite:verify"
+            "name": "//foundation/bundlemanager/appverify/interfaces/innerkits/appverify_lite:verify"
           }
        ],
        "test": [
-         "//base/security/appverify:testcase_packages"
+         "//foundation/bundlemanager/appverify:testcase_packages"
        ]
      }
     }

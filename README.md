@@ -32,7 +32,7 @@ To ensure the integrity and trustworthiness of the applications to be installed 
 ## Directory Structure<a name="section161941989596"></a>
 
 ```
-/base/security/appverify
+/foundation/bundlemanager/appverify
 ├── interfaces/innerkits/appverify         # Application integrity verification module
 │       ├── config                         # Application signature root certificates and configuration files for the trusted source list
 │       ├── include                        # Header files
