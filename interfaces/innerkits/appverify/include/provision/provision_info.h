@@ -41,6 +41,7 @@ struct BundleInfo {
     std::string bundleName;
     std::string apl;
     std::string appFeature;
+    std::vector<std::string> dataGroupIds;
 };
 
 struct Acls {

@@ -48,6 +48,7 @@ const string KEY_APP_FEATURE = "app-feature";
 const string KEY_ACLS = "acls";
 const string KEY_ALLOWED_ACLS = "allowed-acls";
 const string KEY_PERMISSIONS = "permissions";
+const string KEY_DATA_GROUP_IDS = "data-group-ids";
 const string KEY_RESTRICTED_PERMISSIONS = "restricted-permissions";
 const string KEY_RESTRICTED_CAPABILITIES = "restricted-capabilities";
 const string KEY_DEBUG_INFO = "debug-info";
@@ -154,6 +155,7 @@ void ParseBundleInfo(const json& obj, ProvisionInfo& out)
         GetStringIfExist(bundleInfo, KEY_BUNDLE_NAME, out.bundleInfo.bundleName);
         GetStringIfExist(bundleInfo, KEY_APL, out.bundleInfo.apl);
         GetStringIfExist(bundleInfo, KEY_APP_FEATURE, out.bundleInfo.appFeature);
+        GetStringArrayIfExist(bundleInfo, KEY_DATA_GROUP_IDS, out.bundleInfo.dataGroupIds);
     }
 }
 
