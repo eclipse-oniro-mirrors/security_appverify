@@ -81,7 +81,7 @@ if (os_level == "standard") {
 
     part_name = "appverify"
 
-    subsystem_name = "security"
+    subsystem_name = "bundlemanager"
     defines += [ "OPENSSL_SUPPRESS_DEPRECATED" ]
   }
 } else {

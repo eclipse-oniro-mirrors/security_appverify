@@ -18,8 +18,8 @@ module_output_path = "appverify/verify"
 config("verify_test_config") {
   visibility = [ ":*" ]
   include_dirs = [
-    "//base/security/appverify/interfaces/innerkits/appverify/test/unittest/include",
-    "//base/security/appverify/interfaces/innerkits/appverify/include",
+    "//foundation/bundlemanager/appverify/interfaces/innerkits/appverify/test/unittest/include",
+    "//foundation/bundlemanager/appverify/interfaces/innerkits/appverify/include",
     "//third_party/openssl/include",
     "//third_party/json/single_include",
   ]
@@ -48,7 +48,7 @@ ohos_unittest("verify_test") {
 
   configs = [ ":verify_test_config" ]
   deps = [
-    "//base/security/appverify/interfaces/innerkits/appverify:libhapverify",
+    "//foundation/bundlemanager/appverify/interfaces/innerkits/appverify:libhapverify",
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_static",
   ]
@@ -70,8 +70,7 @@ ohos_unittest("verify_test") {
     ]
   }
 
-  resource_config_file =
-      "//base/security/appverify/test/resource/appverify/ohos_test.xml"
+  resource_config_file = "//foundation/bundlemanager/appverify/test/resource/appverify/ohos_test.xml"
 }
 
 group("unittest") {
