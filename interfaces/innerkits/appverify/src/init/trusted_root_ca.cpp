@@ -25,6 +25,7 @@ namespace Security {
 namespace Verify {
 const std::string TrustedRootCa::TRUSTED_ROOT_CA_FILE_PATH = "/system/etc/security/trusted_root_ca.json";
 const std::string TrustedRootCa::TRUSTED_ROOT_CA_TEST_FILE_PATH = "/system/etc/security/trusted_root_ca_test.json";
+const std::string OPENHARMONY_CERT = "C=CN, O=OpenHarmony, OU=OpenHarmony Team, CN=OpenHarmony Application Root CA";
 
 TrustedRootCa& TrustedRootCa::GetInstance()
 {
@@ -32,7 +33,8 @@ TrustedRootCa& TrustedRootCa::GetInstance()
     return singleTrustedRoot;
 }
 
-TrustedRootCa::TrustedRootCa() : rootCerts(), rootCertsForTest(), isInit(false), isDebug(false)
+TrustedRootCa::TrustedRootCa() : rootCerts(), rootCertsForTest(), isInit(false), isDebug(false),
+    devMode(DevMode::DEFAULT)
 {
 }
 
@@ -66,6 +68,11 @@ void TrustedRootCa::DisableDebug()
         X509_free(rootCert.second);
     }
     rootCertsForTest.clear();
+}
+
+void TrustedRootCa::SetDevMode(DevMode mode)
+{
+    devMode = mode;
 }
 
 bool TrustedRootCa::Init()
@@ -141,6 +148,9 @@ X509* TrustedRootCa::FindMatchedRoot(X509* caCert)
 X509* TrustedRootCa::FindMatchedRoot(const StringCertMap& rootCertMap, X509* caCert)
 {
     for (auto root : rootCertMap) {
+        if (root.first == OPENHARMONY_CERT && devMode == DevMode::NON_DEV) {
+            continue;
+        }
         if (HapCertVerifyOpensslUtils::X509NameCompare(X509_get_subject_name(root.second),
             X509_get_issuer_name(caCert)) &&
             HapCertVerifyOpensslUtils::CertVerify(caCert, root.second)) {

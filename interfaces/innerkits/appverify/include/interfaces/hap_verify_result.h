@@ -25,6 +25,12 @@
 namespace OHOS {
 namespace Security {
 namespace Verify {
+enum class DevMode {
+    DEFAULT = 0,
+    DEV,
+    NON_DEV,
+};
+
 enum HapVerifyResultCode {
     VERIFY_SUCCESS = 0,
     FILE_PATH_INVALID = -1,
