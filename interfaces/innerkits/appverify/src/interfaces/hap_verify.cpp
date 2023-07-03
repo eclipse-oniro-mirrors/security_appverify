@@ -75,6 +75,14 @@ void DisableDebugMode()
     g_mtx.unlock();
 }
 
+void SetDevMode(DevMode mode)
+{
+    TrustedRootCa& rootCertsObj = TrustedRootCa::GetInstance();
+    g_mtx.lock();
+    rootCertsObj.SetDevMode(mode);
+    g_mtx.unlock();
+}
+
 int HapVerify(const std::string& filePath, HapVerifyResult& hapVerifyResult)
 {
     if (!g_isInit && !HapVerifyInit()) {

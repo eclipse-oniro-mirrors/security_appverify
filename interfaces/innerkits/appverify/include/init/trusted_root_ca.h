@@ -22,6 +22,7 @@
 
 #include "common/export_define.h"
 #include "init/json_parser_utils.h"
+#include "interfaces/hap_verify_result.h"
 
 namespace OHOS {
 namespace Security {
@@ -36,6 +37,7 @@ public:
     DLL_EXPORT bool EnableDebug();
     DLL_EXPORT void DisableDebug();
     DLL_EXPORT X509* FindMatchedRoot(X509* caCert);
+    DLL_EXPORT void SetDevMode(DevMode devMode);
 
 private:
     TrustedRootCa();
@@ -55,6 +57,7 @@ private:
     StringCertMap rootCertsForTest;
     bool isInit;
     bool isDebug;
+    DevMode devMode;
 };
 } // namespace Verify
 } // namespace Security
