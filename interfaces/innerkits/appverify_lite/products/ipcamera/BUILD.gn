@@ -13,8 +13,8 @@
 
 config("verify_base_config") {
   include_dirs = [
-    "//foundation/bundlemanager/appverify/interfaces/innerkits/appverify_lite/include",
-    "//foundation/bundlemanager/appverify/interfaces/innerkits/appverify_lite/products/ipcamera",
+    "//base/security/appverify/interfaces/innerkits/appverify_lite/include",
+    "//base/security/appverify/interfaces/innerkits/appverify_lite/products/ipcamera",
     "//base/startup/init/interfaces/innerkits/include/syspara",
   ]
 }

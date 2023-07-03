@@ -20,9 +20,9 @@ if (os_level == "small" || os_level == "mini") {
       "include",
       "//third_party/bounds_checking_function/include",
       "//third_party/cJSON",
-      "//foundation/bundlemanager/appverify/interfaces/innerkits/appverify_lite",
-      "//foundation/bundlemanager/appverify/interfaces/innerkits/appverify_lite/products/default",
-      "//foundation/bundlemanager/appverify/interfaces/innerkits/appverify_lite/products/ipcamera",
+      "//base/security/appverify/interfaces/innerkits/appverify_lite",
+      "//base/security/appverify/interfaces/innerkits/appverify_lite/products/default",
+      "//base/security/appverify/interfaces/innerkits/appverify_lite/products/ipcamera",
     ]
 
     cflags = [ "-Wno-int-conversion" ]
@@ -45,8 +45,8 @@ if (os_level == "small" || os_level == "mini") {
     ]
     configs += [ ":app_verify_config" ]
     public_deps = [
+      "//base/security/appverify/interfaces/innerkits/appverify_lite/products/ipcamera:verify_base",
       "//build/lite/config/component/cJSON:cjson_shared",
-      "//foundation/bundlemanager/appverify/interfaces/innerkits/appverify_lite/products/ipcamera:verify_base",
       "//third_party/bounds_checking_function:libsec_shared",
       "//third_party/mbedtls:mbedtls_shared",
     ]

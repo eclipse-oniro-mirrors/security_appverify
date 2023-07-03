@@ -14,25 +14,29 @@
 group("testcase_packages") {
   testonly = true
   if (os_level == "standard") {
-    deps = [ "//foundation/bundlemanager/appverify/interfaces/innerkits/appverify/test:unittest" ]
+    deps = [
+      "//base/security/appverify/interfaces/innerkits/appverify/test:unittest",
+    ]
   } else if (os_level == "small") {
-    deps = [ "//foundation/bundlemanager/appverify/interfaces/innerkits/appverify_lite/unittest:unittest" ]
+    deps = [ "//base/security/appverify/interfaces/innerkits/appverify_lite/unittest:unittest" ]
   }
 }
 
 group("appverify_components") {
   if (os_level == "standard") {
     deps = [
-      "//foundation/bundlemanager/appverify/interfaces/innerkits/appverify:libhapverify",
-      "//foundation/bundlemanager/appverify/interfaces/innerkits/appverify/config:trusted_apps_sources",
-      "//foundation/bundlemanager/appverify/interfaces/innerkits/appverify/config:trusted_apps_sources_test",
-      "//foundation/bundlemanager/appverify/interfaces/innerkits/appverify/config:trusted_root_ca",
-      "//foundation/bundlemanager/appverify/interfaces/innerkits/appverify/config:trusted_root_ca_test",
-      "//foundation/bundlemanager/appverify/interfaces/innerkits/appverify/config:trusted_tickets_sources",
+      "//base/security/appverify/interfaces/innerkits/appverify:libhapverify",
+      "//base/security/appverify/interfaces/innerkits/appverify/config:trusted_apps_sources",
+      "//base/security/appverify/interfaces/innerkits/appverify/config:trusted_apps_sources_test",
+      "//base/security/appverify/interfaces/innerkits/appverify/config:trusted_root_ca",
+      "//base/security/appverify/interfaces/innerkits/appverify/config:trusted_root_ca_test",
+      "//base/security/appverify/interfaces/innerkits/appverify/config:trusted_tickets_sources",
     ]
   } else {
     if (ohos_kernel_type != "liteos_m") {
-      deps = [ "//foundation/bundlemanager/appverify/interfaces/innerkits/appverify_lite:verify" ]
+      deps = [
+        "//base/security/appverify/interfaces/innerkits/appverify_lite:verify",
+      ]
     }
   }
 }

@@ -5,13 +5,13 @@
     "license": "Apache License 2.0",
     "publishAs": "code-segment",
     "segment": {
-      "destPath": "foundation/bundlemanager/appverify"
+      "destPath": "base/security/appverify"
     },
     "dirs": {},
     "scripts": {},
     "component": {
       "name": "appverify",
-      "subsystem": "bundlemanager",
+      "subsystem": "security",
       "syscap": [],
       "features": [],
       "adapted_system_type": [
@@ -38,12 +38,12 @@
       },
       "build": {
         "sub_component": [
-          "//foundation/bundlemanager/appverify:appverify_components"
+          "//base/security/appverify:appverify_components"
         ],
         "inner_kits": [
           {
             "header": {
-              "header_base": "//foundation/bundlemanager/appverify/interfaces/innerkits/appverify/include",
+              "header_base": "//base/security/appverify/interfaces/innerkits/appverify/include",
               "header_files": [
                 "interfaces/hap_verify_result.h",
                 "interfaces/hap_verify.h",
@@ -52,20 +52,20 @@
                 "provision/provision_info.h"
               ]
             },
-            "name": "//foundation/bundlemanager/appverify/interfaces/innerkits/appverify:libhapverify"
+            "name": "//base/security/appverify/interfaces/innerkits/appverify:libhapverify"
           },
           {
             "header": {
-              "header_base": "//foundation/bundlemanager/appverify/interfaces/innerkits/appverify_lite/include",
+              "header_base": "//base/security/appverify/interfaces/innerkits/appverify_lite/include",
               "header_files": [
                 "app_verify_pub.h"
               ]
             },
-            "name": "//foundation/bundlemanager/appverify/interfaces/innerkits/appverify_lite:verify"
+            "name": "//base/security/appverify/interfaces/innerkits/appverify_lite:verify"
           }
        ],
        "test": [
-         "//foundation/bundlemanager/appverify:testcase_packages"
+         "//base/security/appverify:testcase_packages"
        ]
      }
     }
