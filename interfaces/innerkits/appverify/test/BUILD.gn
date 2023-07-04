@@ -64,7 +64,7 @@ ohos_unittest("verify_test") {
   } else {
     external_deps = [
       "c_utils:utils",
-      "hilog_native:libhilog",
+      "hilog:libhilog",
       "ipc:ipc_core",
       "os_account:libaccountkits",
     ]
