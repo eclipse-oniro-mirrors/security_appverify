@@ -33,7 +33,7 @@
 ## 目录<a name="section161941989596"></a>
 
 ```
-/foundation/bundlemanager/appverify
+/base/security/appverify
 ├── interfaces/innerkits/appverify         # 应用完整性校验模块代码
 │       ├── config                         # 应用签名根证书和可信源列表配置文件存放目录
 │       ├── include                        # 头文件存放目录

@@ -20,14 +20,14 @@ ohos_prebuilt_etc("trusted_apps_sources") {
     source = "trusted_apps_sources.json"
   }
   part_name = "appverify"
-  subsystem_name = "bundlemanager"
+  subsystem_name = "security"
   relative_install_dir = "security"
 }
 
 ohos_prebuilt_etc("trusted_apps_sources_test") {
   source = "trusted_apps_sources_test.json"
   part_name = "appverify"
-  subsystem_name = "bundlemanager"
+  subsystem_name = "security"
   relative_install_dir = "security"
 }
 
@@ -38,20 +38,20 @@ ohos_prebuilt_etc("trusted_root_ca") {
     source = "trusted_root_ca.json"
   }
   part_name = "appverify"
-  subsystem_name = "bundlemanager"
+  subsystem_name = "security"
   relative_install_dir = "security"
 }
 
 ohos_prebuilt_etc("trusted_root_ca_test") {
   source = "trusted_root_ca_test.json"
   part_name = "appverify"
-  subsystem_name = "bundlemanager"
+  subsystem_name = "security"
   relative_install_dir = "security"
 }
 
 ohos_prebuilt_etc("trusted_tickets_sources") {
   source = "trusted_tickets_sources.json"
   part_name = "appverify"
-  subsystem_name = "bundlemanager"
+  subsystem_name = "security"
   relative_install_dir = "security"
 }
