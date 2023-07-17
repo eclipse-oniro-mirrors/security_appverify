@@ -32,6 +32,8 @@ enum AppDistType {
     ENTERPRISE = 2,
     OS_INTEGRATION = 3,
     CROWDTESTING = 4,
+    ENTERPRISE_NORMAL = 5,
+    ENTERPRISE_MDM = 6,
 };
 
 struct BundleInfo {

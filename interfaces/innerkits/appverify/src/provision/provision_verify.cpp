@@ -60,6 +60,8 @@ const string KEY_DEVELOPMENT_MODE = "const.product.developmentmode";
 const string VALUE_TYPE_RELEASE = "release";
 const string VALUE_DIST_TYPE_APP_GALLERY = "app_gallery";
 const string VALUE_DIST_TYPE_ENTERPRISE = "enterprise";
+const string VALUE_DIST_TYPE_ENTERPRISE_NORMAL = "enterprise_normal";
+const string VALUE_DIST_TYPE_ENTERPRISE_MDM = "enterprise_mdm";
 const string VALUE_DIST_TYPE_OS_INTEGRATION = "os_integration";
 const string VALUE_DIST_TYPE_CROWDTESTING = "crowdtesting";
 const string VALUE_DEVICE_ID_TYPE_UDID = "udid";
@@ -120,6 +122,15 @@ inline bool IsObjectExist(const json& obj, const string& key)
 namespace OHOS {
 namespace Security {
 namespace Verify {
+const std::map<std::string, int32_t> distTypeMap = {
+    {VALUE_DIST_TYPE_APP_GALLERY, AppDistType::APP_GALLERY},
+    {VALUE_DIST_TYPE_ENTERPRISE, AppDistType::ENTERPRISE},
+    {VALUE_DIST_TYPE_ENTERPRISE_NORMAL, AppDistType::ENTERPRISE_NORMAL},
+    {VALUE_DIST_TYPE_ENTERPRISE_MDM, AppDistType::ENTERPRISE_MDM},
+    {VALUE_DIST_TYPE_OS_INTEGRATION, AppDistType::OS_INTEGRATION},
+    {VALUE_DIST_TYPE_CROWDTESTING, AppDistType::CROWDTESTING}
+};
+
 void ParseType(const json& obj, ProvisionInfo& out)
 {
     string type;
@@ -132,17 +143,11 @@ void ParseAppDistType(const json& obj, ProvisionInfo& out)
 {
     string distType;
     GetStringIfExist(obj, KEY_APP_DIST_TYPE, distType);
-    if (distType == VALUE_DIST_TYPE_APP_GALLERY) {
-        out.distributionType = AppDistType::APP_GALLERY;
-    } else if (distType == VALUE_DIST_TYPE_ENTERPRISE) {
-        out.distributionType = AppDistType::ENTERPRISE;
-    } else if (distType == VALUE_DIST_TYPE_OS_INTEGRATION) {
-        out.distributionType = AppDistType::OS_INTEGRATION;
-    } else if (distType == VALUE_DIST_TYPE_CROWDTESTING) {
-        out.distributionType = AppDistType::CROWDTESTING;
-    } else {
-        out.distributionType = AppDistType::NONE_TYPE;
+    if (distTypeMap.find(distType) != distTypeMap.end()) {
+        out.distributionType = static_cast<AppDistType>(distTypeMap.at(distType));
+        return;
     }
+    out.distributionType = AppDistType::NONE_TYPE;
 }
 
 void ParseBundleInfo(const json& obj, ProvisionInfo& out)

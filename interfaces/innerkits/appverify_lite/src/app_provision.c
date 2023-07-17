@@ -21,6 +21,12 @@
 #include "cJSON.h"
 #include "securec.h"
 
+const char APP_GALLERY[] = "app_gallery";
+const char ENTERPRISE[] = "enterprise";
+const char ENTERPRISE_NORMAL[] = "enterprise_normal";
+const char ENTERPRISE_MDM[] = "enterprise_mdm";
+const char OS_INTEGRATION[] = "os_integration";
+
 static void ProfInit(ProfileProf *pf)
 {
     errno_t ret = memset_s(pf, sizeof(ProfileProf), 0, sizeof(ProfileProf));
@@ -339,8 +345,9 @@ static int VerifyAppTypeAndDistribution(const ProfileProf *pf)
         return V_ERR;
     }
     if (strcmp(pf->type, RELEASE_TYPE) == 0) {
-        if ((strcmp(pf->appDistType, "app_gallery") != 0) && (strcmp(pf->appDistType, "enterprise") != 0) &&
-            (strcmp(pf->appDistType, "os_integration") != 0)) {
+        if ((strcmp(pf->appDistType, APP_GALLERY) != 0) && (strcmp(pf->appDistType, ENTERPRISE) != 0) &&
+            (strcmp(pf->appDistType, ENTERPRISE_NORMAL) != 0) && (strcmp(pf->appDistType, ENTERPRISE_MDM) != 0) &&
+            (strcmp(pf->appDistType, OS_INTEGRATION) != 0)) {
             LOG_PRINT_STR("invalid app dis type: %s", pf->appDistType);
             return V_ERR;
         }
