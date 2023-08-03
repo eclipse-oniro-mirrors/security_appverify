@@ -289,6 +289,8 @@ bool HapVerifyV2::IsAppDistributedTypeAllowInstall(const AppDistType& type, cons
             }
             return false;
         case AppDistType::ENTERPRISE:
+        case AppDistType::ENTERPRISE_NORMAL:
+        case AppDistType::ENTERPRISE_MDM:
         case AppDistType::OS_INTEGRATION:
         case AppDistType::CROWDTESTING:
             return true;
