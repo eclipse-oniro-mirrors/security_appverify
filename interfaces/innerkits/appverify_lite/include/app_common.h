@@ -16,6 +16,8 @@
 #ifndef SECURITY_APP_COMMON_H
 #define SECURITY_APP_COMMON_H
 
+#include <stdint.h>
+
 #include "app_verify_base.h"
 #include "app_verify_pub.h"
 
@@ -101,11 +103,11 @@ do { \
     } \
 } while (0)
 
-long long HapGetInt64(const unsigned char *buf, int len);
-int HapGetInt(const unsigned char *buf, int len);
-unsigned int HapGetUnsignedInt(const unsigned char *buf, int len);
-short HapGetShort(const unsigned char *buf, int len);
-void HapPutInt32(unsigned char *buf, int len, int value);
+long long HapGetInt64(const unsigned char *buf, int32_t len);
+int32_t HapGetInt(const unsigned char *buf, int32_t len);
+uint32_t HapGetUnsignedInt(const unsigned char *buf, int32_t len);
+short HapGetShort(const unsigned char *buf, int32_t len);
+void HapPutInt32(unsigned char *buf, int32_t len, int32_t value);
 #ifdef __cplusplus
 #if __cplusplus
 }

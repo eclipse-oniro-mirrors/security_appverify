@@ -15,5 +15,7 @@
 #ifndef RANDOM_ACCESS_FILE_TEST_H
 #define RANDOM_ACCESS_FILE_TEST_H
 
-int ReadFileFullyFromOffsetTest001(void);
+#include <cstdint>
+
+int32_t ReadFileFullyFromOffsetTest001(void);
 #endif // RANDOM_ACCESS_FILE_TEST_H

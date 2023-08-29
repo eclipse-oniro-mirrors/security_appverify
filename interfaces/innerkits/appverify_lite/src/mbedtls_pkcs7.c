@@ -114,12 +114,12 @@ static bool InvalidDigestAlg(const mbedtls_asn1_buf *alg)
         MBEDTLS_OID_CMP(MBEDTLS_OID_DIGEST_ALG_SHA512, alg);
 }
 
-static int GetContentInfoType(unsigned char **p, const unsigned char *end,
+static int32_t GetContentInfoType(unsigned char **p, const unsigned char *end,
                               mbedtls_asn1_buf *contentType, bool *hasContent)
 {
     size_t seqLen = 0;
     size_t len = 0;
-    int rc;
+    int32_t rc;
 
     rc = mbedtls_asn1_get_tag(p, end, &seqLen, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE);
     if (rc) {
@@ -140,19 +140,19 @@ static int GetContentInfoType(unsigned char **p, const unsigned char *end,
     return PKCS7_SUCC;
 }
 
-static int GetContentLenOfContentInfo(unsigned char **p, const unsigned char *end, size_t *len)
+static int32_t GetContentLenOfContentInfo(unsigned char **p, const unsigned char *end, size_t *len)
 {
     return mbedtls_asn1_get_tag(p, end, len, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_CONTEXT_SPECIFIC);
 }
 
-static int ParseSignerVersion(unsigned char **p, const unsigned char *end, SignerInfo *signer)
+static int32_t ParseSignerVersion(unsigned char **p, const unsigned char *end, SignerInfo *signer)
 {
     return mbedtls_asn1_get_int(p, end, &signer->version);
 }
 
-static int ParseSignerIssuerAndSerialNum(unsigned char **p, const unsigned char *end, SignerInfo *signer)
+static int32_t ParseSignerIssuerAndSerialNum(unsigned char **p, const unsigned char *end, SignerInfo *signer)
 {
-    int rc;
+    int32_t rc;
     size_t len;
 
     rc = mbedtls_asn1_get_tag(p, end, &len, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE);
@@ -177,9 +177,9 @@ static int ParseSignerIssuerAndSerialNum(unsigned char **p, const unsigned char 
     return rc;
 }
 
-static int ParseSignerDigestAlg(unsigned char **p, const unsigned char *end, SignerInfo *signer)
+static int32_t ParseSignerDigestAlg(unsigned char **p, const unsigned char *end, SignerInfo *signer)
 {
-    int rc = mbedtls_asn1_get_alg_null(p, end, &signer->digestAlgId);
+    int32_t rc = mbedtls_asn1_get_alg_null(p, end, &signer->digestAlgId);
     if (rc) {
         return rc;
     }
@@ -189,9 +189,9 @@ static int ParseSignerDigestAlg(unsigned char **p, const unsigned char *end, Sig
     return PKCS7_SUCC;
 }
 
-static int ParseSignerAuthAttr(unsigned char **p, const unsigned char *end, SignerInfo *signer)
+static int32_t ParseSignerAuthAttr(unsigned char **p, const unsigned char *end, SignerInfo *signer)
 {
-    int rc;
+    int32_t rc;
     size_t len = 0;
     unsigned char *raw = *p;
 
@@ -224,9 +224,9 @@ static bool InvalidDigestEncAlg(const mbedtls_x509_buf *alg)
         MBEDTLS_OID_CMP(MBEDTLS_OID_RSASSA_PSS, alg);
 }
 
-static int ParseSignerEncAlg(unsigned char **p, const unsigned char *end, SignerInfo *signer)
+static int32_t ParseSignerEncAlg(unsigned char **p, const unsigned char *end, SignerInfo *signer)
 {
-    int rc;
+    int32_t rc;
     mbedtls_asn1_buf params = {0};
     /* params not be used now */
     rc = mbedtls_asn1_get_alg(p, end, &signer->digestEncAlgId, &params);
@@ -243,9 +243,9 @@ static int ParseSignerEncAlg(unsigned char **p, const unsigned char *end, Signer
  * encryptedDigest EncryptedDigest,
  *   EncryptedDigest ::= OCTET STRING
  */
-static int ParseSignerSignature(unsigned char **p, const unsigned char *end, SignerInfo *signer)
+static int32_t ParseSignerSignature(unsigned char **p, const unsigned char *end, SignerInfo *signer)
 {
-    int rc;
+    int32_t rc;
     size_t len = 0;
 
     rc = mbedtls_asn1_get_tag(p, end, &len, MBEDTLS_ASN1_OCTET_STRING);
@@ -259,7 +259,7 @@ static int ParseSignerSignature(unsigned char **p, const unsigned char *end, Sig
     return PKCS7_SUCC;
 }
 
-static int GetSignerSignature(const SignerInfo *signer, unsigned char **sig, size_t *sigLen)
+static int32_t GetSignerSignature(const SignerInfo *signer, unsigned char **sig, size_t *sigLen)
 {
     size_t len = signer->signature.len;
     unsigned char *buf = signer->signature.p;
@@ -268,9 +268,9 @@ static int GetSignerSignature(const SignerInfo *signer, unsigned char **sig, siz
     return PKCS7_SUCC;
 }
 
-static int ParseSignerUnAuthAttr(unsigned char **p, const unsigned char *end, SignerInfo *signer)
+static int32_t ParseSignerUnAuthAttr(unsigned char **p, const unsigned char *end, SignerInfo *signer)
 {
-    int rc;
+    int32_t rc;
     size_t len = 0;
 
     /* the optional unauth attr is not exist */
@@ -288,7 +288,7 @@ static int ParseSignerUnAuthAttr(unsigned char **p, const unsigned char *end, Si
     return PKCS7_SUCC;
 }
 
-static int SerialCmp(const mbedtls_x509_buf *a, const mbedtls_x509_buf *b)
+static int32_t SerialCmp(const mbedtls_x509_buf *a, const mbedtls_x509_buf *b)
 {
     if (a->len == b->len && memcmp(a->p, b->p, a->len) == 0) {
         return 0;
@@ -297,7 +297,7 @@ static int SerialCmp(const mbedtls_x509_buf *a, const mbedtls_x509_buf *b)
 }
 
 #define DIFF_NUM 32
-static bool IsLegitString(int tag)
+static bool IsLegitString(int32_t tag)
 {
     if (tag == MBEDTLS_ASN1_UTF8_STRING || tag == MBEDTLS_ASN1_PRINTABLE_STRING) {
         return true;
@@ -305,10 +305,10 @@ static bool IsLegitString(int tag)
     return false;
 }
 
-static int CompareX509String(const mbedtls_x509_buf *first, const mbedtls_x509_buf *second)
+static int32_t CompareX509String(const mbedtls_x509_buf *first, const mbedtls_x509_buf *second)
 {
     if (IsLegitString(first->tag) && IsLegitString(second->tag)) {
-        for (int i = 0; i < first->len; i++) {
+        for (int32_t i = 0; i < first->len; i++) {
             if (first->p[i] == second->p[i] ||
                 ((islower(first->p[i]) != 0) && (first->p[i] - DIFF_NUM == second->p[i])) ||
                 ((isupper(first->p[i]) != 0) && (first->p[i] + DIFF_NUM == second->p[i]))) {
@@ -321,9 +321,9 @@ static int CompareX509String(const mbedtls_x509_buf *first, const mbedtls_x509_b
     return -1;
 }
 
-static int GetDeps(const mbedtls_x509_name *nameList)
+static int32_t GetDeps(const mbedtls_x509_name *nameList)
 {
-    int deps = 0;
+    int32_t deps = 0;
     while (nameList != NULL) {
         nameList = nameList->next;
         deps++;
@@ -331,17 +331,17 @@ static int GetDeps(const mbedtls_x509_name *nameList)
     return deps;
 }
 
-static int CompareX509NameList(const mbedtls_x509_name *first, const mbedtls_x509_name *second)
+static int32_t CompareX509NameList(const mbedtls_x509_name *first, const mbedtls_x509_name *second)
 {
     if (first == NULL || second == NULL) {
         return -1;
     }
-    int firstDeps = GetDeps(first);
-    int secondDeps = GetDeps(second);
+    int32_t firstDeps = GetDeps(first);
+    int32_t secondDeps = GetDeps(second);
     if (firstDeps != secondDeps) {
         return -1;
     }
-    for (int i = 0; i < firstDeps; i++) {
+    for (int32_t i = 0; i < firstDeps; i++) {
         if (first->oid.tag != second->oid.tag ||
             first->oid.len != second->oid.len ||
             memcmp(first->oid.p, second->oid.p, second->oid.len) != 0 ||
@@ -368,9 +368,9 @@ static void Pkcs7Free(void *ptr)
     free(ptr);
 }
 
-static int ParseSignedDataSignerInfos(unsigned char **p, const unsigned char *end, SignerInfo *signers)
+static int32_t ParseSignedDataSignerInfos(unsigned char **p, const unsigned char *end, SignerInfo *signers)
 {
-    int rc;
+    int32_t rc;
     size_t len = 0;
 
     rc = mbedtls_asn1_get_tag(p, end, &len, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SET);
@@ -427,9 +427,9 @@ static int ParseSignedDataSignerInfos(unsigned char **p, const unsigned char *en
     return rc;
 }
 
-static int ParseSignedDataVersion(unsigned char **p, const unsigned char *end, int *ver)
+static int32_t ParseSignedDataVersion(unsigned char **p, const unsigned char *end, int32_t *ver)
 {
-    int rc = mbedtls_asn1_get_int(p, end, ver);
+    int32_t rc = mbedtls_asn1_get_int(p, end, ver);
     if (rc) {
         return rc;
     }
@@ -442,9 +442,9 @@ static int ParseSignedDataVersion(unsigned char **p, const unsigned char *end, i
     return PKCS7_SUCC;
 }
 
-static int ParseSignedDataDigestAlgs(unsigned char **p, const unsigned char *end, DigestAlgId *algIds)
+static int32_t ParseSignedDataDigestAlgs(unsigned char **p, const unsigned char *end, DigestAlgId *algIds)
 {
-    int rc;
+    int32_t rc;
     size_t len = 0;
 
     /* parse SET OF header */
@@ -480,7 +480,7 @@ static int ParseSignedDataDigestAlgs(unsigned char **p, const unsigned char *end
 
 static void DlogContentInfo(const Content *content)
 {
-    int len = content->data.len;
+    int32_t len = content->data.len;
     if (len <= 0) {
         return;
     }
@@ -495,9 +495,9 @@ static void DlogContentInfo(const Content *content)
     Pkcs7Free(info);
 }
 
-static int ParseSignedDataContentInfo(unsigned char **p, const unsigned char *end, Content *content)
+static int32_t ParseSignedDataContentInfo(unsigned char **p, const unsigned char *end, Content *content)
 {
-    int rc;
+    int32_t rc;
     size_t len = 0;
     bool hasContent = false;
 
@@ -522,9 +522,9 @@ static int ParseSignedDataContentInfo(unsigned char **p, const unsigned char *en
     return PKCS7_SUCC;
 }
 
-static int ParseSignedDataCerts(unsigned char **p, const unsigned char *end, mbedtls_x509_crt **certs)
+static int32_t ParseSignedDataCerts(unsigned char **p, const unsigned char *end, mbedtls_x509_crt **certs)
 {
-    int rc;
+    int32_t rc;
     size_t len = 0;
 
     rc = mbedtls_asn1_get_tag(p, end, &len, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_CONTEXT_SPECIFIC);
@@ -539,7 +539,7 @@ static int ParseSignedDataCerts(unsigned char **p, const unsigned char *end, mbe
     mbedtls_x509_crt_init(*certs);
 
     unsigned char *certsEnd = *p + len;
-    int cnt = 0;
+    int32_t cnt = 0;
     while (*p < certsEnd) {
         /* scan every cert */
         size_t oneCertLen;
@@ -562,9 +562,9 @@ static int ParseSignedDataCerts(unsigned char **p, const unsigned char *end, mbe
     return rc;
 }
 
-static int ParseSignedDataCrl(unsigned char **p, const unsigned char *end, mbedtls_x509_crl *crl)
+static int32_t ParseSignedDataCrl(unsigned char **p, const unsigned char *end, mbedtls_x509_crl *crl)
 {
-    int rc;
+    int32_t rc;
     size_t len = 0;
 
     rc = mbedtls_asn1_get_tag(p, end, &len, (MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_CONTEXT_SPECIFIC) + 1);
@@ -578,12 +578,12 @@ static int ParseSignedDataCrl(unsigned char **p, const unsigned char *end, mbedt
     return rc;
 }
 
-static int ParseSignedData(unsigned char *buf, size_t bufLen, SignedData *signedData)
+static int32_t ParseSignedData(unsigned char *buf, size_t bufLen, SignedData *signedData)
 {
     unsigned char *p = buf;
     unsigned char *end = buf + bufLen;
     size_t len = 0;
-    int rc;
+    int32_t rc;
 
     /* parse SignedData sequence header */
     rc = mbedtls_asn1_get_tag(&p, end, &len, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE);
@@ -702,9 +702,9 @@ static void FreeSignedDataCrl(Pkcs7 *pkcs7)
     return;
 }
 
-static int GetCertsNumOfSignedData(const mbedtls_x509_crt *crts)
+static int32_t GetCertsNumOfSignedData(const mbedtls_x509_crt *crts)
 {
-    int cnt = 0;
+    int32_t cnt = 0;
     while (crts != NULL) {
         crts = crts->next;
         cnt++;
@@ -763,10 +763,10 @@ static void AddCertToSignerCertPath(SignerInfo *signer, mbedtls_x509_crt *crt)
     signer->certPath.depth++;
 }
 
-static int BuildSignerCertPath(SignerInfo *signer, mbedtls_x509_crt *lowerCrt, SignedData *signeData)
+static int32_t BuildSignerCertPath(SignerInfo *signer, mbedtls_x509_crt *lowerCrt, SignedData *signeData)
 {
-    int scanCnt = 0;
-    int rc = PKCS7_SUCC;
+    int32_t scanCnt = 0;
+    int32_t rc = PKCS7_SUCC;
     if (!g_rootCertLoaded) {
         return PKCS7_ROOT_CA_NOT_VALID;
     }
@@ -777,7 +777,7 @@ static int BuildSignerCertPath(SignerInfo *signer, mbedtls_x509_crt *lowerCrt, S
      * find the next level ca cert */
     mbedtls_x509_crt *cur = lowerCrt;
     mbedtls_x509_crt *next = NULL;
-    int certsCnt = GetCertsNumOfSignedData(certs);
+    int32_t certsCnt = GetCertsNumOfSignedData(certs);
     DelCertOfSignedData(signeData, cur);
     AddCertToSignerCertPath(signer, cur);
     while (true) {
@@ -798,7 +798,7 @@ static int BuildSignerCertPath(SignerInfo *signer, mbedtls_x509_crt *lowerCrt, S
     return rc;
 }
 
-static int ConstructSignerCerts(SignedData *signedData)
+static int32_t ConstructSignerCerts(SignedData *signedData)
 {
     /* scan all of the signers , and filter the signer's certs by serial and name */
     SignerInfo *signer = &signedData->signers;
@@ -819,7 +819,7 @@ static int ConstructSignerCerts(SignedData *signedData)
             LOG_ERROR("Could not found signer's lowest cert");
             return PKCS7_INVALID_VALUE;
         }
-        int rc = BuildSignerCertPath(signer, cert, signedData);
+        int32_t rc = BuildSignerCertPath(signer, cert, signedData);
         if (rc != 0) {
             return rc;
         }
@@ -829,7 +829,7 @@ static int ConstructSignerCerts(SignedData *signedData)
 }
 
 /* get signer digest alg */
-static int GetSignerDigestAlg(const SignerInfo *signer, mbedtls_md_type_t *algType)
+static int32_t GetSignerDigestAlg(const SignerInfo *signer, mbedtls_md_type_t *algType)
 {
     const mbedtls_x509_buf *alg = &signer->digestAlgId;
     if (!MBEDTLS_OID_CMP(MBEDTLS_OID_DIGEST_ALG_SHA256, alg)) {
@@ -848,7 +848,7 @@ static int GetSignerDigestAlg(const SignerInfo *signer, mbedtls_md_type_t *algTy
 }
 
 /* get signer pubkey of sign from signer cert */
-static int GetSignerPubKeyOfSignature(const SignerInfo *signer, mbedtls_pk_context **pk)
+static int32_t GetSignerPubKeyOfSignature(const SignerInfo *signer, mbedtls_pk_context **pk)
 {
     /* signer cert_path first cert is the lowest cert. yet is the signature cert */
     if (signer == NULL || pk == NULL) {
@@ -861,9 +861,9 @@ static int GetSignerPubKeyOfSignature(const SignerInfo *signer, mbedtls_pk_conte
     return PKCS7_INVALID_VALUE;
 }
 
-int PKCS7_VerifySignerSignature(const Pkcs7 *pkcs7, PKCS7_CalcDigest calcDigest)
+int32_t PKCS7_VerifySignerSignature(const Pkcs7 *pkcs7, PKCS7_CalcDigest calcDigest)
 {
-    int rc;
+    int32_t rc;
     if (pkcs7 == NULL || calcDigest == NULL) {
         return PKCS7_INVALID_PARAM;
     }
@@ -912,9 +912,9 @@ int PKCS7_VerifySignerSignature(const Pkcs7 *pkcs7, PKCS7_CalcDigest calcDigest)
     return rc;
 }
 
-static int LoadRootCert(void)
+static int32_t LoadRootCert(void)
 {
-    int rc = 0;
+    int32_t rc = 0;
     if (!g_rootCertLoaded) {
         mbedtls_x509_crt_init(&g_rootCaG2Cert);
         rc = mbedtls_x509_crt_parse(&g_rootCaG2Cert, ROOT_CA_G2_CERT_IN_PEM, sizeof(ROOT_CA_G2_CERT_IN_PEM));
@@ -937,10 +937,10 @@ static void UnLoadRootCert(void)
     }
 }
 
-static int LoadDebugModeRootCert(void)
+static int32_t LoadDebugModeRootCert(void)
 {
     mbedtls_x509_crt_init(&g_debugModeRootCert);
-    int rc = mbedtls_x509_crt_parse(&g_debugModeRootCert, DEBUG_MODE_ROOT_CERT_IN_PEM,
+    int32_t rc = mbedtls_x509_crt_parse(&g_debugModeRootCert, DEBUG_MODE_ROOT_CERT_IN_PEM,
         sizeof(DEBUG_MODE_ROOT_CERT_IN_PEM));
     if (rc) {
         LOG_ERROR("load debug mode root ca failed %d", rc);
@@ -950,16 +950,16 @@ static int LoadDebugModeRootCert(void)
     }
     return rc;
 }
-static int UnLoadDebugModeRootCert(void)
+static int32_t UnLoadDebugModeRootCert(void)
 {
     mbedtls_x509_crt_free(&g_debugModeRootCert);
     return PKCS7_SUCC;
 }
 
-static int LoadSelfSignedCert(void)
+static int32_t LoadSelfSignedCert(void)
 {
     mbedtls_x509_crt_init(&g_ohosRootCert);
-    int rc = mbedtls_x509_crt_parse(&g_ohosRootCert, OHOS_ROOT_CERT_IN_PEM, sizeof(OHOS_ROOT_CERT_IN_PEM));
+    int32_t rc = mbedtls_x509_crt_parse(&g_ohosRootCert, OHOS_ROOT_CERT_IN_PEM, sizeof(OHOS_ROOT_CERT_IN_PEM));
     if (rc) {
         LOG_ERROR("load self signed ca failed %d", rc);
         return rc;
@@ -973,7 +973,7 @@ static void UnLoadSelfSignedCert(void)
 {
     mbedtls_x509_crt_free(&g_ohosRootCert);
 }
-static void DLogCrtVerifyInfo(unsigned int flags)
+static void DLogCrtVerifyInfo(uint32_t flags)
 {
     char vrfyBuf[VERIFY_BUF_LEN];
     (void)memset_s(vrfyBuf, VERIFY_BUF_LEN, 0, VERIFY_BUF_LEN);
@@ -981,7 +981,7 @@ static void DLogCrtVerifyInfo(unsigned int flags)
     LOG_DEBUG("%s", vrfyBuf);
 }
 
-static int IsRevoked(const mbedtls_x509_crt *crt, const mbedtls_x509_crl *crl)
+static int32_t IsRevoked(const mbedtls_x509_crt *crt, const mbedtls_x509_crl *crl)
 {
     mbedtls_x509_crl_entry *cur = (mbedtls_x509_crl_entry *)(&crl->entry);
     while (cur != NULL) {
@@ -1000,7 +1000,7 @@ static int IsRevoked(const mbedtls_x509_crt *crt, const mbedtls_x509_crl *crl)
     return PKCS7_SUCC;
 }
 
-static int VerifyCrl(const mbedtls_x509_crt *crt, const mbedtls_x509_crl *crl)
+static int32_t VerifyCrl(const mbedtls_x509_crt *crt, const mbedtls_x509_crl *crl)
 {
     const mbedtls_x509_crl *crlList = crl;
     while (crlList != NULL) {
@@ -1018,10 +1018,10 @@ static int VerifyCrl(const mbedtls_x509_crt *crt, const mbedtls_x509_crl *crl)
     return PKCS7_SUCC;
 }
 
-static int VerifyClicert(mbedtls_x509_crt *clicert, mbedtls_x509_crt *rootCert, const Pkcs7 *pkcs7)
+static int32_t VerifyClicert(mbedtls_x509_crt *clicert, mbedtls_x509_crt *rootCert, const Pkcs7 *pkcs7)
 {
-    unsigned int flags;
-    int rc = mbedtls_x509_crt_verify(clicert, rootCert,
+    uint32_t flags;
+    int32_t rc = mbedtls_x509_crt_verify(clicert, rootCert,
         (mbedtls_x509_crl *)&pkcs7->signedData.crl, NULL, &flags, NULL, NULL);
     if (rc) {
         DLogCrtVerifyInfo(flags);
@@ -1036,12 +1036,12 @@ static int VerifyClicert(mbedtls_x509_crt *clicert, mbedtls_x509_crt *rootCert, 
     return rc;
 }
 
-int PKCS7_VerifyCertsChain(const Pkcs7 *pkcs7)
+int32_t PKCS7_VerifyCertsChain(const Pkcs7 *pkcs7)
 {
     if (pkcs7 == NULL) {
         return PKCS7_INVALID_PARAM;
     }
-    int cnt = 0;
+    int32_t cnt = 0;
     const SignerInfo *signer = &pkcs7->signedData.signers;
     while (signer != NULL) {
         mbedtls_x509_crt *clicert = signer->certPath.crt;
@@ -1049,7 +1049,7 @@ int PKCS7_VerifyCertsChain(const Pkcs7 *pkcs7)
             LOG_ERROR("Signer has no certs");
             return PKCS7_HAS_NO_SIGNER_CRT;
         }
-        int rc;
+        int32_t rc;
         cnt++;
         LOG_INFO("signer : %d", cnt);
         if (g_debugModeEnabled) {
@@ -1085,9 +1085,9 @@ int PKCS7_VerifyCertsChain(const Pkcs7 *pkcs7)
     return PKCS7_SUCC;
 }
 
-int PKCS7_GetSignerSignningCertSubject(const SignerInfo *signer, char *subject, size_t subjectLen)
+int32_t PKCS7_GetSignerSignningCertSubject(const SignerInfo *signer, char *subject, size_t subjectLen)
 {
-    int rc;
+    int32_t rc;
     if (signer == NULL || subject == NULL) {
         return PKCS7_INVALID_PARAM;
     }
@@ -1099,9 +1099,9 @@ int PKCS7_GetSignerSignningCertSubject(const SignerInfo *signer, char *subject, 
     return PKCS7_SUCC;
 }
 
-int PKCS7_GetSignerSignningCertIssuer(const SignerInfo *signer, char *issuer, size_t issuerLen)
+int32_t PKCS7_GetSignerSignningCertIssuer(const SignerInfo *signer, char *issuer, size_t issuerLen)
 {
-    int rc;
+    int32_t rc;
     if (signer == NULL || issuer == NULL) {
         return PKCS7_INVALID_PARAM;
     }
@@ -1127,7 +1127,7 @@ static bool IsIncludeRoot(const SignerInfo *signer)
 {
     mbedtls_x509_crt *pre = signer->certPath.crt;
     mbedtls_x509_crt *cur = pre;
-    int i = 0;
+    int32_t i = 0;
     while (i < signer->certPath.depth && cur != NULL) {
         pre = cur;
         cur = cur->next;
@@ -1147,7 +1147,7 @@ static bool IsIncludeRoot(const SignerInfo *signer)
     return false;
 }
 
-static int GetSignerSignningCertDepth(const SignerInfo *signer)
+static int32_t GetSignerSignningCertDepth(const SignerInfo *signer)
 {
     if (IsIncludeRoot(signer)) {
         return signer->certPath.depth;
@@ -1189,9 +1189,9 @@ SignersResovedInfo *PKCS7_GetAllSignersResolvedInfo(const Pkcs7 *pkcs7)
         Pkcs7Free(sri);
         return NULL;
     }
-    int rc;
+    int32_t rc;
     const SignerInfo *signer = &pkcs7->signedData.signers;
-    int idx = 0;
+    int32_t idx = 0;
     while (signer != NULL && idx < signersCnt) {
         rc = PKCS7_GetSignerSignningCertSubject(signer, sri->signers[idx].subject, sizeof(sri->signers[idx].subject));
         if (rc) {
@@ -1212,7 +1212,7 @@ OUT:
     return NULL;
 }
 
-int PKCS7_GetDigestInSignerAuthAttr(const SignerInfo *signer, unsigned char **dig, size_t *digLen)
+int32_t PKCS7_GetDigestInSignerAuthAttr(const SignerInfo *signer, unsigned char **dig, size_t *digLen)
 {
     if (signer == NULL || dig == NULL || digLen == NULL) {
         return PKCS7_INVALID_VALUE;
@@ -1228,7 +1228,7 @@ int PKCS7_GetDigestInSignerAuthAttr(const SignerInfo *signer, unsigned char **di
     while (p < end) {
         size_t seqLen;
         unsigned char *seqEnd = NULL;
-        int rc = mbedtls_asn1_get_tag(&p, end, &seqLen, MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED);
+        int32_t rc = mbedtls_asn1_get_tag(&p, end, &seqLen, MBEDTLS_ASN1_SEQUENCE | MBEDTLS_ASN1_CONSTRUCTED);
         if (rc) {
             return rc;
         }
@@ -1261,7 +1261,7 @@ int PKCS7_GetDigestInSignerAuthAttr(const SignerInfo *signer, unsigned char **di
     return PKCS7_INVALID_VALUE;
 }
 
-int PKCS7_GetSignerAuthAttr(const SignerInfo *signer, unsigned char **data, size_t *dataLen)
+int32_t PKCS7_GetSignerAuthAttr(const SignerInfo *signer, unsigned char **data, size_t *dataLen)
 {
     if (signer == NULL || signer->authAttrRaw.p == NULL || data == NULL || dataLen == NULL) {
         return PKCS7_INVALID_VALUE;
@@ -1272,7 +1272,7 @@ int PKCS7_GetSignerAuthAttr(const SignerInfo *signer, unsigned char **data, size
     return PKCS7_SUCC;
 }
 
-int PKCS7_GetContentData(const Pkcs7 *pkcs7, unsigned char **data, size_t *dataLen)
+int32_t PKCS7_GetContentData(const Pkcs7 *pkcs7, unsigned char **data, size_t *dataLen)
 {
     if (pkcs7 == NULL || data == NULL || dataLen == NULL) {
         return PKCS7_INVALID_PARAM;
@@ -1282,7 +1282,7 @@ int PKCS7_GetContentData(const Pkcs7 *pkcs7, unsigned char **data, size_t *dataL
     size_t len = pkcs7->signedData.content.data.len;
     unsigned char *end = p + len;
     size_t octetLen;
-    int rc = mbedtls_asn1_get_tag(&p, end, &octetLen, MBEDTLS_ASN1_OCTET_STRING);
+    int32_t rc = mbedtls_asn1_get_tag(&p, end, &octetLen, MBEDTLS_ASN1_OCTET_STRING);
     if (rc != 0) {
         return rc;
     }
@@ -1291,12 +1291,12 @@ int PKCS7_GetContentData(const Pkcs7 *pkcs7, unsigned char **data, size_t *dataL
     return PKCS7_SUCC;
 }
 
-int PKCS7_EnableDebugMode(bool mode)
+int32_t PKCS7_EnableDebugMode(bool mode)
 {
     if (g_debugModeEnabled == mode) {
         return PKCS7_SUCC;
     }
-    int rc = ((mode == true) ? LoadDebugModeRootCert() : UnLoadDebugModeRootCert());
+    int32_t rc = ((mode == true) ? LoadDebugModeRootCert() : UnLoadDebugModeRootCert());
     if (rc) {
         return rc;
     }
@@ -1305,10 +1305,10 @@ int PKCS7_EnableDebugMode(bool mode)
 }
 
 #ifdef PARSE_PEM_FORMAT_SIGNED_DATA
-static int ParsePemFormatSignedData(const unsigned char *buf, size_t bufLen, mbedtls_pem_context *pem, char *format)
+static int32_t ParsePemFormatSignedData(const unsigned char *buf, size_t bufLen, mbedtls_pem_context *pem, char *format)
 {
     if (bufLen != 0 && strstr((const char *)buf, "-----BEGIN PKCS7-----") != NULL) {
-        int ret;
+        int32_t ret;
         size_t useLen = 0;
         mbedtls_pem_init(pem);
         ret = mbedtls_pem_read_buffer(pem, "-----BEGIN PKCS7-----", "-----END PKCS7-----",
@@ -1326,9 +1326,9 @@ static int ParsePemFormatSignedData(const unsigned char *buf, size_t bufLen, mbe
 }
 #endif
 
-int PKCS7_ParseSignedData(const unsigned char *buf, size_t bufLen, Pkcs7 *pkcs7)
+int32_t PKCS7_ParseSignedData(const unsigned char *buf, size_t bufLen, Pkcs7 *pkcs7)
 {
-    int rc;
+    int32_t rc;
     size_t len = 0;
     bool hasContent = false;
     unsigned char *start = NULL;

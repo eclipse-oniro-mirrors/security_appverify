@@ -28,8 +28,8 @@
 namespace OHOS {
 namespace Security {
 namespace Verify {
-const int RandomAccessFile::FILE_OPEN_FAIL_ERROR_NUM = -1;
-int RandomAccessFile::memoryPageSize = sysconf(_SC_PAGESIZE);
+const int32_t RandomAccessFile::FILE_OPEN_FAIL_ERROR_NUM = -1;
+int32_t RandomAccessFile::memoryPageSize = sysconf(_SC_PAGESIZE);
 
 RandomAccessFile::RandomAccessFile()
     : fd(FILE_OPEN_FAIL_ERROR_NUM), fileLength(0)
@@ -71,14 +71,14 @@ long long RandomAccessFile::GetLength() const
 bool RandomAccessFile::CheckLittleEndian()
 {
     union LittleEndian {
-        int num;
+        int32_t num;
         char ch;
     } t;
     t.num = 1;
     return (t.ch == 1);
 }
 
-long long RandomAccessFile::DoMMap(int bufCapacity, long long offset, MmapInfo& mmapInfo)
+long long RandomAccessFile::DoMMap(int32_t bufCapacity, long long offset, MmapInfo& mmapInfo)
 {
     if (!CheckLittleEndian()) {
         HAPVERIFY_LOG_ERROR(LABEL, "CheckLittleEndian: failed");
@@ -103,7 +103,7 @@ long long RandomAccessFile::DoMMap(int bufCapacity, long long offset, MmapInfo& 
     return 0;
 }
 
-long long RandomAccessFile::ReadFileFullyFromOffset(char buf[], long long offset, int bufCapacity)
+long long RandomAccessFile::ReadFileFullyFromOffset(char buf[], long long offset, int32_t bufCapacity)
 {
     if (buf == nullptr) {
         return DEST_BUFFER_IS_NULL;
@@ -131,7 +131,7 @@ long long RandomAccessFile::ReadFileFullyFromOffset(HapByteBuffer& buffer, long 
     }
 
     MmapInfo mmapInfo;
-    int bufCapacity = buffer.GetCapacity();
+    int32_t bufCapacity = buffer.GetCapacity();
     long long ret = DoMMap(bufCapacity, offset, mmapInfo);
     if (ret < 0) {
         return ret;
@@ -143,7 +143,7 @@ long long RandomAccessFile::ReadFileFullyFromOffset(HapByteBuffer& buffer, long 
 }
 
 bool RandomAccessFile::ReadFileFromOffsetAndDigestUpdate(const DigestParameter& digestParam,
-    int chunkSize, long long offset)
+    int32_t chunkSize, long long offset)
 {
     MmapInfo mmapInfo;
     long long ret = DoMMap(chunkSize, offset, mmapInfo);

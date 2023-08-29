@@ -30,7 +30,7 @@ struct SignatureInfo {
     long long hapEocdOffset;
     HapByteBuffer hapEocd;
     std::vector<OptionalBlock> optionBlocks;
-    int version;
+    int32_t version;
 };
 } // namespace Verify
 } // namespace Security

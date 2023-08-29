@@ -192,7 +192,7 @@ std::string TrustedSourceManager::EncapTrustedAppSourceString(const HapAppSource
 }
 
 MatchingResult TrustedSourceManager::IsTrustedSource(const std::string& certSubject,
-    const std::string& certIssuer, HapBlobType blobType, int certListPath) const
+    const std::string& certIssuer, HapBlobType blobType, int32_t certListPath) const
 {
     MatchingResult ret = MatchTrustedSource(appTrustedSources, certSubject, certIssuer, blobType, certListPath);
     if (ret.matchState != DO_NOT_MATCH) {
@@ -206,7 +206,7 @@ MatchingResult TrustedSourceManager::IsTrustedSource(const std::string& certSubj
 }
 
 MatchingResult TrustedSourceManager::MatchTrustedSource(const SourceInfoVec& trustedAppSources,
-    const std::string& certSubject, const std::string& certIssuer, HapBlobType blobType, int certListPath) const
+    const std::string& certSubject, const std::string& certIssuer, HapBlobType blobType, int32_t certListPath) const
 {
     MatchingResult ret;
     ret.matchState = DO_NOT_MATCH;

@@ -15,9 +15,11 @@
 #ifndef HAP_TRUSTED_ROOT_CA_TEST_H
 #define HAP_TRUSTED_ROOT_CA_TEST_H
 
+#include <cstdint>
+
 #include "test_const.h"
 
-int CreatTrustedRootCA001(void);
-int FindMatchedRootTest001(void);
-int GetTrustedRootCAFromJsonTest001(void);
+int32_t CreatTrustedRootCA001(void);
+int32_t FindMatchedRootTest001(void);
+int32_t GetTrustedRootCAFromJsonTest001(void);
 #endif // HAP_TRUSTED_ROOT_CA_TEST_H

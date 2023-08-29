@@ -16,6 +16,7 @@
 #ifndef SECURITY_APP_VERIFY_HAL_H
 #define SECURITY_APP_VERIFY_HAL_H
 
+#include <stdint.h>
 
 #ifdef __cplusplus
 #if __cplusplus
@@ -25,14 +26,14 @@ extern "C" {
 #define INQUIRY_UDID_OK 0
 #define INQUIRY_UDID_ERROR -1
 
-typedef int (*GetDeviceUdid)(unsigned char *udid, int size);
+typedef int32_t (*GetDeviceUdid)(unsigned char *udid, int32_t size);
 
 typedef struct {
     GetDeviceUdid devUdidFunc;
 } ProductDiff;
 
 void RegistHalFunc();
-int InquiryDeviceUdid(unsigned char *udid, int size);
+int32_t InquiryDeviceUdid(unsigned char *udid, int32_t size);
 
 #ifdef __cplusplus
 #if __cplusplus

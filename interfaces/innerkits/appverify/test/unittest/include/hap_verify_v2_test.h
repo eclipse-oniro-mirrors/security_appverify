@@ -15,11 +15,13 @@
 #ifndef HAP_VERIFY_V2_TEST_H
 #define HAP_VERIFY_V2_TEST_H
 
+#include <cstdint>
+
 #include "test_const.h"
 
-int CheckFilePathTest001(void);
-int GenerateAppIdTest001(void);
-int VerifyProfileInfoTest001(void);
-int ParseAndVerifyProfileIfNeedTest001(void);
-int GetDigestAndAlgorithmTest001(void);
+int32_t CheckFilePathTest001(void);
+int32_t GenerateAppIdTest001(void);
+int32_t VerifyProfileInfoTest001(void);
+int32_t ParseAndVerifyProfileIfNeedTest001(void);
+int32_t GetDigestAndAlgorithmTest001(void);
 #endif // HAP_VERIFY_V2_TEST_H

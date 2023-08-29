@@ -113,10 +113,10 @@ static void ContentN2H(ContentInfo *content)
     return;
 }
 
-static int GetSignHead(const FileRead *file, SignatureInfo *signInfo)
+static int32_t GetSignHead(const FileRead *file, SignatureInfo *signInfo)
 {
     struct stat fileSt;
-    int ret = fstat(file->fp, &fileSt);
+    int32_t ret = fstat(file->fp, &fileSt);
     if ((ret != 0) || (fileSt.st_size < sizeof(HwSignHead))) {
         LOG_ERROR("fstat error, %d, filelen: %d", ret, (int)fileSt.st_size);
         return V_ERR_GET_SIGNHEAD;
@@ -136,7 +136,7 @@ static int GetSignHead(const FileRead *file, SignatureInfo *signInfo)
     }
     HwSignHead *signHead = APPV_MALLOC(sizeof(HwSignHead));
     P_NULL_RETURN_WTTH_LOG(signHead);
-    int readLen = read(file->fp, signHead, sizeof(HwSignHead));
+    int32_t readLen = read(file->fp, signHead, sizeof(HwSignHead));
     if (readLen != sizeof(HwSignHead)) {
         LOG_ERROR("readLen %d, %d", readLen, (int)sizeof(HwSignHead));
         APPV_FREE(signHead);
@@ -166,22 +166,22 @@ static int GetSignHead(const FileRead *file, SignatureInfo *signInfo)
     return V_OK;
 }
 
-static int FindBlockHead(const SignatureInfo *signInfo, int fp, int blockType, BlockHead *block)
+static int32_t FindBlockHead(const SignatureInfo *signInfo, int32_t fp, int32_t blockType, BlockHead *block)
 {
     HwSignHead *signH = signInfo->signHead;
     /* find signature block */
     lseek(fp, signInfo->fullSignBlockOffset, SEEK_SET);
-    int num = signH->blockNum;
+    int32_t num = signH->blockNum;
     if (num > MAX_BLOCK_NUM) {
         return V_ERR;
     }
     while (num-- > 0) {
-        int readLen = read(fp, block, sizeof(BlockHead));
+        int32_t readLen = read(fp, block, sizeof(BlockHead));
         if (readLen != sizeof(BlockHead)) {
             LOG_ERROR("find block head , read err %d, %d", readLen, (int)sizeof(BlockHead));
             return V_ERR;
         }
-        int type = HapGetInt((unsigned char *)&block->type, sizeof(block->type));
+        int32_t type = HapGetInt((unsigned char *)&block->type, sizeof(block->type));
         LOG_ERROR("find block type: %0x", type);
         if (type == blockType) {
             BlockHeadN2H(block);
@@ -192,12 +192,13 @@ static int FindBlockHead(const SignatureInfo *signInfo, int fp, int blockType, B
     return V_ERR;
 }
 
-char *GetSignBlockByType(const SignatureInfo *signInfo, int fp, int blockType, int *len, BlockHead *blockHead)
+char *GetSignBlockByType(
+    const SignatureInfo *signInfo, int32_t fp, int32_t blockType, int32_t *len, BlockHead *blockHead)
 {
     if (signInfo == NULL || blockHead == NULL) {
         return NULL;
     }
-    int ret = FindBlockHead(signInfo, fp, blockType, blockHead);
+    int32_t ret = FindBlockHead(signInfo, fp, blockType, blockHead);
     if (ret != V_OK) {
         LOG_ERROR("find block head error");
         return NULL;
@@ -230,7 +231,7 @@ char *GetSignBlockByType(const SignatureInfo *signInfo, int fp, int blockType, i
         return NULL;
     }
     lseek(fp, signInfo->fullSignBlockOffset + blockHead->offset, SEEK_SET);
-    int readLen = read(fp, buf, blockHead->length);
+    int32_t readLen = read(fp, buf, blockHead->length);
     if (readLen != blockHead->length) {
         LOG_ERROR("read error: %d, %d", readLen, blockHead->length);
         APPV_FREE(buf);
@@ -241,16 +242,16 @@ char *GetSignBlockByType(const SignatureInfo *signInfo, int fp, int blockType, i
     return buf;
 }
 
-int GetHashUnitLen(int hashAlg)
+int32_t GetHashUnitLen(int32_t hashAlg)
 {
     LOG_INFO("algId: %d", hashAlg);
     return mbedtls_md_get_size(mbedtls_md_info_from_type((mbedtls_md_type_t)hashAlg));
 }
 
-static int CalcCmpContHash(const Pkcs7 *pkcs7, const SignerInfo *signer,
+static int32_t CalcCmpContHash(const Pkcs7 *pkcs7, const SignerInfo *signer,
                            mbedtls_md_type_t algType, unsigned char *hash, size_t *hashLen)
 {
-    int rc;
+    int32_t rc;
     unsigned char *input = NULL;
     size_t inputLen;
 
@@ -284,10 +285,10 @@ static int CalcCmpContHash(const Pkcs7 *pkcs7, const SignerInfo *signer,
     return V_OK;
 }
 
-static int CalcDigest(const Pkcs7 *pkcs7, const SignerInfo *signer,
+static int32_t CalcDigest(const Pkcs7 *pkcs7, const SignerInfo *signer,
                       mbedtls_md_type_t algType, unsigned char *hash, size_t *hashLen)
 {
-    int rc;
+    int32_t rc;
     unsigned char *input = NULL;
     size_t inputLen;
     rc = CalcCmpContHash(pkcs7, signer, algType, hash, hashLen);
@@ -312,13 +313,13 @@ static int CalcDigest(const Pkcs7 *pkcs7, const SignerInfo *signer,
     return V_OK;
 }
 
-static int VerifyRawHash(const SignatureInfo *signInfo, const FileRead *fileRead, const Pkcs7 *pkcs7Handle)
+static int32_t VerifyRawHash(const SignatureInfo *signInfo, const FileRead *fileRead, const Pkcs7 *pkcs7Handle)
 {
     /* parse content */
     unsigned char *input = NULL;
     size_t inputLen = 0;
     /* calc orinal context hash */
-    int ret = PKCS7_GetContentData((Pkcs7 *)pkcs7Handle, &input, &inputLen);
+    int32_t ret = PKCS7_GetContentData((Pkcs7 *)pkcs7Handle, &input, &inputLen);
     if (ret != V_OK) {
         LOG_ERROR("get content info error: %d", ret);
         return ret;
@@ -342,7 +343,7 @@ static int VerifyRawHash(const SignatureInfo *signInfo, const FileRead *fileRead
         return V_ERR;
     }
     HapBuf actualDigest = {0};
-    int rootHashLen = GetHashUnitLen(content->algId);
+    int32_t rootHashLen = GetHashUnitLen(content->algId);
     if (!CreateHapBuffer(&actualDigest, rootHashLen)) {
         LOG_ERROR("create buf fail");
         APPV_FREE(content);
@@ -365,7 +366,7 @@ static int VerifyRawHash(const SignatureInfo *signInfo, const FileRead *fileRead
     return V_OK;
 }
 
-static int GetCertTypeBySourceName(const TrustAppCert *cert)
+static int32_t GetCertTypeBySourceName(const TrustAppCert *cert)
 {
     if (cert == NULL) {
         return CERT_TYPE_OTHER;
@@ -383,9 +384,9 @@ static int GetCertTypeBySourceName(const TrustAppCert *cert)
 }
 
 static const TrustAppCert *GetProfSourceBySigningCert(const SignerResovledInfo *signer,
-                                                      const TrustAppCert* trustList, int num)
+                                                      const TrustAppCert* trustList, int32_t num)
 {
-    for (int i = 0; i < num; i++) {
+    for (int32_t i = 0; i < num; i++) {
         if (strcmp(trustList[i].issueCA, signer->issuer) == 0) {
             if (strcmp(trustList[i].profileSignCert, signer->subject) == 0 ||
                 strcmp(trustList[i].profileDebugSignCert, signer->subject) == 0) {
@@ -397,7 +398,7 @@ static const TrustAppCert *GetProfSourceBySigningCert(const SignerResovledInfo *
     return NULL;
 }
 
-static int GetProfileCertTypeBySignInfo(SignerResovledInfo *signer, int *certType)
+static int32_t GetProfileCertTypeBySignInfo(SignerResovledInfo *signer, int32_t *certType)
 {
     /* only support first signer cert */
     const TrustAppCert *trustCert = GetProfSourceBySigningCert(signer, g_trustAppList,
@@ -417,9 +418,9 @@ static int GetProfileCertTypeBySignInfo(SignerResovledInfo *signer, int *certTyp
 
 
 static const TrustAppCert *GetAppSourceBySigningCert(const SignerResovledInfo *signer,
-                                                     const TrustAppCert* trustList, int num)
+                                                     const TrustAppCert* trustList, int32_t num)
 {
-    for (int i = 0; i < num; i++) {
+    for (int32_t i = 0; i < num; i++) {
         if (strcmp(trustList[i].appSignCert, signer->subject) == 0 &&
             strcmp(trustList[i].issueCA, signer->issuer) == 0) {
                 return  &trustList[i];
@@ -428,7 +429,7 @@ static const TrustAppCert *GetAppSourceBySigningCert(const SignerResovledInfo *s
     return NULL;
 }
 
-static int GetAppCertTypeBySignInfo(SignerResovledInfo *signer, int *certType)
+static int32_t GetAppCertTypeBySignInfo(SignerResovledInfo *signer, int32_t *certType)
 {
     /* only support first signer cert */
     const TrustAppCert *trustCert = GetAppSourceBySigningCert(signer, g_trustAppList,
@@ -447,7 +448,7 @@ static int GetAppCertTypeBySignInfo(SignerResovledInfo *signer, int *certType)
 }
 
 /* get singer cert type by trust list */
-static int GetAppSingerCertType(Pkcs7 *pkcs7Handle, int *certType)
+static int32_t GetAppSingerCertType(Pkcs7 *pkcs7Handle, int32_t *certType)
 {
     SignersResovedInfo *sri = PKCS7_GetAllSignersResolvedInfo(pkcs7Handle);
     if (sri == NULL || sri->nrOfSigners == 0) {
@@ -455,7 +456,7 @@ static int GetAppSingerCertType(Pkcs7 *pkcs7Handle, int *certType)
         LOG_ERROR("Get all signer's resolved info failed");
         return V_ERR;
     }
-    int ret = GetAppCertTypeBySignInfo(&sri->signers[0], certType);
+    int32_t ret = GetAppCertTypeBySignInfo(&sri->signers[0], certType);
     if (ret != V_OK) {
         LOG_ERROR("get cert type by sign info failed: %d", ret);
         PKCS7_FreeAllSignersResolvedInfo(sri);
@@ -466,14 +467,14 @@ static int GetAppSingerCertType(Pkcs7 *pkcs7Handle, int *certType)
 }
 
 /* get singer cert type by trust list */
-static int GetProfileSingerCertType(Pkcs7 *pkcs7Handle, int *certType)
+static int32_t GetProfileSingerCertType(Pkcs7 *pkcs7Handle, int32_t *certType)
 {
     SignersResovedInfo *sri = PKCS7_GetAllSignersResolvedInfo(pkcs7Handle);
     if (sri == NULL) {
         LOG_ERROR("Get all signer's resolved info failed");
         return V_ERR;
     }
-    int ret = GetProfileCertTypeBySignInfo(&sri->signers[0], certType);
+    int32_t ret = GetProfileCertTypeBySignInfo(&sri->signers[0], certType);
     if (ret != V_OK) {
         LOG_ERROR("get cert type by sign info failed: %d", ret);
         PKCS7_FreeAllSignersResolvedInfo(sri);
@@ -484,17 +485,17 @@ static int GetProfileSingerCertType(Pkcs7 *pkcs7Handle, int *certType)
 }
 
 /* verfiy profile data integrity with sign */
-static int VerifyProfileSignGetRaw(const char *buf, int len, char **profileContent, int *contentLen)
+static int32_t VerifyProfileSignGetRaw(const char *buf, int32_t len, char **profileContent, int32_t *contentLen)
 {
     /* verfiy */
     char *profileData = NULL;
-    int certType;
+    int32_t certType;
     unsigned char *input = NULL;
     size_t inputLen;
     Pkcs7 *pkcs7 = APPV_MALLOC(sizeof(Pkcs7));
     P_NULL_RETURN_WTTH_LOG(pkcs7);
 
-    int ret = PKCS7_ParseSignedData((unsigned char *)buf, (size_t)len, pkcs7);
+    int32_t ret = PKCS7_ParseSignedData((unsigned char *)buf, (size_t)len, pkcs7);
     P_ERR_GOTO_WTTH_LOG(ret);
 
     LOG_INFO("pkcs7 parse message success");
@@ -546,21 +547,21 @@ EXIT:
     APPV_FREE(profileData);
     return V_ERR;
 }
-static unsigned char *GetRsaPk(const mbedtls_pk_context *pk, int *len)
+static unsigned char *GetRsaPk(const mbedtls_pk_context *pk, int32_t *len)
 {
     unsigned char *buf = APPV_MALLOC(MAX_PK_BUF);
     if (buf == NULL) {
         LOG_ERROR("malloc error");
         return NULL;
     }
-    int ret = memset_s(buf, MAX_PK_BUF, 0, MAX_PK_BUF);
+    int32_t ret = memset_s(buf, MAX_PK_BUF, 0, MAX_PK_BUF);
     if (ret != EOK) {
         LOG_ERROR("memset error");
         APPV_FREE(buf);
         return NULL;
     }
     unsigned char *c = buf + MAX_PK_BUF;
-    int pkLen = mbedtls_pk_write_pubkey(&c, buf, pk);
+    int32_t pkLen = mbedtls_pk_write_pubkey(&c, buf, pk);
     LOG_INFO("GetRsaPk pkLen %d", pkLen);
     if (pkLen < 0 || pkLen > MAX_PK_BUF) {
         LOG_ERROR("get pk buf error");
@@ -589,7 +590,7 @@ static unsigned char *GetRsaPk(const mbedtls_pk_context *pk, int *len)
     return pkBuf;
 }
 
-static unsigned char *GetEcPk(const mbedtls_pk_context *pk, int *len)
+static unsigned char *GetEcPk(const mbedtls_pk_context *pk, int32_t *len)
 {
     mbedtls_ecp_keypair *ecCtx = mbedtls_pk_ec(*pk);
     if (ecCtx == NULL) {
@@ -601,7 +602,7 @@ static unsigned char *GetEcPk(const mbedtls_pk_context *pk, int *len)
         LOG_ERROR("malloc error");
         return NULL;
     }
-    int ret = memset_s(buf, MBEDTLS_ECP_MAX_PT_LEN, 0, MBEDTLS_ECP_MAX_PT_LEN);
+    int32_t ret = memset_s(buf, MBEDTLS_ECP_MAX_PT_LEN, 0, MBEDTLS_ECP_MAX_PT_LEN);
     if (ret != EOK) {
         LOG_ERROR("memset error");
         APPV_FREE(buf);
@@ -639,7 +640,7 @@ static unsigned char *GetEcPk(const mbedtls_pk_context *pk, int *len)
     return pkBuf;
 }
 
-static unsigned char *GetPkBuf(const mbedtls_pk_context *pk, int *len)
+static unsigned char *GetPkBuf(const mbedtls_pk_context *pk, int32_t *len)
 {
     unsigned char *bufA = NULL;
     if (mbedtls_pk_get_type(pk) == MBEDTLS_PK_RSA || mbedtls_pk_get_type(pk) == MBEDTLS_PK_RSASSA_PSS) {
@@ -650,19 +651,19 @@ static unsigned char *GetPkBuf(const mbedtls_pk_context *pk, int *len)
     return bufA;
 }
 
-static int ParseCertGetPk(const char *certEncoded, AppSignPk *pk)
+static int32_t ParseCertGetPk(const char *certEncoded, AppSignPk *pk)
 {
     mbedtls_x509_crt *cert = APPV_MALLOC(sizeof(mbedtls_x509_crt));
     P_NULL_RETURN_WTTH_LOG(cert);
 
     mbedtls_x509_crt_init(cert);
-    int ret = mbedtls_x509_crt_parse(cert, (unsigned char *)certEncoded, strlen(certEncoded) + 1);
+    int32_t ret = mbedtls_x509_crt_parse(cert, (unsigned char *)certEncoded, strlen(certEncoded) + 1);
     if (ret != V_OK) {
         LOG_ERROR("load cert failed, ret: %d", ret);
         APPV_FREE(cert);
         return V_ERR;
     }
-    int len = 0;
+    int32_t len = 0;
     unsigned char *pkBuf = GetPkBuf(&cert->pk, &len);
     if (pkBuf == NULL) {
         LOG_ERROR("get pk error");
@@ -677,9 +678,9 @@ static int ParseCertGetPk(const char *certEncoded, AppSignPk *pk)
     return V_OK;
 }
 
-static int GetAppSignPublicKey(const ProfileProf *profile, AppSignPk *pk)
+static int32_t GetAppSignPublicKey(const ProfileProf *profile, AppSignPk *pk)
 {
-    int ret;
+    int32_t ret;
     /* release cert */
     if (profile->bundleInfo.releaseCert &&
         strlen((char *)profile->bundleInfo.releaseCert) != 0) {
@@ -702,11 +703,11 @@ static void FreeAppSignPublicKey(AppSignPk *pk)
     return;
 }
 
-int GetAppid(ProfileProf *profile)
+int32_t GetAppid(ProfileProf *profile)
 {
     P_NULL_RETURN_RET_WTTH_LOG(profile, V_ERR);
     AppSignPk pk = {0};
-    int ret = GetAppSignPublicKey(profile, &pk);
+    int32_t ret = GetAppSignPublicKey(profile, &pk);
     if (ret != V_OK) {
         LOG_ERROR("get sign pk failed");
         return ret;
@@ -714,8 +715,8 @@ int GetAppid(ProfileProf *profile)
     /* base64 */
     size_t useLen = 0;
     mbedtls_base64_encode(NULL, 0, &useLen, (unsigned char *)pk.pk, pk.len);
-    int bundleNameLen = strlen(profile->bundleInfo.bundleName);
-    int appidLen = bundleNameLen + useLen + 1 + 1;
+    int32_t bundleNameLen = strlen(profile->bundleInfo.bundleName);
+    int32_t appidLen = bundleNameLen + useLen + 1 + 1;
 
     LOG_INFO("GetAppid %d", appidLen);
     if (useLen > MAX_KEY_PAIR_SIZE) {
@@ -750,13 +751,13 @@ int GetAppid(ProfileProf *profile)
     return V_OK;
 }
 
-static int VerifyProfGetContent(int fp, const SignatureInfo *signInfo, int certType, ProfileProf *pf)
+static int32_t VerifyProfGetContent(int32_t fp, const SignatureInfo *signInfo, int32_t certType, ProfileProf *pf)
 {
     char *profBuf = NULL;
-    int len = 0;
+    int32_t len = 0;
     BlockHead blockHead = {0};
-    int ret;
-    int rawLen = 0;
+    int32_t ret;
+    int32_t rawLen = 0;
     char *rawBuf = GetSignBlockByType(signInfo, fp, PROFILE_BLOCK_WITHSIGN_TYPE, &rawLen, &blockHead);
     P_NULL_RETURN_RET_WTTH_LOG(rawBuf, V_ERR_GET_PROFILE_DATA);
     LOG_INFO("certType %d", certType);
@@ -791,7 +792,7 @@ EXIT:
     return ret;
 }
 
-static int CmpCert(const mbedtls_x509_crt *certA, const CertInfo *binSignCert)
+static int32_t CmpCert(const mbedtls_x509_crt *certA, const CertInfo *binSignCert)
 {
     P_NULL_RETURN_RET_WTTH_LOG(certA, V_ERR);
     P_NULL_RETURN_RET_WTTH_LOG(binSignCert, V_ERR);
@@ -813,7 +814,7 @@ static int CmpCert(const mbedtls_x509_crt *certA, const CertInfo *binSignCert)
         LOG_ERROR("pk type diff");
         return V_ERR;
     }
-    int lenA = 0;
+    int32_t lenA = 0;
     unsigned char *bufA = GetPkBuf(&certA->pk, &lenA);
     P_NULL_RETURN_RET_WTTH_LOG(bufA, V_ERR);
 
@@ -833,14 +834,14 @@ static int CmpCert(const mbedtls_x509_crt *certA, const CertInfo *binSignCert)
     return V_OK;
 }
 
-int LoadCertAndCmpDest(const unsigned char *certBase64, const CertInfo *binSignCert)
+int32_t LoadCertAndCmpDest(const unsigned char *certBase64, const CertInfo *binSignCert)
 {
     if (certBase64 == NULL || binSignCert == NULL) {
         return V_ERR;
     }
     mbedtls_x509_crt cert;
     mbedtls_x509_crt_init(&cert);
-    int ret = mbedtls_x509_crt_parse(&cert, certBase64, strlen((char *)certBase64) + 1);
+    int32_t ret = mbedtls_x509_crt_parse(&cert, certBase64, strlen((char *)certBase64) + 1);
     if (ret != V_OK) {
         LOG_ERROR("load release cert failed");
         LOG_PRINT_STR("%s", certBase64);
@@ -857,7 +858,7 @@ int LoadCertAndCmpDest(const unsigned char *certBase64, const CertInfo *binSignC
     return V_ERR;
 }
 
-static int CheckReleaseAppSign(const CertInfo *binSignCert, const ProfileProf *pf)
+static int32_t CheckReleaseAppSign(const CertInfo *binSignCert, const ProfileProf *pf)
 {
     /* if distribution type is app_gallery, return error */
     if (strcmp(pf->appDistType, "app_gallery") == 0) {
@@ -869,7 +870,7 @@ static int CheckReleaseAppSign(const CertInfo *binSignCert, const ProfileProf *p
         LOG_ERROR("release app, release Cert null");
         return V_ERR;
     }
-    int ret = LoadCertAndCmpDest(pf->bundleInfo.releaseCert, binSignCert);
+    int32_t ret = LoadCertAndCmpDest(pf->bundleInfo.releaseCert, binSignCert);
     if (ret == V_OK) {
         LOG_INFO("dev cert consistent");
         return V_OK;
@@ -878,13 +879,13 @@ static int CheckReleaseAppSign(const CertInfo *binSignCert, const ProfileProf *p
     return V_ERR;
 }
 
-static int CheckDebugAppSign(CertInfo *binSignCert, const ProfileProf *pf)
+static int32_t CheckDebugAppSign(CertInfo *binSignCert, const ProfileProf *pf)
 {
     if (strlen((char *)pf->bundleInfo.devCert) == 0) {
         LOG_ERROR("debug app, devCert null");
         return V_ERR;
     }
-    int ret = LoadCertAndCmpDest(pf->bundleInfo.devCert, binSignCert);
+    int32_t ret = LoadCertAndCmpDest(pf->bundleInfo.devCert, binSignCert);
     if (ret == V_OK) {
         LOG_INFO("dev cert consistent");
         return V_OK;
@@ -900,7 +901,7 @@ static int CheckDebugAppSign(CertInfo *binSignCert, const ProfileProf *pf)
     return V_ERR;
 }
 
-static int CheckAppSignCertWithProfile(int appCertType, CertInfo *binSignCert, ProfileProf *pf)
+static int32_t CheckAppSignCertWithProfile(int32_t appCertType, CertInfo *binSignCert, ProfileProf *pf)
 {
     /* cert type appgallary or system, not check */
     if (appCertType == CERT_TYPE_APPGALLARY || appCertType == CERT_TYPE_SYETEM) {
@@ -908,7 +909,7 @@ static int CheckAppSignCertWithProfile(int appCertType, CertInfo *binSignCert, P
         return V_OK;
     }
 
-    int ret = V_ERR;
+    int32_t ret = V_ERR;
     /* debug app, app cert consistent with profile dev or release cert */
     if (strcmp(DEBUG_TYPE, (char *)pf->type) == 0) {
         ret = CheckDebugAppSign(binSignCert, pf);
@@ -920,9 +921,9 @@ static int CheckAppSignCertWithProfile(int appCertType, CertInfo *binSignCert, P
     return ret;
 }
 
-static int CertInfoInit(CertInfo *certInfo)
+static int32_t CertInfoInit(CertInfo *certInfo)
 {
-    int ret = memset_s(certInfo, sizeof(CertInfo), 0, sizeof(CertInfo));
+    int32_t ret = memset_s(certInfo, sizeof(CertInfo), 0, sizeof(CertInfo));
     if (ret != EOK) {
         LOG_ERROR("memset error");
     }
@@ -951,12 +952,12 @@ void FreeCertInfo(CertInfo *certInfo)
     return;
 }
 
-static int GetCertInfo(const mbedtls_x509_crt *ctr, CertInfo **binSignCert)
+static int32_t GetCertInfo(const mbedtls_x509_crt *ctr, CertInfo **binSignCert)
 {
     CertInfo *certInfo = APPV_MALLOC(sizeof(CertInfo));
     P_NULL_RETURN_RET_WTTH_LOG(certInfo, V_ERR_MALLOC);
 
-    int ret = CertInfoInit(certInfo);
+    int32_t ret = CertInfoInit(certInfo);
     if (ret != V_OK) {
         LOG_ERROR("cert info init");
         ret = V_ERR_MEMSET;
@@ -1006,10 +1007,10 @@ EXIT:
     return ret;
 }
 
-static int VerfiyAppSourceGetProfile(int fp, const SignatureInfo *signInfo,
-    int certType, CertInfo *binSignCert, ProfileProf *pf)
+static int32_t VerfiyAppSourceGetProfile(int32_t fp, const SignatureInfo *signInfo,
+    int32_t certType, CertInfo *binSignCert, ProfileProf *pf)
 {
-    int ret = VerifyProfGetContent(fp, signInfo, certType, pf);
+    int32_t ret = VerifyProfGetContent(fp, signInfo, certType, pf);
     if (ret != V_OK) {
         LOG_ERROR("VerifyProfGetContent error: %d", ret);
         return ret;
@@ -1032,10 +1033,10 @@ static int VerfiyAppSourceGetProfile(int fp, const SignatureInfo *signInfo,
     return V_OK;
 }
 
-static int VerifyAppSignPkcsData(const FileRead *fileRead, const SignatureInfo *signInfo, const Pkcs7 *pkcs7Handle)
+static int32_t VerifyAppSignPkcsData(const FileRead *fileRead, const SignatureInfo *signInfo, const Pkcs7 *pkcs7Handle)
 {
     /*  verify sign, rawdata */
-    int ret = PKCS7_VerifyCertsChain(pkcs7Handle);
+    int32_t ret = PKCS7_VerifyCertsChain(pkcs7Handle);
     if (ret != V_OK) {
         LOG_ERROR("Verify certs failed, ret: %d", ret);
         return V_ERR_VERIFY_CERT_CHAIN;
@@ -1058,14 +1059,14 @@ static int VerifyAppSignPkcsData(const FileRead *fileRead, const SignatureInfo *
     return V_OK;
 }
 
-static Pkcs7 *GetBinSignPkcs(const char *signBuf, int len)
+static Pkcs7 *GetBinSignPkcs(const char *signBuf, int32_t len)
 {
     Pkcs7 *pkcs7 = APPV_MALLOC(sizeof(Pkcs7));
     if (pkcs7 == NULL) {
         LOG_ERROR("malloc error");
         return NULL;
     }
-    int ret = PKCS7_ParseSignedData((unsigned char *)signBuf, (size_t)len, pkcs7);
+    int32_t ret = PKCS7_ParseSignedData((unsigned char *)signBuf, (size_t)len, pkcs7);
     if (ret != V_OK) {
         LOG_ERROR("pkcs7parse message failed, ret: %d", ret);
         PKCS7_FreeRes(pkcs7);
@@ -1075,7 +1076,7 @@ static Pkcs7 *GetBinSignPkcs(const char *signBuf, int len)
     return pkcs7;
 }
 
-static FileRead *GetFileRead(int fp, int offset, int size)
+static FileRead *GetFileRead(int32_t fp, int32_t offset, int32_t size)
 {
     /* raw buf len = sign block head offset */
     FileRead *fileRead = APPV_MALLOC(sizeof(FileRead));
@@ -1088,12 +1089,12 @@ static FileRead *GetFileRead(int fp, int offset, int size)
     fileRead->len = size;
     return fileRead;
 }
-static int VerifyBinSign(SignatureInfo *signInfo, int fp, CertInfo **signCert, int *certType)
+static int32_t VerifyBinSign(SignatureInfo *signInfo, int32_t fp, CertInfo **signCert, int32_t *certType)
 {
-    int blockLen;
+    int32_t blockLen;
     BlockHead blockHead = {0};
     FileRead *fileRead = NULL;
-    int ret;
+    int32_t ret;
 
     char *signBuf = GetSignBlockByType(signInfo, fp, SIGNATURE_BLOCK_TYPE, &blockLen, &blockHead);
     P_NULL_RETURN_RET_WTTH_LOG(signBuf, V_ERR_GET_SIGN_BLOCK);
@@ -1147,12 +1148,12 @@ EXIT:
     return ret;
 }
 
-static int VerifyIntegrity(SignatureInfo *signInfo, int fp, ProfileProf *pf)
+static int32_t VerifyIntegrity(SignatureInfo *signInfo, int32_t fp, ProfileProf *pf)
 {
     CertInfo *binSignCert = NULL;
-    int certType = 0;
+    int32_t certType = 0;
 
-    int ret = VerifyBinSign(signInfo, fp, &binSignCert, &certType);
+    int32_t ret = VerifyBinSign(signInfo, fp, &binSignCert, &certType);
     if (ret != V_OK) {
         LOG_ERROR("verify bin sign error");
         return ret;
@@ -1170,19 +1171,19 @@ static int VerifyIntegrity(SignatureInfo *signInfo, int fp, ProfileProf *pf)
     return V_OK;
 }
 
-int APPVERI_AppVerify(const char *filePath, VerifyResult *verifyRst)
+int32_t APPVERI_AppVerify(const char *filePath, VerifyResult *verifyRst)
 {
     if (filePath == NULL || verifyRst == NULL) {
         return V_ERR_FILE_OPEN;
     }
-    int handle = 0;
+    int32_t handle = 0;
     FileRead file = {0};
     if (InitVerify(&file, filePath, &handle) != V_OK) {
         close(handle);
         return V_ERR_FILE_OPEN;
     }
     SignatureInfo signInfo = {0};
-    int ret = GetSignHead(&file, &signInfo);
+    int32_t ret = GetSignHead(&file, &signInfo);
     if (ret != V_OK) {
         LOG_ERROR("get sign head error");
         close(handle);
@@ -1221,13 +1222,13 @@ int APPVERI_AppVerify(const char *filePath, VerifyResult *verifyRst)
 }
 
 /* set debug mode */
-int APPVERI_SetDebugMode(bool mode)
+int32_t APPVERI_SetDebugMode(bool mode)
 {
     LOG_INFO("set debug mode: %d", mode);
     if (g_isDebugMode == mode) {
         return V_OK;
     }
-    int ret = PKCS7_EnableDebugMode(mode);
+    int32_t ret = PKCS7_EnableDebugMode(mode);
     if (ret != V_OK) {
         LOG_ERROR("enable pcks7 debug mode failed");
         return ret;
@@ -1242,7 +1243,7 @@ void APPVERI_SetActsMode(bool mode)
     g_isActsMode = mode;
 }
 
-int APPVERI_IsActsMode(void)
+int32_t APPVERI_IsActsMode(void)
 {
     return g_isActsMode;
 }

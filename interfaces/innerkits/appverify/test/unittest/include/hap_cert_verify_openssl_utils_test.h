@@ -15,6 +15,7 @@
 #ifndef HAP_CERT_VERIFY_OPENSSL_UTILS_TEST_H
 #define HAP_CERT_VERIFY_OPENSSL_UTILS_TEST_H
 
+#include <cstdint>
 #include <string>
 
 #include "common/hap_byte_buffer.h"
@@ -28,16 +29,16 @@ bool Base64StringDecode(const std::string& base64String, HapByteBuffer& output);
 }
 }
 }
-int GetCertInfo001(void);
-int CertVerify001(void);
-int Base64NotUrlSafeCertTest001(void);
-int GetX509CrlFromDerBufferTest001(void);
-int GetCertsChainTest001(void);
-int GetIssuerAndSubjectTest001(void);
-int GetSerialNumberFromX509Test001(void);
-int VerifyCertChainPeriodOfValidityTest001(void);
-int VerifyCrlTest001(void);
-int CompareX509CertTest001(void);
-int WriteX509CrlToStreamTest001(void);
-int PrivateFuncInvalidInputTest001(void);
+int32_t GetCertInfo001(void);
+int32_t CertVerify001(void);
+int32_t Base64NotUrlSafeCertTest001(void);
+int32_t GetX509CrlFromDerBufferTest001(void);
+int32_t GetCertsChainTest001(void);
+int32_t GetIssuerAndSubjectTest001(void);
+int32_t GetSerialNumberFromX509Test001(void);
+int32_t VerifyCertChainPeriodOfValidityTest001(void);
+int32_t VerifyCrlTest001(void);
+int32_t CompareX509CertTest001(void);
+int32_t WriteX509CrlToStreamTest001(void);
+int32_t PrivateFuncInvalidInputTest001(void);
 #endif // HAP_CERT_VERIFY_OPENSSL_UTILS_TEST_H

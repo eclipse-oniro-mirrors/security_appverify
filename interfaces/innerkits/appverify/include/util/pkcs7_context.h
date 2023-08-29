@@ -32,7 +32,7 @@ using Pkcs7CertChains = std::vector<CertChain>;
 
 struct Pkcs7Context {
     bool needWriteCrl;
-    int digestAlgorithm;
+    int32_t digestAlgorithm;
     MatchingResult matchResult;
     std::string certIssuer;
     PKCS7* p7;

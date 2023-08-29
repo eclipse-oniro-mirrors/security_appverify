@@ -81,7 +81,7 @@ HWTEST_F(HapVerifyTest, HapVerify001, TestSize.Level0)
      */
     HapVerifyResult hapVerifyResult;
     std::string errorFile = "./signed_test.app";
-    int resultCode = HapVerify(errorFile, hapVerifyResult);
+    int32_t resultCode = HapVerify(errorFile, hapVerifyResult);
     HapVerifyResultCode targetResult = FILE_PATH_INVALID;
     ASSERT_TRUE(resultCode == targetResult);
     std::ofstream appFile;
@@ -151,7 +151,7 @@ HWTEST_F(HapVerifyTest, HapVerifyOsApp001, TestSize.Level0)
     hapFile.write(hapInnerApp.GetBufferPtr(), hapInnerApp.GetCapacity());
     hapFile.close();
     HapVerifyResult hapVerifyResult;
-    int ret = HapVerify(filePath, hapVerifyResult);
+    int32_t ret = HapVerify(filePath, hapVerifyResult);
     ASSERT_EQ(ret, VERIFY_SUCCESS);
 }
 
@@ -165,7 +165,7 @@ HWTEST_F(HapVerifyTest, HapVerify002, TestSize.Level0)
     std::string fileContent[TEST_FILE_NUM] = {HAP_FILE_ECC_SIGN_BASE64, HAP_FILE_RSA_SIGN_BASE64};
     std::string filePath[TEST_FILE_NUM] = {"./signed_ecc.hap", "./signed_rsa.hap"};
     std::string errorfilePath[TEST_FILE_NUM] = {"./signed_ecc_error.hap", "./signed_rsa_error.hap"};
-    for (int i = 0; i < TEST_FILE_NUM; i++) {
+    for (int32_t i = 0; i < TEST_FILE_NUM; i++) {
         /*
          * @tc.steps: step1. input a signed file to verify.
          * @tc.expected: step1. the return will be VERIFY_SUCCESS.

@@ -28,11 +28,11 @@ namespace Security {
 namespace Verify {
 class HapVerifyV2 {
 public:
-    int Verify(const std::string& filePath, HapVerifyResult& hapVerifyV1Result);
-    int ParseHapProfile(const std::string& filePath, HapVerifyResult& hapVerifyV1Result);
+    int32_t Verify(const std::string& filePath, HapVerifyResult& hapVerifyV1Result);
+    int32_t ParseHapProfile(const std::string& filePath, HapVerifyResult& hapVerifyV1Result);
 
 private:
-    int Verify(RandomAccessFile& hapFile, HapVerifyResult& hapVerifyV1Result);
+    int32_t Verify(RandomAccessFile& hapFile, HapVerifyResult& hapVerifyV1Result);
     bool VerifyAppPkc7AndParseProfile(Pkcs7Context& pkcs7Context, HapByteBuffer& hapProfileBlock,
         HapVerifyResult& hapVerifyV1Result);
     bool VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context, const HapByteBuffer& hapProfileBlock,
@@ -53,11 +53,11 @@ private:
     bool VerifyProfileSignature(const Pkcs7Context& pkcs7Context, Pkcs7Context& profileContext);
 
 private:
-    static const int HEX_PRINT_LENGTH;
-    static const int DIGEST_BLOCK_LEN_OFFSET;
-    static const int DIGEST_ALGORITHM_OFFSET;
-    static const int DIGEST_LEN_OFFSET;
-    static const int DIGEST_OFFSET_IN_CONTENT;
+    static const int32_t HEX_PRINT_LENGTH;
+    static const int32_t DIGEST_BLOCK_LEN_OFFSET;
+    static const int32_t DIGEST_ALGORITHM_OFFSET;
+    static const int32_t DIGEST_LEN_OFFSET;
+    static const int32_t DIGEST_OFFSET_IN_CONTENT;
     static const std::string HAP_APP_PATTERN;
     static const std::string HQF_APP_PATTERN;
     static const std::string HSP_APP_PATTERN;
