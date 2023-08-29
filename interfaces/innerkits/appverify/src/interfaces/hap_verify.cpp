@@ -83,7 +83,7 @@ void SetDevMode(DevMode mode)
     g_mtx.unlock();
 }
 
-int HapVerify(const std::string& filePath, HapVerifyResult& hapVerifyResult)
+int32_t HapVerify(const std::string& filePath, HapVerifyResult& hapVerifyResult)
 {
     if (!g_isInit && !HapVerifyInit()) {
         return VERIFY_SOURCE_INIT_FAIL;
@@ -92,7 +92,7 @@ int HapVerify(const std::string& filePath, HapVerifyResult& hapVerifyResult)
     return hapVerifyV2.Verify(filePath, hapVerifyResult);
 }
 
-int ParseHapProfile(const std::string& filePath, HapVerifyResult& hapVerifyV1Result)
+int32_t ParseHapProfile(const std::string& filePath, HapVerifyResult& hapVerifyV1Result)
 {
     HapVerifyV2 hapVerifyV2;
     return hapVerifyV2.ParseHapProfile(filePath, hapVerifyV1Result);

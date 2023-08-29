@@ -25,7 +25,7 @@ void RegistHalFunc()
     RegistProductFunc(&g_productDiffFunc);
 }
 
-int InquiryDeviceUdid(unsigned char *udid, int size)
+int32_t InquiryDeviceUdid(unsigned char *udid, int32_t size)
 {
     if (g_productDiffFunc.devUdidFunc == NULL) {
         return INQUIRY_UDID_ERROR;

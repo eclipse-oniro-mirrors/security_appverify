@@ -17,6 +17,7 @@
 #define SECURITY_APP_VERIFY_PUB_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 #if __cplusplus
@@ -70,8 +71,8 @@ typedef enum {
 } AppVErrCode;
 
 typedef struct {
-    int notBefore;
-    int notAfter;
+    int32_t notBefore;
+    int32_t notAfter;
 } ProfValidity;
 
 typedef struct {
@@ -83,20 +84,20 @@ typedef struct {
 } ProfBundleInfo;
 
 typedef struct {
-    int restricNum;
+    int32_t restricNum;
     char **restricPermission;
-    int permissionNum;
+    int32_t permissionNum;
     char **permission;
 } ProfPermission;
 
 typedef struct {
     char *devIdType;
-    int devidNum;
+    int32_t devidNum;
     char **deviceId;
 } ProfDebugInfo;
 
 typedef struct {
-    int versionCode;  /* version */
+    int32_t versionCode;  /* version */
     char *versionName;  /* version description */
     char *uuid;  /* uuid */
     char *type;  /* debug/release */
@@ -111,34 +112,34 @@ typedef struct {
 
 typedef struct {
     char *pk;
-    int len;
+    int32_t len;
 } AppSignPk;
 
 struct VfyRst;
-typedef int (*GetSignPk)(struct VfyRst *verifyRst, AppSignPk *pk);
+typedef int32_t (*GetSignPk)(struct VfyRst *verifyRst, AppSignPk *pk);
 typedef void (*FreeSignPK)(AppSignPk *pk);
-typedef int (*MessageFunc)(unsigned char operationResult, const char *bundleName, unsigned char errCode);
+typedef int32_t (*MessageFunc)(unsigned char operationResult, const char *bundleName, unsigned char errCode);
 
 typedef struct VfyRst {
     ProfileProf profile;   /* profile */
 } VerifyResult;
 
 /* verify app integrity, return 0 if OK, otherwise errcode AppVErrCode */
-int APPVERI_AppVerify(const char *filePath, VerifyResult *verifyRst);
+int32_t APPVERI_AppVerify(const char *filePath, VerifyResult *verifyRst);
 
 /* free the verify result of APPVERI_AppVerify returned */
 void APPVERI_FreeVerifyRst(VerifyResult *verifyRst);
 
 /* set debugmode */
-int APPVERI_SetDebugMode(bool mode);
+int32_t APPVERI_SetDebugMode(bool mode);
 
 /* get unsigned file len without verify, return V_ERR if not OK */
-int APPVERI_GetUnsignedFileLength(const char *filePath);
+int32_t APPVERI_GetUnsignedFileLength(const char *filePath);
 
 /* register msg func */
 void APPVERI_RegisterMsgFunc(MessageFunc messageFunc);
 void APPVERI_SetActsMode(bool mode);
-int APPVERI_IsActsMode(void);
+int32_t APPVERI_IsActsMode(void);
 
 #ifdef __cplusplus
 #if __cplusplus

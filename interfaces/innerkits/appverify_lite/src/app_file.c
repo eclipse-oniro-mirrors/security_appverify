@@ -25,8 +25,8 @@
 #include "app_centraldirectory.h"
 #include "app_verify_hal.h"
 
-static int g_memoryPageSize = 0;
-int InitVerify(FileRead *file, const char *filePath, int *handle)
+static int32_t g_memoryPageSize = 0;
+int32_t InitVerify(FileRead *file, const char *filePath, int32_t *handle)
 {
     if (handle == NULL || file == NULL || filePath == NULL) {
         LOG_ERROR("file open error");
@@ -63,7 +63,7 @@ int InitVerify(FileRead *file, const char *filePath, int *handle)
     return V_OK;
 }
 
-int HapMMap(int bufCapacity, int offset, MmapInfo *mmapInfo, const FileRead *file)
+int32_t HapMMap(int32_t bufCapacity, int32_t offset, MmapInfo *mmapInfo, const FileRead *file)
 {
     if (mmapInfo == NULL || file == NULL || bufCapacity <= 0) {
         return MMAP_FAILED;
@@ -91,7 +91,7 @@ int HapMMap(int bufCapacity, int offset, MmapInfo *mmapInfo, const FileRead *fil
     return V_OK;
 }
 
-void HapMUnMap(char *mapAddr, int mmapSize)
+void HapMUnMap(char *mapAddr, int32_t mmapSize)
 {
     if (mapAddr == NULL || mmapSize <= 0) {
         return;

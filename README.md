@@ -58,7 +58,7 @@ The application integrity verification module provides an inter-subsystem API, w
 </th>
 </tr>
 </thead>
-<tbody><tr id="row1348165765318"><td class="cellrowborder" valign="top" width="50.22%" headers="mcps1.1.3.1.1 "><p id="p154855755315"><a name="p154855755315"></a><a name="p154855755315"></a>int HapVerify(const std::string&amp; filePath, HapVerifyResult&amp; hapVerifyResult)</p>
+<tbody><tr id="row1348165765318"><td class="cellrowborder" valign="top" width="50.22%" headers="mcps1.1.3.1.1 "><p id="p154855755315"><a name="p154855755315"></a><a name="p154855755315"></a>int32_t HapVerify(const std::string&amp; filePath, HapVerifyResult&amp; hapVerifyResult)</p>
 </td>
 <td class="cellrowborder" valign="top" width="49.78%" headers="mcps1.1.3.1.2 "><p id="p64845775315"><a name="p64845775315"></a><a name="p64845775315"></a>Verifies application integrity and identifies the application source.</p>
 </td>

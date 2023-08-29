@@ -15,8 +15,11 @@
 
 #ifndef HAP_BYTE_BUFFER_TEST_H
 #define HAP_BYTE_BUFFER_TEST_H
-int CheckTicketSource001(void);
-int CheckTicketSource002(void);
-int CheckTicketSource003(void);
-int CheckTicketSource004(void);
+
+#include <cstdint>
+
+int32_t CheckTicketSource001(void);
+int32_t CheckTicketSource002(void);
+int32_t CheckTicketSource003(void);
+int32_t CheckTicketSource004(void);
 #endif // HAP_BYTE_BUFFER_TEST_H

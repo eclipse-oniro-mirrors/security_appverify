@@ -71,17 +71,17 @@ void HapCrlManager::Init()
 
 bool HapCrlManager::ParseCrls(HapByteBuffer& crlsBuffer)
 {
-    unsigned int numOfCrl;
+    uint32_t numOfCrl;
     if (!crlsBuffer.GetUInt32(0, numOfCrl)) {
         HAPVERIFY_LOG_ERROR(LABEL, "get numOfCrl failed");
         return false;
     }
 
-    int hasUsed = static_cast<int>(sizeof(numOfCrl));
+    int32_t hasUsed = static_cast<int>(sizeof(numOfCrl));
     crlsBuffer.SetPosition(hasUsed);
     HAPVERIFY_LOG_DEBUG(LABEL, "total crl num: %{public}u", numOfCrl);
     while (numOfCrl && hasUsed <= crlsBuffer.GetCapacity()) {
-        int crlLen;
+        int32_t crlLen;
         if (!crlsBuffer.GetInt32(crlLen)) {
             HAPVERIFY_LOG_ERROR(LABEL, "get crlLen failed");
             return false;
@@ -140,7 +140,7 @@ void HapCrlManager::WriteCrlsToFile()
         crlMtx.unlock();
         return;
     }
-    unsigned int numOfCrl = crlsMap.size();
+    uint32_t numOfCrl = crlsMap.size();
     crlFile.write(reinterpret_cast<char*>(&numOfCrl), sizeof(numOfCrl));
     for (auto crlPair : crlsMap) {
         HapCertVerifyOpensslUtils::WriteX509CrlToStream(crlFile, crlPair.second);

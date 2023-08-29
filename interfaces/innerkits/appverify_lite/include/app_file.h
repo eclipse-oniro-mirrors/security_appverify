@@ -16,6 +16,8 @@
 #ifndef SECURITY_APP_FILE_H
 #define SECURITY_APP_FILE_H
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 #if __cplusplus
 extern "C" {
@@ -34,21 +36,21 @@ enum ReadFileErrorCode {
 };
 
 typedef struct {
-    int mmapPosition;
-    int readMoreLen;
-    int mmapSize;
+    int32_t mmapPosition;
+    int32_t readMoreLen;
+    int32_t mmapSize;
     char* mapAddr;
 } MmapInfo;
 
 typedef struct {
-    int fp;
-    int offset;
-    int len;
+    int32_t fp;
+    int32_t offset;
+    int32_t len;
 } FileRead;
 
-int InitVerify(FileRead *file, const char *filePath, int *handle);
-int HapMMap(int bufCapacity, int offset, MmapInfo *mmapInfo, const FileRead *file);
-void HapMUnMap(char *mapAddr, int mmapSize);
+int32_t InitVerify(FileRead *file, const char *filePath, int32_t *handle);
+int32_t HapMMap(int32_t bufCapacity, int32_t offset, MmapInfo *mmapInfo, const FileRead *file);
+void HapMUnMap(char *mapAddr, int32_t mmapSize);
 #ifdef __cplusplus
 #if __cplusplus
 }

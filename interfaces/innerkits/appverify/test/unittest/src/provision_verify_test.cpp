@@ -191,7 +191,7 @@ const std::string DEVICE_UNAUTH_PROVISION = R"(
         },
         "issuer": "App Gallery"
     })";
-const int MAXIMUM_NUM_DEVICES = 100;
+const int32_t MAXIMUM_NUM_DEVICES = 100;
 
 class ProvisionVerifyTest : public testing::Test {
 public:
@@ -233,7 +233,7 @@ HWTEST_F(ProvisionVerifyTest, ProvisionVerify001, TestSize.Level1)
      * @tc.expected: step1. return code will be PROVISION_INVALID.
      */
     ProvisionInfo info;
-    int ret = ParseAndVerify(INVALID_PROVISION_1, info);
+    int32_t ret = ParseAndVerify(INVALID_PROVISION_1, info);
     ASSERT_EQ(ret, AppProvisionVerifyResult::PROVISION_INVALID);
     ret = ParseAndVerify(INVALID_PROVISION_2, info);
     ASSERT_EQ(ret, AppProvisionVerifyResult::PROVISION_INVALID);
@@ -254,7 +254,7 @@ HWTEST_F(ProvisionVerifyTest, ProvisionVerify002, TestSize.Level1)
      * @tc.expected: step2. return code will be PROVISION_OK.
      */
     ProvisionInfo info;
-    int ret = ParseAndVerify(VALID_PROVISION, info);
+    int32_t ret = ParseAndVerify(VALID_PROVISION, info);
     ASSERT_EQ(ret, AppProvisionVerifyResult::PROVISION_OK);
     ASSERT_EQ(info.versionCode, 2); // version code is 2
     ASSERT_EQ(info.versionName, "2.0.0");
@@ -277,7 +277,7 @@ HWTEST_F(ProvisionVerifyTest, ProvisionVerify003, TestSize.Level1)
      * @tc.expected: step3. return code will be PROVISION_OK.
      */
     ProvisionInfo info;
-    int ret = ParseAndVerify(VALID_PROVISION_PERMISSION, info);
+    int32_t ret = ParseAndVerify(VALID_PROVISION_PERMISSION, info);
     ASSERT_EQ(ret, AppProvisionVerifyResult::PROVISION_OK);
     ASSERT_EQ(info.versionCode, 3); // version code is 3
     ASSERT_EQ(info.versionName, "3.0.0");
@@ -303,7 +303,7 @@ HWTEST_F(ProvisionVerifyTest, ProvisionVerify004, TestSize.Level1)
      * @tc.expected: step4. return code will be PROVISION_DEVICE_UNAUTHORIZED.
      */
     ProvisionInfo info;
-    int ret = ParseAndVerify(UNAUTHORIZED_DEVICE_EMPTY_DEVICE_LIST_PROVISION, info);
+    int32_t ret = ParseAndVerify(UNAUTHORIZED_DEVICE_EMPTY_DEVICE_LIST_PROVISION, info);
     ASSERT_EQ(ret, AppProvisionVerifyResult::PROVISION_DEVICE_UNAUTHORIZED);
 }
 
@@ -343,13 +343,13 @@ HWTEST_F(ProvisionVerifyTest, ProvisionVerify005, TestSize.Level1)
         },
         "issuer": "App Gallery"
     })";
-    for (int i = 0; i < MAXIMUM_NUM_DEVICES; i++) {
+    for (int32_t i = 0; i < MAXIMUM_NUM_DEVICES; i++) {
         prefixNumDeviceExceededProvision += R"("1234ABCD",)";
     }
     prefixNumDeviceExceededProvision += R"("1234ABCD")";
     prefixNumDeviceExceededProvision += postfixNumDeviceExceededProvision;
     ProvisionInfo info;
-    int ret = ParseAndVerify(prefixNumDeviceExceededProvision, info);
+    int32_t ret = ParseAndVerify(prefixNumDeviceExceededProvision, info);
     ASSERT_EQ(ret, AppProvisionVerifyResult::PROVISION_NUM_DEVICE_EXCEEDED);
 }
 
@@ -366,7 +366,7 @@ HWTEST_F(ProvisionVerifyTest, ProvisionVerify006, TestSize.Level1)
      * @tc.expected: step6. return code will be PROVISION_UNSUPPORTED_DEVICE_TYPE.
      */
     ProvisionInfo info;
-    int ret = ParseAndVerify(UNSUPPORTED_DEVICE_TYPE_PROVISION, info);
+    int32_t ret = ParseAndVerify(UNSUPPORTED_DEVICE_TYPE_PROVISION, info);
     ASSERT_EQ(ret, AppProvisionVerifyResult::PROVISION_UNSUPPORTED_DEVICE_TYPE);
 }
 
@@ -383,7 +383,7 @@ HWTEST_F(ProvisionVerifyTest, ProvisionVerify007, TestSize.Level1)
      * @tc.expected: step7. return code will be PROVISION_DEVICE_UNAUTHORIZED.
      */
     ProvisionInfo info;
-    int ret = ParseAndVerify(DEVICE_UNAUTH_PROVISION, info);
+    int32_t ret = ParseAndVerify(DEVICE_UNAUTH_PROVISION, info);
     ASSERT_EQ(ret, AppProvisionVerifyResult::PROVISION_DEVICE_UNAUTHORIZED);
 }
 
@@ -429,14 +429,14 @@ HWTEST_F(ProvisionVerifyTest, ProvisionVerify008, TestSize.Level1)
     OHOS::AccountSA::OhosAccountKits::GetInstance().GetUdid(deviceId);
 #else
     char udid[DEV_UUID_LEN] = {0};
-    int udidRet = GetDevUdid(udid, sizeof(udid));
+    int32_t udidRet = GetDevUdid(udid, sizeof(udid));
     ASSERT_EQ(udidRet, EC_SUCCESS);
     deviceId = std::string(udid, sizeof(udid) - 1);
 #endif
     prefixValidDeviceInfoProvision += deviceId;
     prefixValidDeviceInfoProvision += postfixValidDeviceInfoProvision;
     ProvisionInfo info;
-    int ret = ParseAndVerify(prefixValidDeviceInfoProvision, info);
+    int32_t ret = ParseAndVerify(prefixValidDeviceInfoProvision, info);
     ASSERT_EQ(ret, AppProvisionVerifyResult::PROVISION_OK);
 }
 
@@ -478,14 +478,14 @@ HWTEST_F(ProvisionVerifyTest, ProvisionVerify009, TestSize.Level1)
     OHOS::AccountSA::OhosAccountKits::GetInstance().GetUdid(deviceId);
 #else
     char udid[DEV_UUID_LEN] = {0};
-    int udidRet = GetDevUdid(udid, sizeof(udid));
+    int32_t udidRet = GetDevUdid(udid, sizeof(udid));
     ASSERT_EQ(udidRet, EC_SUCCESS);
     deviceId = std::string(udid, sizeof(udid) - 1);
 #endif
     prefixValidDeviceInfoProvision += deviceId;
     prefixValidDeviceInfoProvision += postfixValidDeviceInfoProvision;
     ProvisionInfo info;
-    int ret = ParseAndVerify(prefixValidDeviceInfoProvision, info);
+    int32_t ret = ParseAndVerify(prefixValidDeviceInfoProvision, info);
     ASSERT_EQ(ret, AppProvisionVerifyResult::PROVISION_OK);
     ASSERT_EQ(info.distributionType, AppDistType::CROWDTESTING);
     ASSERT_EQ(info.type, ProvisionType::DEBUG);
@@ -530,14 +530,14 @@ HWTEST_F(ProvisionVerifyTest, ProvisionVerify010, TestSize.Level1)
     OHOS::AccountSA::OhosAccountKits::GetInstance().GetUdid(deviceId);
 #else
     char udid[DEV_UUID_LEN] = {0};
-    int udidRet = GetDevUdid(udid, sizeof(udid));
+    int32_t udidRet = GetDevUdid(udid, sizeof(udid));
     ASSERT_EQ(udidRet, EC_SUCCESS);
     deviceId = std::string(udid, sizeof(udid) - 1);
 #endif
     prefixValidDeviceInfoProvision += deviceId;
     prefixValidDeviceInfoProvision += postfixValidDeviceInfoProvision;
     ProvisionInfo info;
-    int ret = ParseAndVerify(prefixValidDeviceInfoProvision, info);
+    int32_t ret = ParseAndVerify(prefixValidDeviceInfoProvision, info);
     ASSERT_EQ(ret, AppProvisionVerifyResult::PROVISION_OK);
     ASSERT_EQ(info.distributionType, AppDistType::CROWDTESTING);
     ASSERT_EQ(info.type, ProvisionType::RELEASE);

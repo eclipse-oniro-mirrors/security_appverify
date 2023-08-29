@@ -31,23 +31,23 @@ namespace Verify {
 using Pkcs7SignerInfoStack = STACK_OF(PKCS7_SIGNER_INFO);
 using X509AttributeStack = STACK_OF(X509_ATTRIBUTE);
 
-const int HapVerifyOpensslUtils::OPENSSL_PKCS7_VERIFY_SUCCESS = 1;
-const int HapVerifyOpensslUtils::OPENSSL_ERR_MESSAGE_MAX_LEN = 1024;
+const int32_t HapVerifyOpensslUtils::OPENSSL_PKCS7_VERIFY_SUCCESS = 1;
+const int32_t HapVerifyOpensslUtils::OPENSSL_ERR_MESSAGE_MAX_LEN = 1024;
 
 /*
  * OPENSSL_READ_DATA_MAX_TIME * OPENSSL_READ_DATA_LEN_EACH_TIME < 2GBytes.
  * make the maximum size of data that can be read each time be 1 KBytes,
  * so the maximum times of read data is 1024 * 1024 * 2 = 2097152;
  */
-const int HapVerifyOpensslUtils::OPENSSL_READ_DATA_MAX_TIME = 2097152;
-const int HapVerifyOpensslUtils::OPENSSL_READ_DATA_LEN_EACH_TIME = 1024;
+const int32_t HapVerifyOpensslUtils::OPENSSL_READ_DATA_MAX_TIME = 2097152;
+const int32_t HapVerifyOpensslUtils::OPENSSL_READ_DATA_LEN_EACH_TIME = 1024;
 
 /* Signature algorithm OID for extended PKCS7 */
 const std::string HapVerifyOpensslUtils::PKCS7_EXT_SHAWITHRSA_PSS = "1.2.840.113549.1.1.10";
-const int HapVerifyOpensslUtils::MAX_OID_LENGTH = 128;
+const int32_t HapVerifyOpensslUtils::MAX_OID_LENGTH = 128;
 
 bool HapVerifyOpensslUtils::ParsePkcs7Package(const unsigned char packageData[],
-    unsigned int packageLen, Pkcs7Context& pkcs7Context)
+    uint32_t packageLen, Pkcs7Context& pkcs7Context)
 {
     if (packageData == nullptr || packageLen == 0) {
         HAPVERIFY_LOG_ERROR(LABEL, "invalid input");
@@ -83,13 +83,13 @@ bool HapVerifyOpensslUtils::GetCertChains(PKCS7* p7, Pkcs7Context& pkcs7Context)
         GetOpensslErrorMessage();
         return false;
     }
-    int signCount = sk_PKCS7_SIGNER_INFO_num(signerInfoStack);
+    int32_t signCount = sk_PKCS7_SIGNER_INFO_num(signerInfoStack);
     if (signCount <= 0) {
         HAPVERIFY_LOG_ERROR(LABEL, "can not find signinfo");
         return false;
     }
 
-    for (int i = 0; i < signCount; i++) {
+    for (int32_t i = 0; i < signCount; i++) {
         /* get ith signInfo */
         PKCS7_SIGNER_INFO* signInfo = sk_PKCS7_SIGNER_INFO_value(signerInfoStack, i);
         if (signInfo == nullptr) {
@@ -166,8 +166,8 @@ bool HapVerifyOpensslUtils::VerifyPkcs7SignedData(Pkcs7Context& pkcs7Context)
         return false;
     }
     char buf[OPENSSL_READ_DATA_LEN_EACH_TIME] = {0};
-    int readLen = BIO_read(p7Bio, buf, sizeof(buf));
-    int readTime = 0;
+    int32_t readLen = BIO_read(p7Bio, buf, sizeof(buf));
+    int32_t readTime = 0;
     while ((readLen > 0) && (++readTime < OPENSSL_READ_DATA_MAX_TIME)) {
         readLen = BIO_read(p7Bio, buf, sizeof(buf));
     }
@@ -179,13 +179,13 @@ bool HapVerifyOpensslUtils::VerifyPkcs7SignedData(Pkcs7Context& pkcs7Context)
         return false;
     }
     /* get the num of signInfo */
-    int signCount = sk_PKCS7_SIGNER_INFO_num(signerInfoStack);
+    int32_t signCount = sk_PKCS7_SIGNER_INFO_num(signerInfoStack);
     if (signCount <= 0) {
         HAPVERIFY_LOG_ERROR(LABEL, "can not find signinfo");
         BIO_free_all(p7Bio);
         return false;
     }
-    for (int i = 0; i < signCount; i++) {
+    for (int32_t i = 0; i < signCount; i++) {
         if (!VerifySignInfo(signerInfoStack, p7Bio, i, pkcs7Context)) {
             HAPVERIFY_LOG_ERROR(LABEL, "Verify %{public}dst signInfo failed", i);
             BIO_free_all(p7Bio);
@@ -197,7 +197,7 @@ bool HapVerifyOpensslUtils::VerifyPkcs7SignedData(Pkcs7Context& pkcs7Context)
 }
 
 bool HapVerifyOpensslUtils::VerifySignInfo(STACK_OF(PKCS7_SIGNER_INFO)* signerInfoStack,
-    BIO* p7Bio, int signInfoNum, Pkcs7Context& pkcs7Context) {
+    BIO* p7Bio, int32_t signInfoNum, Pkcs7Context& pkcs7Context) {
     if (signerInfoStack == nullptr || p7Bio == nullptr) {
         HAPVERIFY_LOG_ERROR(LABEL, "invalid input");
         return false;
@@ -239,7 +239,7 @@ bool HapVerifyOpensslUtils::IsEnablePss(const PKCS7_SIGNER_INFO* signInfo)
         HAPVERIFY_LOG_ERROR(LABEL, "signInfo->digest_enc_alg is nullptr");
         return false;
     }
-    int len = OBJ_obj2txt(oId, sizeof(oId), signInfo->digest_enc_alg->algorithm, 1);
+    int32_t len = OBJ_obj2txt(oId, sizeof(oId), signInfo->digest_enc_alg->algorithm, 1);
     if (len < 0 || len >= MAX_OID_LENGTH) {
         HAPVERIFY_LOG_ERROR(LABEL, "Get length of oId failed");
         return false;
@@ -254,7 +254,7 @@ bool HapVerifyOpensslUtils::VerifyShaWithRsaPss(const PKCS7_SIGNER_INFO* signInf
         HAPVERIFY_LOG_ERROR(LABEL, "signInfo->digest_alg is nullptr");
         return false;
     }
-    int mdType = OBJ_obj2nid(signInfo->digest_alg->algorithm);
+    int32_t mdType = OBJ_obj2nid(signInfo->digest_alg->algorithm);
     const EVP_MD_CTX* mdCtx = FindMdCtxInBio(p7Bio, mdType);
     EVP_MD_CTX* mdCtxTmp = EVP_MD_CTX_new();
     if (mdCtxTmp == nullptr) {
@@ -273,7 +273,7 @@ bool HapVerifyOpensslUtils::VerifyShaWithRsaPss(const PKCS7_SIGNER_INFO* signInf
     }
 
     unsigned char digest[EVP_MAX_MD_SIZE];
-    unsigned int digestLen;
+    uint32_t digestLen;
     if (EVP_DigestFinal_ex(mdCtxTmp, digest, &digestLen) <= 0) {
         HAPVERIFY_LOG_ERROR(LABEL, "Digest content failed");
         GetOpensslErrorMessage();
@@ -290,7 +290,7 @@ bool HapVerifyOpensslUtils::VerifyShaWithRsaPss(const PKCS7_SIGNER_INFO* signInf
     return true;
 }
 
-const EVP_MD_CTX* HapVerifyOpensslUtils::FindMdCtxInBio(BIO* p7Bio, int mdType)
+const EVP_MD_CTX* HapVerifyOpensslUtils::FindMdCtxInBio(BIO* p7Bio, int32_t mdType)
 {
     EVP_MD_CTX* mdCtx = nullptr;
     while (p7Bio) {
@@ -307,12 +307,13 @@ const EVP_MD_CTX* HapVerifyOpensslUtils::FindMdCtxInBio(BIO* p7Bio, int mdType)
     return mdCtx;
 }
 
-bool HapVerifyOpensslUtils::VerifyPkcs7AuthAttributes(const PKCS7_SIGNER_INFO* signInfo, EVP_MD_CTX* mdCtx, int mdType)
+bool HapVerifyOpensslUtils::VerifyPkcs7AuthAttributes(
+    const PKCS7_SIGNER_INFO* signInfo, EVP_MD_CTX* mdCtx, int32_t mdType)
 {
     X509AttributeStack* authAttributes = signInfo->auth_attr;
     if ((authAttributes != nullptr) && (sk_X509_ATTRIBUTE_num(authAttributes) != 0)) {
         unsigned char digest[EVP_MAX_MD_SIZE];
-        unsigned int digestLen;
+        uint32_t digestLen;
         if (EVP_DigestFinal_ex(mdCtx, digest, &digestLen) <= 0) {
             HAPVERIFY_LOG_ERROR(LABEL, "Digest content failed");
             GetOpensslErrorMessage();
@@ -331,7 +332,7 @@ bool HapVerifyOpensslUtils::VerifyPkcs7AuthAttributes(const PKCS7_SIGNER_INFO* s
         }
 
         unsigned char* attributesData = nullptr;
-        int attributesLen = ASN1_item_i2d(reinterpret_cast<ASN1_VALUE*>(authAttributes), &attributesData,
+        int32_t attributesLen = ASN1_item_i2d(reinterpret_cast<ASN1_VALUE*>(authAttributes), &attributesData,
             ASN1_ITEM_rptr(PKCS7_ATTR_VERIFY));
         if (attributesLen <= 0 || attributesData == nullptr) {
             HAPVERIFY_LOG_ERROR(LABEL, "ASN1_item_i2d failed");
@@ -349,7 +350,7 @@ bool HapVerifyOpensslUtils::VerifyPkcs7AuthAttributes(const PKCS7_SIGNER_INFO* s
     return true;
 }
 
-bool HapVerifyOpensslUtils::AsnStringCmp(const ASN1_OCTET_STRING* asnStr, const unsigned char data[], int len)
+bool HapVerifyOpensslUtils::AsnStringCmp(const ASN1_OCTET_STRING* asnStr, const unsigned char data[], int32_t len)
 {
     if (asnStr == nullptr) {
         HAPVERIFY_LOG_ERROR(LABEL, "asnStr is nullptr");
@@ -367,7 +368,7 @@ bool HapVerifyOpensslUtils::AsnStringCmp(const ASN1_OCTET_STRING* asnStr, const 
         HAPVERIFY_LOG_ERROR(LABEL, "asnStr->length: %{public}d is not equal to len: %{public}d", asnStr->length, len);
         return false;
     }
-    for (int i = 0; i < len; i++) {
+    for (int32_t i = 0; i < len; i++) {
         if (asnStr->data[i] != data[i]) {
             HAPVERIFY_LOG_ERROR(LABEL, "%{public}dst data is not equal", i);
             return false;
@@ -377,7 +378,7 @@ bool HapVerifyOpensslUtils::AsnStringCmp(const ASN1_OCTET_STRING* asnStr, const 
 }
 
 bool HapVerifyOpensslUtils::VerifyShaWithRsaPss(const PKCS7_SIGNER_INFO* signInfo, EVP_PKEY* pkey, bool isPss,
-    const unsigned char digest[], unsigned int digestLen)
+    const unsigned char digest[], uint32_t digestLen)
 {
     EVP_PKEY_CTX* pkeyCtx = EVP_PKEY_CTX_new(pkey, nullptr);
     if (pkeyCtx == nullptr) {
@@ -396,7 +397,7 @@ bool HapVerifyOpensslUtils::VerifyShaWithRsaPss(const PKCS7_SIGNER_INFO* signInf
         EVP_PKEY_CTX_free(pkeyCtx);
         return false;
     }
-    int mdType = OBJ_obj2nid(signInfo->digest_alg->algorithm);
+    int32_t mdType = OBJ_obj2nid(signInfo->digest_alg->algorithm);
     if ((isPss && EVP_PKEY_CTX_set_rsa_padding(pkeyCtx, RSA_PKCS1_PSS_PADDING) <= 0) ||
         (EVP_PKEY_CTX_set_signature_md(pkeyCtx, EVP_get_digestbynid(mdType)) <= 0)) {
         HAPVERIFY_LOG_ERROR(LABEL, "set rsa_padding or signature_md failed");
@@ -417,7 +418,7 @@ bool HapVerifyOpensslUtils::VerifyShaWithRsaPss(const PKCS7_SIGNER_INFO* signInf
 bool HapVerifyOpensslUtils::GetPublickeys(const CertChain& signCertChain,
     std::vector<std::string>& SignatureVec)
 {
-    for (unsigned int i = 0; i < signCertChain.size(); i++) {
+    for (uint32_t i = 0; i < signCertChain.size(); i++) {
         if (!GetPublickeyFromCertificate(signCertChain[i], SignatureVec)) {
             HAPVERIFY_LOG_ERROR(LABEL, "%{public}ust Get Publickey failed", i);
             return false;
@@ -429,7 +430,7 @@ bool HapVerifyOpensslUtils::GetPublickeys(const CertChain& signCertChain,
 bool HapVerifyOpensslUtils::GetSignatures(const CertChain& signCertChain,
     std::vector<std::string>& SignatureVec)
 {
-    for (unsigned int i = 0; i < signCertChain.size(); i++) {
+    for (uint32_t i = 0; i < signCertChain.size(); i++) {
         if (!GetDerCert(signCertChain[i], SignatureVec)) {
             HAPVERIFY_LOG_ERROR(LABEL, "%{public}ust GetDerCert failed", i);
             return false;
@@ -444,14 +445,14 @@ bool HapVerifyOpensslUtils::GetDerCert(X509* ptrX509, std::vector<std::string>& 
         return false;
     }
 
-    int certLen = i2d_X509(ptrX509, nullptr);
+    int32_t certLen = i2d_X509(ptrX509, nullptr);
     if (certLen <= 0) {
         HAPVERIFY_LOG_ERROR(LABEL, "certLen %{public}d, i2d_X509 failed", certLen);
         GetOpensslErrorMessage();
         return false;
     }
     std::unique_ptr<unsigned char[]> derCertificate = std::make_unique<unsigned char[]>(certLen);
-    int base64CertLen = HapCertVerifyOpensslUtils::CalculateLenAfterBase64Encode(certLen);
+    int32_t base64CertLen = HapCertVerifyOpensslUtils::CalculateLenAfterBase64Encode(certLen);
     std::unique_ptr<unsigned char[]> base64Certificate = std::make_unique<unsigned char[]>(base64CertLen);
     unsigned char* derCertificateBackup = derCertificate.get();
     if (i2d_X509(ptrX509, &derCertificateBackup) <= 0) {
@@ -461,7 +462,7 @@ bool HapVerifyOpensslUtils::GetDerCert(X509* ptrX509, std::vector<std::string>& 
     }
 
     /* base64 encode */
-    int len = EVP_EncodeBlock(base64Certificate.get(), derCertificate.get(), certLen);
+    int32_t len = EVP_EncodeBlock(base64Certificate.get(), derCertificate.get(), certLen);
     SignatureVec.emplace_back(std::string(reinterpret_cast<char*>(base64Certificate.get()), len));
     return true;
 }
@@ -494,7 +495,7 @@ bool HapVerifyOpensslUtils::GetContentInfo(const PKCS7* p7ContentInfo, HapByteBu
         return false;
     }
 
-    int strContentInfoLen = strContentInfo->length;
+    int32_t strContentInfoLen = strContentInfo->length;
     unsigned char* strContentInfoData = strContentInfo->data;
     if (strContentInfoData == nullptr || strContentInfoLen <= 0) {
         HAPVERIFY_LOG_ERROR(LABEL, "ASN1_OCTET_STRING is invalid");
@@ -507,7 +508,7 @@ bool HapVerifyOpensslUtils::GetContentInfo(const PKCS7* p7ContentInfo, HapByteBu
     return true;
 }
 
-int HapVerifyOpensslUtils::GetDigestAlgorithmOutputSizeBytes(int nId)
+int32_t HapVerifyOpensslUtils::GetDigestAlgorithmOutputSizeBytes(int32_t nId)
 {
     return EVP_MD_size(EVP_get_digestbynid(nId));
 }
@@ -540,7 +541,7 @@ bool HapVerifyOpensslUtils::DigestInit(const DigestParameter& digestParameter)
 
 /* the caller must ensure that EVP_DigestInit was called before calling this function */
 bool HapVerifyOpensslUtils::DigestUpdate(const DigestParameter& digestParameter,
-    const unsigned char content[], int len)
+    const unsigned char content[], int32_t len)
 {
     if (content == nullptr) {
         HAPVERIFY_LOG_ERROR(LABEL, "content is nullptr");
@@ -557,9 +558,9 @@ bool HapVerifyOpensslUtils::DigestUpdate(const DigestParameter& digestParameter,
     return true;
 }
 
-int HapVerifyOpensslUtils::GetDigest(const DigestParameter& digestParameter, unsigned char (&out)[EVP_MAX_MD_SIZE])
+int32_t HapVerifyOpensslUtils::GetDigest(const DigestParameter& digestParameter, unsigned char (&out)[EVP_MAX_MD_SIZE])
 {
-    unsigned int outLen = 0;
+    uint32_t outLen = 0;
     if (!CheckDigestParameter(digestParameter)) {
         return outLen;
     }
@@ -571,11 +572,11 @@ int HapVerifyOpensslUtils::GetDigest(const DigestParameter& digestParameter, uns
     return outLen;
 }
 
-int HapVerifyOpensslUtils::GetDigest(const HapByteBuffer& chunk, const std::vector<OptionalBlock>& optionalBlocks,
+int32_t HapVerifyOpensslUtils::GetDigest(const HapByteBuffer& chunk, const std::vector<OptionalBlock>& optionalBlocks,
     const DigestParameter& digestParameter, unsigned char (&out)[EVP_MAX_MD_SIZE])
 {
-    int chunkLen = chunk.Remaining();
-    unsigned int outLen = 0;
+    int32_t chunkLen = chunk.Remaining();
+    uint32_t outLen = 0;
     if (digestParameter.md == nullptr) {
         HAPVERIFY_LOG_ERROR(LABEL, "md is nullprt");
         return outLen;
@@ -596,7 +597,7 @@ int HapVerifyOpensslUtils::GetDigest(const HapByteBuffer& chunk, const std::vect
         HAPVERIFY_LOG_ERROR(LABEL, "EVP_DigestUpdate chunk failed");
         return outLen;
     }
-    for (int i = 0; i < static_cast<int>(optionalBlocks.size()); i++) {
+    for (int32_t i = 0; i < static_cast<int>(optionalBlocks.size()); i++) {
         chunkLen = optionalBlocks[i].optionalBlockValue.GetCapacity();
         if (EVP_DigestUpdate(digestParameter.ptrCtx, optionalBlocks[i].optionalBlockValue.GetBufferPtr(),
             chunkLen) <= 0) {
@@ -624,7 +625,7 @@ void HapVerifyOpensslUtils::GetOpensslErrorMessage()
     }
 }
 
-int HapVerifyOpensslUtils::GetDigestAlgorithmId(int signAlgorithm)
+int32_t HapVerifyOpensslUtils::GetDigestAlgorithmId(int32_t signAlgorithm)
 {
     switch (signAlgorithm) {
         case ALGORITHM_SHA256_WITH_RSA_PSS:

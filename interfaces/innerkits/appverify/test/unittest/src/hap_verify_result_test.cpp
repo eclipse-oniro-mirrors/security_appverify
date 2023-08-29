@@ -97,7 +97,7 @@ HWTEST_F(HapVerifyResultTest, GetProfileAndProperty001, TestSize.Level1)
      */
     std::string getProfile;
     GetOptionalBlockResultCode targetResult = NO_THIS_BLOCK_IN_PACKAGE;
-    int ret = hapVerifyResult.GetBlockFromOptionalBlocks(PROFILE_BLOB, getProfile);
+    int32_t ret = hapVerifyResult.GetBlockFromOptionalBlocks(PROFILE_BLOB, getProfile);
     ASSERT_TRUE(ret == targetResult);
     /*
      * @tc.steps: step3. GetProperty.
@@ -118,10 +118,10 @@ HWTEST_F(HapVerifyResultTest, SetVersionAndGetVersion001, TestSize.Level1)
      * @tc.steps: step1. set a target version to HapVerifyResult.
      * @tc.expected: step1. the return version is the value we set.
      */
-    int targetVersion = TEST_HAP_SIGN_VERSION;
+    int32_t targetVersion = TEST_HAP_SIGN_VERSION;
     HapVerifyResult hapVerifyResult;
     hapVerifyResult.SetVersion(targetVersion);
-    int version = hapVerifyResult.GetVersion();
+    int32_t version = hapVerifyResult.GetVersion();
     ASSERT_TRUE(version == targetVersion);
 }
 }

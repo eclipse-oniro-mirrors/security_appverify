@@ -15,7 +15,9 @@
 #ifndef HAP_CRL_MANAGER_TEST_H
 #define HAP_CRL_MANAGER_TEST_H
 
+#include <cstdint>
+
 #include "test_const.h"
 
-int WriteAndReadCrlsFileTest001(void);
+int32_t WriteAndReadCrlsFileTest001(void);
 #endif // HAP_CRL_MANAGER_TEST_H
