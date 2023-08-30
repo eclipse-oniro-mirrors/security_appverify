@@ -16,6 +16,7 @@
 #ifndef HAP_SIGNING_BLOCK_UTILS_TEST_H
 #define HAP_SIGNING_BLOCK_UTILS_TEST_H
 
+#include <cstdint>
 #include <string>
 
 #include "util/signature_info.h"
@@ -29,11 +30,11 @@ long long CreatTestZipFile(const std::string& pathFile, SignatureInfo& signInfo)
 }
 }
 }
-int FindHapSignatureTest001(void);
-int VerifyHapIntegrityTest001(void);
-int FindEocdInHapTest001(void);
-int GetCentralDirectoryOffsetTest001(void);
-int ClassifyHapSubSigningBlock001(void);
-int ComputeDigestsWithOptionalBlock001(void);
-int GetSumOfChunkDigestLenTest001(void);
+int32_t FindHapSignatureTest001(void);
+int32_t VerifyHapIntegrityTest001(void);
+int32_t FindEocdInHapTest001(void);
+int32_t GetCentralDirectoryOffsetTest001(void);
+int32_t ClassifyHapSubSigningBlock001(void);
+int32_t ComputeDigestsWithOptionalBlock001(void);
+int32_t GetSumOfChunkDigestLenTest001(void);
 #endif // HAP_SIGNING_BLOCK_UTILS_TEST_H

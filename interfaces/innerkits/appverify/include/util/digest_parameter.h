@@ -31,7 +31,7 @@ public:
     DLL_EXPORT DigestParameter& operator = (const DigestParameter& other);
 
 public:
-    int digestOutputSizeBytes;
+    int32_t digestOutputSizeBytes;
     const EVP_MD* md;
     EVP_MD_CTX* ptrCtx;
 };

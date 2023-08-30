@@ -22,7 +22,7 @@
 using namespace std;
 using namespace testing::ext;
 namespace {
-const int DELAY_TIME = 4;
+const int32_t DELAY_TIME = 4;
 
 class HapVerifyTest : public testing::Test {
 public:

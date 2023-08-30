@@ -30,12 +30,12 @@
 namespace OHOS {
 namespace Security {
 namespace Verify {
-const unsigned int HapCertVerifyOpensslUtils::MIN_CERT_CHAIN_LEN_NEED_VERIFY_CRL = 2;
-const int HapCertVerifyOpensslUtils::OPENSSL_READ_CRL_MAX_TIME = 1048576; // 1024 * 1024
-const int HapCertVerifyOpensslUtils::OPENSSL_READ_CRL_LEN_EACH_TIME = 1024;
-const int HapCertVerifyOpensslUtils::BASE64_ENCODE_LEN_OF_EACH_GROUP_DATA = 4;
-const int HapCertVerifyOpensslUtils::BASE64_ENCODE_PACKET_LEN = 3;
-constexpr int BUFF_SIZE = 3;
+const uint32_t HapCertVerifyOpensslUtils::MIN_CERT_CHAIN_LEN_NEED_VERIFY_CRL = 2;
+const int32_t HapCertVerifyOpensslUtils::OPENSSL_READ_CRL_MAX_TIME = 1048576; // 1024 * 1024
+const int32_t HapCertVerifyOpensslUtils::OPENSSL_READ_CRL_LEN_EACH_TIME = 1024;
+const int32_t HapCertVerifyOpensslUtils::BASE64_ENCODE_LEN_OF_EACH_GROUP_DATA = 4;
+const int32_t HapCertVerifyOpensslUtils::BASE64_ENCODE_PACKET_LEN = 3;
+constexpr int32_t BUFF_SIZE = 3;
 
 X509* HapCertVerifyOpensslUtils::GetX509CertFromPemString(const std::string& pemString)
 {
@@ -45,7 +45,7 @@ X509* HapCertVerifyOpensslUtils::GetX509CertFromPemString(const std::string& pem
         HAPVERIFY_LOG_ERROR(LABEL, "BIO_new failed");
         return nullptr;
     }
-    int strLen = static_cast<int>(pemString.size());
+    int32_t strLen = static_cast<int>(pemString.size());
     if (BIO_write(pemBio, pemString.c_str(), strLen) != strLen) {
         HapVerifyOpensslUtils::GetOpensslErrorMessage();
         HAPVERIFY_LOG_ERROR(LABEL, "BIO_write failed");
@@ -62,7 +62,7 @@ X509* HapCertVerifyOpensslUtils::GetX509CertFromBase64String(const std::string& 
     std::unique_ptr<unsigned char[]> decodeBuffer = std::make_unique<unsigned char[]>(base64String.size());
 
     const unsigned char* input = reinterpret_cast<const unsigned char *>(base64String.c_str());
-    int len = EVP_DecodeBlock(decodeBuffer.get(), input, base64String.size());
+    int32_t len = EVP_DecodeBlock(decodeBuffer.get(), input, base64String.size());
     if (len <= 0) {
         HapVerifyOpensslUtils::GetOpensslErrorMessage();
         HAPVERIFY_LOG_ERROR(LABEL, "base64Decode failed, len: %{public}d", len);
@@ -100,7 +100,7 @@ bool HapCertVerifyOpensslUtils::GetFingerprintBase64FromPemCert(const std::strin
         HAPVERIFY_LOG_ERROR(LABEL, "GetX509CertFromPemString failed");
         return false;
     }
-    int certLen = i2d_X509(cert, nullptr);
+    int32_t certLen = i2d_X509(cert, nullptr);
     if (certLen <= 0) {
         HAPVERIFY_LOG_ERROR(LABEL, "certLen %{public}d, i2d_X509 failed", certLen);
         HapVerifyOpensslUtils::GetOpensslErrorMessage();
@@ -123,7 +123,7 @@ bool HapCertVerifyOpensslUtils::GetFingerprintBase64FromPemCert(const std::strin
     unsigned char hash[SHA256_DIGEST_LENGTH];
     SHA256_Final(hash, &sha256);
     char buff[BUFF_SIZE] = {0};
-    for (int index = 0; index < SHA256_DIGEST_LENGTH; ++index) {
+    for (int32_t index = 0; index < SHA256_DIGEST_LENGTH; ++index) {
         if (sprintf_s(buff, sizeof(buff), "%02X", hash[index]) < 0) {
             fingerprint.clear();
             HAPVERIFY_LOG_ERROR(LABEL, "transforms hash string to hexadecimal string failed");
@@ -146,14 +146,14 @@ bool HapCertVerifyOpensslUtils::GetPublickeyBase64(const X509* cert, std::string
         return false;
     }
 
-    int keyLen = i2d_PublicKey(pkey, nullptr);
+    int32_t keyLen = i2d_PublicKey(pkey, nullptr);
     if (keyLen <= 0) {
         HAPVERIFY_LOG_ERROR(LABEL, "keyLen %{public}d, i2d_PublicKey failed", keyLen);
         HapVerifyOpensslUtils::GetOpensslErrorMessage();
         return false;
     }
     std::unique_ptr<unsigned char[]> derPublicKey = std::make_unique<unsigned char[]>(keyLen);
-    int base64KeyLen = CalculateLenAfterBase64Encode(keyLen);
+    int32_t base64KeyLen = CalculateLenAfterBase64Encode(keyLen);
     std::unique_ptr<unsigned char[]> base64PublicKey = std::make_unique<unsigned char[]>(base64KeyLen);
     unsigned char* derCertificateBackup = derPublicKey.get();
     if (i2d_PublicKey(pkey, &derCertificateBackup) <= 0) {
@@ -162,7 +162,7 @@ bool HapCertVerifyOpensslUtils::GetPublickeyBase64(const X509* cert, std::string
         return false;
     }
 
-    int outLen = EVP_EncodeBlock(base64PublicKey.get(), derPublicKey.get(), keyLen);
+    int32_t outLen = EVP_EncodeBlock(base64PublicKey.get(), derPublicKey.get(), keyLen);
     publicKey = std::string(reinterpret_cast<char*>(base64PublicKey.get()), outLen);
     return true;
 }
@@ -172,7 +172,7 @@ bool HapCertVerifyOpensslUtils::GetPublickeyBase64(const X509* cert, std::string
  * and openssl function will add '\0' to the encoded string.
  * So len_after_encode = len_before_encode * 4/3 + 1
  */
-int HapCertVerifyOpensslUtils::CalculateLenAfterBase64Encode(int len)
+int32_t HapCertVerifyOpensslUtils::CalculateLenAfterBase64Encode(int32_t len)
 {
     return static_cast<int>(ceil(static_cast<long double>(len) / BASE64_ENCODE_PACKET_LEN) *
         BASE64_ENCODE_LEN_OF_EACH_GROUP_DATA + 1);
@@ -195,7 +195,8 @@ bool HapCertVerifyOpensslUtils::CompareX509Cert(const X509* certA, const std::st
     return ret;
 }
 
-X509_CRL* HapCertVerifyOpensslUtils::GetX509CrlFromDerBuffer(const HapByteBuffer& crlBuffer, int offset, int len)
+X509_CRL* HapCertVerifyOpensslUtils::GetX509CrlFromDerBuffer(
+    const HapByteBuffer& crlBuffer, int32_t offset, int32_t len)
 {
     if (crlBuffer.GetBufferPtr() == nullptr) {
         HAPVERIFY_LOG_ERROR(LABEL, "invalid input, crlbuffer is null");
@@ -241,12 +242,12 @@ void HapCertVerifyOpensslUtils::WriteX509CrlToStream(std::ofstream& crlFile, X50
         return;
     }
 
-    int totalLen = 0;
+    int32_t totalLen = 0;
     long long posStart = crlFile.tellp();
     crlFile.seekp(posStart + sizeof(totalLen));
     char buf[OPENSSL_READ_CRL_LEN_EACH_TIME];
-    int readLen = BIO_read(derBio, buf, sizeof(buf));
-    int readTime = 0;
+    int32_t readLen = BIO_read(derBio, buf, sizeof(buf));
+    int32_t readTime = 0;
     while (readLen > 0 && (++readTime < OPENSSL_READ_CRL_MAX_TIME)) {
         crlFile.write(buf, readLen);
         totalLen += readLen;
@@ -266,7 +267,7 @@ void HapCertVerifyOpensslUtils::GenerateCertSignFromCertStack(STACK_OF(X509)* ce
         return;
     }
 
-    for (int i = 0; i < sk_X509_num(certs); i++) {
+    for (int32_t i = 0; i < sk_X509_num(certs); i++) {
         X509* cert = sk_X509_value(certs, i);
         if (cert == nullptr) {
             continue;
@@ -359,7 +360,7 @@ bool HapCertVerifyOpensslUtils::VerifyCertChainPeriodOfValidity(CertChain& certs
         return false;
     }
 
-    for (unsigned int i = 0; i < certsChain.size() - 1; i++) {
+    for (uint32_t i = 0; i < certsChain.size() - 1; i++) {
         if (certsChain[i] == nullptr) {
             HAPVERIFY_LOG_ERROR(LABEL, "%{public}dst cert is nullptr", i);
             return false;
@@ -447,7 +448,7 @@ X509_CRL* HapCertVerifyOpensslUtils::GetCrlBySignedCertIssuer(STACK_OF(X509_CRL)
     }
 
     X509_NAME* certIssuer = X509_get_issuer_name(cert);
-    for (int i = 0; i < sk_X509_CRL_num(crls); i++) {
+    for (int32_t i = 0; i < sk_X509_CRL_num(crls); i++) {
         X509_CRL* crl = sk_X509_CRL_value(crls, i);
         if (crl == nullptr) {
             continue;
@@ -543,9 +544,9 @@ std::string HapCertVerifyOpensslUtils::GetDnToString(X509_NAME* name)
         ", CN=" + commonName;
 }
 
-void HapCertVerifyOpensslUtils::GetTextFromX509Name(X509_NAME* name, int nId, std::string& text)
+void HapCertVerifyOpensslUtils::GetTextFromX509Name(X509_NAME* name, int32_t nId, std::string& text)
 {
-    int textLen = X509_NAME_get_text_by_NID(name, nId, nullptr, 0);
+    int32_t textLen = X509_NAME_get_text_by_NID(name, nId, nullptr, 0);
     if (textLen <= 0) {
         return;
     }

@@ -15,9 +15,11 @@
 #ifndef HAP_TRUSTED_TICKET_TEST_H
 #define HAP_TRUSTED_TICKET_TEST_H
 
+#include <cstdint>
+
 #include "test_const.h"
 
-int CreatTrustedTicketCA001(void);
-int IsTrustedSourceTest001(void);
-int IsTrustedSourceTest002(void);
+int32_t CreatTrustedTicketCA001(void);
+int32_t IsTrustedSourceTest001(void);
+int32_t IsTrustedSourceTest002(void);
 #endif // HAP_TRUSTED_TICKET_TEST_H

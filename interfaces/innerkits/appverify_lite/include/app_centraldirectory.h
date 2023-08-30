@@ -16,6 +16,8 @@
 #ifndef SECURITY_APP_CENTRALDIECTORY_H
 #define SECURITY_APP_CENTRALDIECTORY_H
 
+#include <stdint.h>
+
 #include "mbedtls/pk.h"
 #include "app_verify_pub.h"
 #include "app_file.h"
@@ -40,29 +42,29 @@ extern "C" {
 
 typedef struct {
     void *buffer;
-    int len;
+    int32_t len;
 } HapBuf;
 
 #pragma pack(4)
 /* hw sign head */
 typedef struct {
-    unsigned int blockNum;
+    uint32_t blockNum;
     unsigned long long size;
     unsigned long long magicLow;
     unsigned long long magicHigh;
-    unsigned int version;
+    uint32_t version;
 } HwSignHead;
 #pragma pack()
 
 #pragma pack(2)
 typedef struct {
-    int magic;
+    int32_t magic;
     short diskNum;
     short startNum;
     short coreDirNumOnDisk;
     short coreDirNum;
-    int coreDirSize;
-    int coreDirOffset;
+    int32_t coreDirSize;
+    int32_t coreDirOffset;
     short commentLen;
 } MinEocd;
 #pragma pack()
@@ -74,22 +76,22 @@ typedef struct {
 
 typedef struct {
     HwSignHead *signHead;
-    int fullSignBlockOffset;
-    int hapCoreDirOffset;
-    int hapEocdOffset;
-    int hapEocdSize;
-    int fileSize;
-    int version;
-    int certType;
+    int32_t fullSignBlockOffset;
+    int32_t hapCoreDirOffset;
+    int32_t hapEocdOffset;
+    int32_t hapEocdSize;
+    int32_t fileSize;
+    int32_t version;
+    int32_t certType;
 } SignatureInfo;
 
 bool FindSignature(const FileRead *hapFile, SignatureInfo *signInfo);
-bool CreateHapBuffer(HapBuf *hapBuffer, int len);
-int ReadFileFullyFromOffset(const HapBuf *buffer, int offset, const FileRead *file);
-void HapSetInt32(const HapBuf *buffer, int offset, int value);
+bool CreateHapBuffer(HapBuf *hapBuffer, int32_t len);
+int32_t ReadFileFullyFromOffset(const HapBuf *buffer, int32_t offset, const FileRead *file);
+void HapSetInt32(const HapBuf *buffer, int32_t offset, int32_t value);
 void ClearHapBuffer(HapBuf *hapBuffer);
-void HapPutByte(const HapBuf *hapBuffer, int offset, char value);
-void HapPutData(const HapBuf *hapBuffer, int offset, const unsigned char *data, int len);
+void HapPutByte(const HapBuf *hapBuffer, int32_t offset, char value);
+void HapPutData(const HapBuf *hapBuffer, int32_t offset, const unsigned char *data, int32_t len);
 
 #ifdef __cplusplus
 #if __cplusplus

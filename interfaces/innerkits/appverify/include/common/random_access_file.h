@@ -24,8 +24,8 @@ namespace Security {
 namespace Verify {
 struct MmapInfo {
     long long mmapPosition;
-    int readMoreLen;
-    int mmapSize;
+    int32_t readMoreLen;
+    int32_t mmapSize;
     char* mapAddr;
 };
 
@@ -36,15 +36,15 @@ public:
     DLL_EXPORT bool Init(const std::string& filePath);
     DLL_EXPORT long long GetLength() const;
     DLL_EXPORT long long ReadFileFullyFromOffset(HapByteBuffer& buffer, long long offset);
-    DLL_EXPORT long long ReadFileFullyFromOffset(char buf[], long long offset, int bufCapacity);
-    bool ReadFileFromOffsetAndDigestUpdate(const DigestParameter& digestParam, int chunkSize, long long offset);
+    DLL_EXPORT long long ReadFileFullyFromOffset(char buf[], long long offset, int32_t bufCapacity);
+    bool ReadFileFromOffsetAndDigestUpdate(const DigestParameter& digestParam, int32_t chunkSize, long long offset);
 
 private:
-    long long DoMMap(int bufCapacity, long long offset, MmapInfo& mmapInfo);
+    long long DoMMap(int32_t bufCapacity, long long offset, MmapInfo& mmapInfo);
     bool CheckLittleEndian();
-    static const int FILE_OPEN_FAIL_ERROR_NUM;
-    static int memoryPageSize;
-    int fd;
+    static const int32_t FILE_OPEN_FAIL_ERROR_NUM;
+    static int32_t memoryPageSize;
+    int32_t fd;
     long long fileLength;
 };
 } // namespace Verify

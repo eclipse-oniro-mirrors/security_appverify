@@ -22,7 +22,7 @@
 #include "app_verify.h"
 #include "securec.h"
 
-int GetDigestAlgorithmId(unsigned int signAlgorithm)
+int32_t GetDigestAlgorithmId(uint32_t signAlgorithm)
 {
     switch (signAlgorithm & ALGORITHM_MASK) {
         case ALGORITHM_SHA256:
@@ -40,12 +40,12 @@ int GetDigestAlgorithmId(unsigned int signAlgorithm)
     }
 }
 
-static int ComputeBlockHash(const char *block, int blockLen, int alg, const HapBuf *result, int *offset)
+static int32_t ComputeBlockHash(const char *block, int32_t blockLen, int32_t alg, const HapBuf *result, int32_t *offset)
 {
-    int ret, readLen, rawBufLen;
+    int32_t ret, readLen, rawBufLen;
     const mbedtls_md_info_t *mdInfo = mbedtls_md_info_from_type((mbedtls_md_type_t)alg);
     P_NULL_RETURN_WTTH_LOG(mdInfo);
-    int pos = 0;
+    int32_t pos = 0;
     rawBufLen = blockLen;
     mbedtls_md_context_t *mdCtx = APPV_MALLOC(sizeof(mbedtls_md_context_t));
     P_NULL_RETURN_WTTH_LOG(mdCtx);
@@ -91,14 +91,14 @@ EXIT:
     return V_ERR;
 }
 
-static int GetChunkSumCount(int fileSize, int coreDirectorySize, int eocdSize, int rootHashLen)
+static int32_t GetChunkSumCount(int32_t fileSize, int32_t coreDirectorySize, int32_t eocdSize, int32_t rootHashLen)
 {
-    int chunkSize = HASH_BLOB_LEN;
-    int maxSize = INT_MAX - chunkSize;
+    int32_t chunkSize = HASH_BLOB_LEN;
+    int32_t maxSize = INT_MAX - chunkSize;
     if (fileSize > maxSize || coreDirectorySize > maxSize || eocdSize > maxSize) {
         return 0;
     }
-    int count = ((fileSize - 1 + chunkSize) / chunkSize) + ((coreDirectorySize - 1 + chunkSize) / chunkSize) +
+    int32_t count = ((fileSize - 1 + chunkSize) / chunkSize) + ((coreDirectorySize - 1 + chunkSize) / chunkSize) +
         ((eocdSize - 1 + chunkSize) / chunkSize);
     if (rootHashLen < 0 || (((INT_MAX - HAP_DIGEST_PRIFIX_LEN) / count) < rootHashLen)) {
         LOG_ERROR("overflow count: %d, chunkDigestLen: %d", count, rootHashLen);
@@ -108,14 +108,14 @@ static int GetChunkSumCount(int fileSize, int coreDirectorySize, int eocdSize, i
     return count;
 }
 
-static int ComputeDigestsWithOptionalBlock(const int digestAlgorithm, int fp, const SignatureInfo *signInfo,
+static int32_t ComputeDigestsWithOptionalBlock(const int32_t digestAlgorithm, int32_t fp, const SignatureInfo *signInfo,
     const HapBuf *chunkDigest, const HapBuf *fianlDigest)
 {
-    int ret, readLen;
-    int rst = V_ERR;
+    int32_t ret, readLen;
+    int32_t rst = V_ERR;
     char *rawBuf = NULL;
     unsigned char* outbuf = NULL;
-    int rootHashLen = GetHashUnitLen(digestAlgorithm);
+    int32_t rootHashLen = GetHashUnitLen(digestAlgorithm);
     LOG_INFO("rootHashLen %d", rootHashLen);
     if (rootHashLen <= 0 || rootHashLen > MAX_HASH_SIZE) {
         return rst;
@@ -126,7 +126,7 @@ static int ComputeDigestsWithOptionalBlock(const int digestAlgorithm, int fp, co
     P_NULL_RETURN_WTTH_LOG(mdCtx);
     mbedtls_md_init(mdCtx);
     ret = mbedtls_md_setup(mdCtx, mdInfo, 0);
-    int rawLen = 0;
+    int32_t rawLen = 0;
     BlockHead blockHead = {0};
 
     P_ERR_GOTO_WTTH_LOG(ret);
@@ -158,11 +158,12 @@ EXIT:
     return rst;
 }
 
-static int HapUpdateDigistHead(int digestAlgorithm, mbedtls_md_context_t *mdCtx, const mbedtls_md_info_t *mdInfo,
-    int readLen, size_t *hlen)
+static int32_t HapUpdateDigistHead(
+    int32_t digestAlgorithm, mbedtls_md_context_t *mdCtx,
+    const mbedtls_md_info_t *mdInfo, int32_t readLen, size_t *hlen)
 {
     mbedtls_md_init(mdCtx);
-    int ret = mbedtls_md_setup(mdCtx, mdInfo, 0);
+    int32_t ret = mbedtls_md_setup(mdCtx, mdInfo, 0);
     if (ret != 0) {
         return V_ERR;
     }
@@ -185,20 +186,20 @@ static int HapUpdateDigistHead(int digestAlgorithm, mbedtls_md_context_t *mdCtx,
     return V_OK;
 }
 
-static int UpdateSmallBlock(int readLen, const int fp, mbedtls_md_context_t *mdCtx)
+static int32_t UpdateSmallBlock(int32_t readLen, const int32_t fp, mbedtls_md_context_t *mdCtx)
 {
-    int readLenLeft = readLen;
+    int32_t readLenLeft = readLen;
     while (readLenLeft > 0) {
-        int onceRead = (readLenLeft > ONCE_READ_LEN) ? ONCE_READ_LEN : readLenLeft;
+        int32_t onceRead = (readLenLeft > ONCE_READ_LEN) ? ONCE_READ_LEN : readLenLeft;
         unsigned char *onceBuf = APPV_MALLOC(onceRead);
         P_NULL_RETURN_WTTH_LOG(onceBuf);
-        int len = read(fp, onceBuf, sizeof(char) * onceRead);
+        int32_t len = read(fp, onceBuf, sizeof(char) * onceRead);
         if (len != onceRead) {
             LOG_ERROR("fread err: %d, %d", len, onceRead);
             APPV_FREE(onceBuf);
             return V_ERR;
         }
-        int ret = mbedtls_md_update(mdCtx, onceBuf, onceRead);
+        int32_t ret = mbedtls_md_update(mdCtx, onceBuf, onceRead);
         APPV_FREE(onceBuf);
         P_ERR_RETURN_WTTH_LOG(ret);
         readLenLeft -= onceRead;
@@ -206,23 +207,23 @@ static int UpdateSmallBlock(int readLen, const int fp, mbedtls_md_context_t *mdC
     return V_OK;
 }
 
-static int ComputerFileHash(const SignatureInfo *signInfo, int digestAlgorithm, const int fp,
-    const HapBuf *chunkDigest, int *offset)
+static int32_t ComputerFileHash(const SignatureInfo *signInfo, int32_t digestAlgorithm, const int32_t fp,
+    const HapBuf *chunkDigest, int32_t *offset)
 {
     mbedtls_md_context_t *mdCtx = APPV_MALLOC(sizeof(mbedtls_md_context_t));
     P_NULL_RETURN_WTTH_LOG(mdCtx);
     lseek(fp, 0, SEEK_SET);
-    int pos = 0;
-    int rawBufLen = signInfo->fullSignBlockOffset;
+    int32_t pos = 0;
+    int32_t rawBufLen = signInfo->fullSignBlockOffset;
     while (rawBufLen > 0) {
         size_t hlen = 0;
-        int readLen = (rawBufLen > HASH_BLOB_LEN) ? HASH_BLOB_LEN : rawBufLen;
+        int32_t readLen = (rawBufLen > HASH_BLOB_LEN) ? HASH_BLOB_LEN : rawBufLen;
         const mbedtls_md_info_t *mdInfo = mbedtls_md_info_from_type((mbedtls_md_type_t)digestAlgorithm);
         if (mdInfo == NULL) {
             APPV_FREE(mdCtx);
             return V_ERR;
         }
-        int ret = HapUpdateDigistHead(digestAlgorithm, mdCtx, mdInfo, readLen, &hlen);
+        int32_t ret = HapUpdateDigistHead(digestAlgorithm, mdCtx, mdInfo, readLen, &hlen);
         P_ERR_GOTO_WTTH_LOG(ret);
         LOG_INFO("content: %d, %d", rawBufLen, pos);
         ret = UpdateSmallBlock(readLen, fp, mdCtx);
@@ -247,31 +248,31 @@ EXIT:
     return V_ERR;
 }
 
-static int ComputerCoreDirHash(const SignatureInfo *signInfo, int digestAlgorithm, const int fp,
-    const HapBuf *chunkDigest, int *offset)
+static int32_t ComputerCoreDirHash(const SignatureInfo *signInfo, int32_t digestAlgorithm, const int32_t fp,
+    const HapBuf *chunkDigest, int32_t *offset)
 {
-    int centralDirSize = signInfo->hapEocdOffset - signInfo->hapCoreDirOffset;
+    int32_t centralDirSize = signInfo->hapEocdOffset - signInfo->hapCoreDirOffset;
     if (centralDirSize <= 0) {
         return V_ERR;
     }
     char *dirBuf = APPV_MALLOC(centralDirSize);
     P_NULL_RETURN_WTTH_LOG(dirBuf);
     lseek(fp, signInfo->hapCoreDirOffset, SEEK_SET);
-    int len = read(fp, dirBuf, sizeof(char) * centralDirSize);
+    int32_t len = read(fp, dirBuf, sizeof(char) * centralDirSize);
     if (len != centralDirSize) {
         LOG_ERROR("fread err: %d, %d", len, centralDirSize);
         APPV_FREE(dirBuf);
         return V_ERR;
     }
-    int ret = ComputeBlockHash(dirBuf, centralDirSize, digestAlgorithm, chunkDigest, offset);
+    int32_t ret = ComputeBlockHash(dirBuf, centralDirSize, digestAlgorithm, chunkDigest, offset);
     (void)memset_s(dirBuf, centralDirSize, 0, centralDirSize);
     APPV_FREE(dirBuf);
     P_ERR_RETURN_WTTH_LOG(ret);
     return V_OK;
 }
 
-static int ComputerEocdHash(const SignatureInfo *signInfo, int digestAlgorithm, const int fp,
-    const HapBuf *chunkDigest, int *offset)
+static int32_t ComputerEocdHash(const SignatureInfo *signInfo, int32_t digestAlgorithm, const int32_t fp,
+    const HapBuf *chunkDigest, int32_t *offset)
 {
     if (signInfo->hapEocdSize <= 0) {
         return V_ERR;
@@ -279,38 +280,39 @@ static int ComputerEocdHash(const SignatureInfo *signInfo, int digestAlgorithm, 
     HapEocd *eocdBuf = APPV_MALLOC(signInfo->hapEocdSize);
     P_NULL_RETURN_WTTH_LOG(eocdBuf);
     lseek(fp, signInfo->hapEocdOffset, SEEK_SET);
-    int len = read(fp, eocdBuf, signInfo->hapEocdSize);
+    int32_t len = read(fp, eocdBuf, signInfo->hapEocdSize);
     if (len != signInfo->hapEocdSize) {
         LOG_ERROR("fread err: %d, %d", len, signInfo->hapEocdSize);
         APPV_FREE(eocdBuf);
         return V_ERR;
     }
     HapPutInt32((unsigned char*)(&(eocdBuf->eocdHead.coreDirOffset)), sizeof(int), signInfo->fullSignBlockOffset);
-    int ret = ComputeBlockHash((char *)(eocdBuf), len, digestAlgorithm, chunkDigest, offset);
+    int32_t ret = ComputeBlockHash((char *)(eocdBuf), len, digestAlgorithm, chunkDigest, offset);
     (void)memset_s(eocdBuf, signInfo->hapEocdSize, 0, signInfo->hapEocdSize);
     APPV_FREE(eocdBuf);
     P_ERR_RETURN_WTTH_LOG(ret);
     return V_OK;
 }
 
-bool VerifyIntegrityChunk(int digestAlgorithm, const int fp,
+bool VerifyIntegrityChunk(int32_t digestAlgorithm, const int32_t fp,
     const SignatureInfo *signInfo, const HapBuf *actualDigest)
 {
     if (signInfo == NULL || actualDigest == NULL || actualDigest->buffer == NULL) {
         return false;
     }
-    int centralDirSize = signInfo->hapEocdOffset - signInfo->hapCoreDirOffset;
-    int rootHashLen = GetHashUnitLen(digestAlgorithm);
+    int32_t centralDirSize = signInfo->hapEocdOffset - signInfo->hapCoreDirOffset;
+    int32_t rootHashLen = GetHashUnitLen(digestAlgorithm);
     if (rootHashLen < 0) {
         LOG_ERROR("alg error");
         return false;
     }
-    int sumCount = GetChunkSumCount(signInfo->fullSignBlockOffset, centralDirSize, signInfo->hapEocdSize, rootHashLen);
+    int32_t sumCount = GetChunkSumCount(
+        signInfo->fullSignBlockOffset, centralDirSize, signInfo->hapEocdSize, rootHashLen);
     if (sumCount == 0) {
         LOG_ERROR("sum count error");
         return false;
     }
-    int sumOfChunksLen = HAP_DIGEST_PRIFIX_LEN + sumCount * rootHashLen;
+    int32_t sumOfChunksLen = HAP_DIGEST_PRIFIX_LEN + sumCount * rootHashLen;
     HapBuf chunkDigest = {0};
     if (!CreateHapBuffer(&chunkDigest, sumOfChunksLen)) {
         return false;
@@ -318,8 +320,8 @@ bool VerifyIntegrityChunk(int digestAlgorithm, const int fp,
     LOG_INFO("alg: %d", digestAlgorithm);
     HapPutByte(&chunkDigest, 0, HAP_FIRST_LEVEL_CHUNK_PREFIX);
     HapSetInt32(&chunkDigest, 1, sumCount);
-    int offset = HAP_DIGEST_PRIFIX_LEN;
-    int ret;
+    int32_t offset = HAP_DIGEST_PRIFIX_LEN;
+    int32_t ret;
     ret = ComputerFileHash(signInfo, digestAlgorithm, fp, &chunkDigest, &offset);
     P_ERR_GOTO_WTTH_LOG(ret);
     ret = ComputerCoreDirHash(signInfo, digestAlgorithm, fp, &chunkDigest, &offset);

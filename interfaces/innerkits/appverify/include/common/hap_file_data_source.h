@@ -29,7 +29,7 @@ public:
     bool HasRemaining() const override;
     long long Remaining() const override;
     void Reset() override;
-    bool ReadDataAndDigestUpdate(const DigestParameter& digestParam, int chunkSize) override;
+    bool ReadDataAndDigestUpdate(const DigestParameter& digestParam, int32_t chunkSize) override;
 
 private:
     RandomAccessFile& hapFileRandomAccess;

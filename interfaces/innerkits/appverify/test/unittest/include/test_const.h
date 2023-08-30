@@ -15,6 +15,7 @@
 #ifndef HAPVERIFY_TEST_CONST_H
 #define HAPVERIFY_TEST_CONST_H
 
+#include <cstdint>
 #include <string>
 
 namespace OHOS {
@@ -25,48 +26,48 @@ namespace Verify {
 
 constexpr char TEST_HAPBYTEBUFFER_CHAR_DATA = 0xff;
 constexpr unsigned short TEST_HAPBYTEBUFFER_UINT16_DATA = 0xffff;
-constexpr unsigned int TEST_HAPBYTEBUFFER_UINT32_DATA = 0xffffffff;
-constexpr int TEST_HAPBYTEBUFFER_INT32_DATA = 0xffffffff;
+constexpr uint32_t TEST_HAPBYTEBUFFER_UINT32_DATA = 0xffffffff;
+constexpr int32_t TEST_HAPBYTEBUFFER_INT32_DATA = 0xffffffff;
 constexpr long long TEST_HAPBYTEBUFFER_INT64_DATA = 0xffffffffffffffff;
-constexpr int TEST_HAPBYTEBUFFER_INT32_DATA_2 = 100000;
-constexpr int TEST_HAPBYTEBUFFER_INVALID_INDEX = -1;
+constexpr int32_t TEST_HAPBYTEBUFFER_INT32_DATA_2 = 100000;
+constexpr int32_t TEST_HAPBYTEBUFFER_INVALID_INDEX = -1;
 
-constexpr int TEST_RANDOMREAD_LENGTH = 150000;
-constexpr int TEST_HAPBYTEBUFFER_LENGTH = 15;
-constexpr int TEST_HAPBYTEBUFFER_LENGTH_2 = 8;
-constexpr int TEST_HAPBYTEBUFFER_POSITION = 10;
+constexpr int32_t TEST_RANDOMREAD_LENGTH = 150000;
+constexpr int32_t TEST_HAPBYTEBUFFER_LENGTH = 15;
+constexpr int32_t TEST_HAPBYTEBUFFER_LENGTH_2 = 8;
+constexpr int32_t TEST_HAPBYTEBUFFER_POSITION = 10;
 
-constexpr int TEST_HAPBYTEBUFFER_UINT16_LENGTH = 2;
-constexpr int TEST_HAPBYTEBUFFER_INT64_LENGTH = 8;
+constexpr int32_t TEST_HAPBYTEBUFFER_UINT16_LENGTH = 2;
+constexpr int32_t TEST_HAPBYTEBUFFER_INT64_LENGTH = 8;
 
-constexpr int TEST_FILE_BLOCK_LENGTH = 50;
-constexpr int TEST_FILE_BLOCK_COUNT = 3;
+constexpr int32_t TEST_FILE_BLOCK_LENGTH = 50;
+constexpr int32_t TEST_FILE_BLOCK_COUNT = 3;
 
-constexpr int TEST_FILE_CD_OFFSET_POSITION = 6;
+constexpr int32_t TEST_FILE_CD_OFFSET_POSITION = 6;
 
-constexpr int TEST_HAP_SIGN_VERSION = 1;
+constexpr int32_t TEST_HAP_SIGN_VERSION = 1;
 
-constexpr int TEST_MAX_COMMENT_SIZE = 4;
-constexpr int TEST_INVALID_MAX_COMMENT_SIZE = -1;
+constexpr int32_t TEST_MAX_COMMENT_SIZE = 4;
+constexpr int32_t TEST_INVALID_MAX_COMMENT_SIZE = -1;
 
-constexpr int TEST_ZIP_EOCD_SIZE = 22;
-constexpr int TEST_ZIP_ECD_OFFSET_FIELD_OFFSET = 16;
-constexpr int TEST_ZIP_ECD_SIZE_FIELD_OFFSET = 12;
+constexpr int32_t TEST_ZIP_EOCD_SIZE = 22;
+constexpr int32_t TEST_ZIP_ECD_OFFSET_FIELD_OFFSET = 16;
+constexpr int32_t TEST_ZIP_ECD_SIZE_FIELD_OFFSET = 12;
 
-constexpr int TEST_NULL_NID = 118;
-constexpr int TEST_SHA256_NID = 672;
-constexpr int TEST_SHA384_NID = 673;
-constexpr int TEST_SHA512_NID = 674;
+constexpr int32_t TEST_NULL_NID = 118;
+constexpr int32_t TEST_SHA256_NID = 672;
+constexpr int32_t TEST_SHA384_NID = 673;
+constexpr int32_t TEST_SHA512_NID = 674;
 
-constexpr int TEST_MINI_HAP_FILE_LENGTH = 2619;
+constexpr int32_t TEST_MINI_HAP_FILE_LENGTH = 2619;
 
-constexpr int TEST_SIGN_VERSION = 2;
-constexpr int TEST_CERT_CHAIN_LEN = 3;
+constexpr int32_t TEST_SIGN_VERSION = 2;
+constexpr int32_t TEST_CERT_CHAIN_LEN = 3;
 
-constexpr int TEST_FILE_NUM = 2;
-constexpr int TEST_PFOFILE_PKCS7_DATA_INDEX = 5110;
-constexpr int TEST_APP_PKCS7_DATA_INDEX = 7000;
-constexpr int TEST_VERSION_CODE = 1;
+constexpr int32_t TEST_FILE_NUM = 2;
+constexpr int32_t TEST_PFOFILE_PKCS7_DATA_INDEX = 5110;
+constexpr int32_t TEST_APP_PKCS7_DATA_INDEX = 7000;
+constexpr int32_t TEST_VERSION_CODE = 1;
 
 const std::string TEST_ANS_TIME = "000000000000Z";
 const std::string TEST_FINGERPRINT = "7A1B38212FE86369DECE606D901CB66C7199CC1BDC4EFF52A86EFBFFB1B99A19";

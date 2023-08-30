@@ -315,7 +315,7 @@ AppProvisionVerifyResult CheckDeviceID(ProvisionInfo& info)
     }
 #else
     char udid[DEV_UUID_LEN] = {0};
-    int ret = GetDevUdid(udid, sizeof(udid));
+    int32_t ret = GetDevUdid(udid, sizeof(udid));
     if (ret != EC_SUCCESS) {
         HAPVERIFY_LOG_ERROR(LABEL, "obtaining current device id failed (%{public}d).", static_cast<int>(ret));
         return PROVISION_DEVICE_UNAUTHORIZED;

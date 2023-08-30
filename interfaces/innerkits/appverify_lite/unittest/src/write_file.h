@@ -15,10 +15,11 @@
 #ifndef APPSECURITY_WRITE_FILE_H
 #define APPSECURITY_WRITE_FILE_H
 
+#include <cstdint>
 #include <stdio.h>
 #include <stdlib.h>
 void DeleteFile(const char *path);
-int CopyFile(const char *org, const char *dest);
+int32_t CopyFile(const char *org, const char *dest);
 const char* GetWrongLiceseHap(void);
 const char* GetUnsignedHap(void);
 const char* GetWrongUdidHap(void);

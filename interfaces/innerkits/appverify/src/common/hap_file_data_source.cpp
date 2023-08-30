@@ -45,7 +45,7 @@ void HapFileDataSource::Reset()
     sourcePosition = 0;
 }
 
-bool HapFileDataSource::ReadDataAndDigestUpdate(const DigestParameter& digestParam, int chunkSize)
+bool HapFileDataSource::ReadDataAndDigestUpdate(const DigestParameter& digestParam, int32_t chunkSize)
 {
     if (!hapFileRandomAccess.ReadFileFromOffsetAndDigestUpdate(digestParam, chunkSize, fileOffset + sourcePosition)) {
         HAPVERIFY_LOG_ERROR(LABEL, "ReadFileFromOffsetAndDigestUpdate failed");

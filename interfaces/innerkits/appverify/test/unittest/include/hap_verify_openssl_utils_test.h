@@ -15,8 +15,10 @@
 #ifndef HAP_VERIFY_OPENSSL_UTILS_TEST_H
 #define HAP_VERIFY_OPENSSL_UTILS_TEST_H
 
+#include <cstdint>
+
 #include "test_const.h"
 
-int VerifyPkcs7001(void);
-int GetDigestAlgorithmId001(void);
+int32_t VerifyPkcs7001(void);
+int32_t GetDigestAlgorithmId001(void);
 #endif // HAP_VERIFY_OPENSSL_UTILS_TEST_H

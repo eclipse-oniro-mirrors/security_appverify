@@ -16,6 +16,8 @@
 #ifndef SECURITY_APP_PROVISION_H
 #define SECURITY_APP_PROVISION_H
 
+#include <stdint.h>
+
 #include "app_verify_pub.h"
 
 #ifdef __cplusplus
@@ -33,9 +35,9 @@ extern "C" {
 #define MAX_UDID_NUM 100
 
 #define UDID_VERIFY_BYTES 64
-int ParseProfile(const char *buf, int len, ProfileProf *pf);
+int32_t ParseProfile(const char *buf, int32_t len, ProfileProf *pf);
 void ProfFreeData(ProfileProf *pf);
-int VerifyProfileContent(const ProfileProf *pf);
+int32_t VerifyProfileContent(const ProfileProf *pf);
 
 #ifdef __cplusplus
 #if __cplusplus

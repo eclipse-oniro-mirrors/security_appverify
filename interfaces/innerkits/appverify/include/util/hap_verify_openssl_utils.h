@@ -50,45 +50,45 @@ enum SignatureAlgorithm {
 class HapVerifyOpensslUtils {
 public:
     DLL_EXPORT static bool ParsePkcs7Package(const unsigned char packageData[],
-        unsigned int packageLen, Pkcs7Context& pkcs7Context);
+        uint32_t packageLen, Pkcs7Context& pkcs7Context);
     DLL_EXPORT static bool GetCertChains(PKCS7* p7, Pkcs7Context& pkcs7Context);
     DLL_EXPORT static bool VerifyPkcs7(Pkcs7Context& pkcs7Context);
     DLL_EXPORT static bool GetPublickeys(const CertChain& signCertChain, std::vector<std::string>& SignatureVec);
     DLL_EXPORT static bool GetSignatures(const CertChain& signCertChain, std::vector<std::string>& SignatureVec);
-    static int GetDigest(const HapByteBuffer& chunk, const std::vector<OptionalBlock>& optionalBlocks,
+    static int32_t GetDigest(const HapByteBuffer& chunk, const std::vector<OptionalBlock>& optionalBlocks,
         const DigestParameter& digestParameter, unsigned char (&out)[EVP_MAX_MD_SIZE]);
     static bool DigestInit(const DigestParameter& digestParameter);
-    static bool DigestUpdate(const DigestParameter& digestParameter, const unsigned char content[], int len);
-    static int GetDigest(const DigestParameter& digestParameter, unsigned char (&out)[EVP_MAX_MD_SIZE]);
-    static int GetDigestAlgorithmOutputSizeBytes(int nId);
-    DLL_EXPORT static int GetDigestAlgorithmId(int signAlgorithm);
+    static bool DigestUpdate(const DigestParameter& digestParameter, const unsigned char content[], int32_t len);
+    static int32_t GetDigest(const DigestParameter& digestParameter, unsigned char (&out)[EVP_MAX_MD_SIZE]);
+    static int32_t GetDigestAlgorithmOutputSizeBytes(int32_t nId);
+    DLL_EXPORT static int32_t GetDigestAlgorithmId(int32_t signAlgorithm);
     static void GetOpensslErrorMessage();
 
 private:
     DLL_EXPORT static bool VerifyPkcs7SignedData(Pkcs7Context& pkcs7Context);
     DLL_EXPORT static bool VerifySignInfo(STACK_OF(PKCS7_SIGNER_INFO)* signerInfoStack,
-        BIO* p7Bio, int signInfoNum, Pkcs7Context& pkcs7Context);
+        BIO* p7Bio, int32_t signInfoNum, Pkcs7Context& pkcs7Context);
     DLL_EXPORT static bool GetPublickeyFromCertificate(const X509* ptrX509, std::vector<std::string>& publicKeyVec);
     DLL_EXPORT static bool GetDerCert(X509* ptrX509, std::vector<std::string>& SignatureVec);
     static bool VerifyShaWithRsaPss(const PKCS7_SIGNER_INFO* signInfo, BIO* p7Bio, EVP_PKEY* pkey, bool isPss);
     DLL_EXPORT static bool VerifyShaWithRsaPss(const PKCS7_SIGNER_INFO* signInfo, EVP_PKEY* pkey, bool isPss,
-        const unsigned char digest[], unsigned int digestLen);
+        const unsigned char digest[], uint32_t digestLen);
     static bool VerifyCertChain(CertChain& certsChain, PKCS7* p7, PKCS7_SIGNER_INFO* signInfo,
         Pkcs7Context& pkcs7Context, CertSign& certVisitSign);
     static bool IsEnablePss(const PKCS7_SIGNER_INFO* signInfo);
     static bool GetContentInfo(const PKCS7* p7ContentInfo, HapByteBuffer& content);
     static bool CheckPkcs7SignedDataIsValid(const PKCS7* p7);
-    DLL_EXPORT static bool AsnStringCmp(const ASN1_OCTET_STRING* asnStr, const unsigned char data[], int len);
-    static bool VerifyPkcs7AuthAttributes(const PKCS7_SIGNER_INFO* signInfo, EVP_MD_CTX* mdCtx, int mdType);
-    static const EVP_MD_CTX* FindMdCtxInBio(BIO* p7Bio, int mdType);
+    DLL_EXPORT static bool AsnStringCmp(const ASN1_OCTET_STRING* asnStr, const unsigned char data[], int32_t len);
+    static bool VerifyPkcs7AuthAttributes(const PKCS7_SIGNER_INFO* signInfo, EVP_MD_CTX* mdCtx, int32_t mdType);
+    static const EVP_MD_CTX* FindMdCtxInBio(BIO* p7Bio, int32_t mdType);
     static bool CheckDigestParameter(const DigestParameter& digestParameter);
 
 private:
-    static const int OPENSSL_PKCS7_VERIFY_SUCCESS;
-    static const int OPENSSL_ERR_MESSAGE_MAX_LEN;
-    static const int OPENSSL_READ_DATA_MAX_TIME;
-    static const int OPENSSL_READ_DATA_LEN_EACH_TIME;
-    static const int MAX_OID_LENGTH;
+    static const int32_t OPENSSL_PKCS7_VERIFY_SUCCESS;
+    static const int32_t OPENSSL_ERR_MESSAGE_MAX_LEN;
+    static const int32_t OPENSSL_READ_DATA_MAX_TIME;
+    static const int32_t OPENSSL_READ_DATA_LEN_EACH_TIME;
+    static const int32_t MAX_OID_LENGTH;
     static const std::string PKCS7_EXT_SHAWITHRSA_PSS;
 };
 } // namespace Verify

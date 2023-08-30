@@ -29,7 +29,7 @@
 #include "mbedtls_pkcs7.h"
 #include "securec.h"
 
-void HapPutByte(const HapBuf *hapBuffer, int offset, char value)
+void HapPutByte(const HapBuf *hapBuffer, int32_t offset, char value)
 {
     if (hapBuffer == NULL || hapBuffer->buffer == NULL) {
         return;
@@ -40,7 +40,7 @@ void HapPutByte(const HapBuf *hapBuffer, int offset, char value)
     return;
 }
 
-void HapPutData(const HapBuf *hapBuffer, int offset, const unsigned char *data, int len)
+void HapPutData(const HapBuf *hapBuffer, int32_t offset, const unsigned char *data, int32_t len)
 {
     if (hapBuffer == NULL || hapBuffer->buffer == NULL) {
         return;
@@ -52,7 +52,7 @@ void HapPutData(const HapBuf *hapBuffer, int offset, const unsigned char *data, 
     }
 }
 
-void HapSetInt32(const HapBuf *buffer, int offset, int value)
+void HapSetInt32(const HapBuf *buffer, int32_t offset, int32_t value)
 {
     if (value < 0) {
         LOG_ERROR("int32 value of out range: %d", value);
@@ -67,7 +67,7 @@ void HapSetInt32(const HapBuf *buffer, int offset, int value)
     return;
 }
 
-bool CreateHapBuffer(HapBuf *hapBuffer, int len)
+bool CreateHapBuffer(HapBuf *hapBuffer, int32_t len)
 {
     if (hapBuffer == NULL || len <= 0) {
         LOG_ERROR("create buf fail, buf is null");
@@ -93,13 +93,13 @@ void ClearHapBuffer(HapBuf *hapBuffer)
     hapBuffer->len = 0;
 }
 
-static bool GetEocd(const FileRead *hapFile, HapEocd *hapEocd, int *eocdOffset)
+static bool GetEocd(const FileRead *hapFile, HapEocd *hapEocd, int32_t *eocdOffset)
 {
     MmapInfo mmapInfo = {0};
     if (hapFile->len <= sizeof(MinEocd)) {
         return false;
     }
-    int ret = HapMMap(hapFile->len, 0, &mmapInfo, hapFile);
+    int32_t ret = HapMMap(hapFile->len, 0, &mmapInfo, hapFile);
     if (ret != V_OK) {
         LOG_ERROR("mmap not ok");
         return false;
@@ -118,11 +118,11 @@ static bool GetEocd(const FileRead *hapFile, HapEocd *hapEocd, int *eocdOffset)
         return true;
     }
     // only a few haps have comment and use this branch
-    int maxReadLen = ((unsigned int)(hapFile->len - sizeof(MinEocd)) > UINT16_MAX_VALUE) ?
+    int32_t maxReadLen = ((unsigned int)(hapFile->len - sizeof(MinEocd)) > UINT16_MAX_VALUE) ?
         UINT16_MAX_VALUE : (hapFile->len - sizeof(MinEocd));
     fileStart += hapFile->len - sizeof(MinEocd) - maxReadLen;
     LOG_INFO("maxReadLen %d", maxReadLen);
-    for (int i = 0; i < maxReadLen; i++) {
+    for (int32_t i = 0; i < maxReadLen; i++) {
         if ((HapGetShort((unsigned char*)fileStart + i + sizeof(MinEocd) - sizeof(short),
             sizeof(short)) == (maxReadLen - i)) &&
             (HapGetInt((unsigned char*)fileStart + i, sizeof(int)) == HAP_EOCD_MAGIC)) {
@@ -148,7 +148,7 @@ bool FindSignature(const FileRead *hapFile, SignatureInfo *signInfo)
     if (hapFile == NULL || signInfo == NULL) {
         return false;
     }
-    int eocdOffset = 0;
+    int32_t eocdOffset = 0;
     HapEocd hapEocd = {0};
     if (!GetEocd(hapFile, &hapEocd, &eocdOffset)) {
         LOG_ERROR("find Eocd fail");
@@ -165,7 +165,7 @@ bool FindSignature(const FileRead *hapFile, SignatureInfo *signInfo)
     return true;
 }
 
-int ReadFileFullyFromOffset(const HapBuf *buffer, int offset, const FileRead *file)
+int32_t ReadFileFullyFromOffset(const HapBuf *buffer, int32_t offset, const FileRead *file)
 {
     if (buffer == NULL || buffer->buffer == NULL || file == NULL) {
         return DEST_BUFFER_IS_NULL;
@@ -174,7 +174,7 @@ int ReadFileFullyFromOffset(const HapBuf *buffer, int offset, const FileRead *fi
         return READ_OFFSET_OUT_OF_RANGE;
     }
     lseek(file->fp, offset, SEEK_SET);
-    int readLen = read(file->fp, buffer->buffer, buffer->len);
+    int32_t readLen = read(file->fp, buffer->buffer, buffer->len);
     if (readLen != buffer->len) {
         LOG_ERROR("file read error %d --- %d", readLen, buffer->len);
         return READ_OFFSET_OUT_OF_RANGE;

@@ -62,10 +62,10 @@ long long CreatTestZipFile(const std::string& pathFile, SignatureInfo& signInfo)
     hapFile.write(reinterpret_cast<char*>(&signBlob), sizeof(signBlob));
     hapFile.write(reinterpret_cast<char*>(&profileBlob), sizeof(profileBlob));
     hapFile.write(reinterpret_cast<char*>(&propertyBlob), sizeof(propertyBlob));
-    for (int i = 0; i < TEST_FILE_BLOCK_COUNT; i++) {
+    for (int32_t i = 0; i < TEST_FILE_BLOCK_COUNT; i++) {
         hapFile.write(block, sizeof(block));
     }
-    int blockCount = TEST_FILE_BLOCK_COUNT;
+    int32_t blockCount = TEST_FILE_BLOCK_COUNT;
     hapFile.write(reinterpret_cast<char*>(&blockCount), sizeof(blockCount));
     long long signBlockSize = (sizeof(HapSubSignBlockHead) + sizeof(block)) * TEST_FILE_BLOCK_COUNT +
         HapSigningBlockUtils::ZIP_HEAD_OF_SIGNING_BLOCK_LENGTH;
@@ -74,17 +74,17 @@ long long CreatTestZipFile(const std::string& pathFile, SignatureInfo& signInfo)
     hapFile.write(reinterpret_cast<char*>(&magic), sizeof(magic));
     magic = HapSigningBlockUtils::HAP_SIG_BLOCK_MAGIC_HIGH_OLD;
     hapFile.write(reinterpret_cast<char*>(&magic), sizeof(magic));
-    int version = 1;
+    int32_t version = 1;
     hapFile.write(reinterpret_cast<char*>(&version), sizeof(version));
     /* input central direction */
     hapFile.write(block, sizeof(block));
     /* input end of central direction */
-    int zidEocdSign = HapSigningBlockUtils::ZIP_EOCD_SEGMENT_FLAG;
+    int32_t zidEocdSign = HapSigningBlockUtils::ZIP_EOCD_SEGMENT_FLAG;
     hapFile.write(reinterpret_cast<char*>(&zidEocdSign), sizeof(zidEocdSign));
     hapFile.write(reinterpret_cast<char*>(&magic), sizeof(magic));
-    unsigned int centralDirLen = sizeof(block);
+    uint32_t centralDirLen = sizeof(block);
     hapFile.write(reinterpret_cast<char*>(&centralDirLen), sizeof(centralDirLen));
-    unsigned int centralDirOffset = TEST_FILE_BLOCK_LENGTH + signBlockSize;
+    uint32_t centralDirOffset = TEST_FILE_BLOCK_LENGTH + signBlockSize;
     hapFile.write(reinterpret_cast<char*>(&centralDirOffset), sizeof(centralDirOffset));
     short eocdCommentLen = 0;
     hapFile.write(reinterpret_cast<char*>(&eocdCommentLen), sizeof(eocdCommentLen));
@@ -112,10 +112,10 @@ public:
 
     void TearDown();
 
-    static const int TEST_ZIP_BLOCKS_NUM_NEED_DIGEST;
+    static const int32_t TEST_ZIP_BLOCKS_NUM_NEED_DIGEST;
 };
 
-const int HapSigningBlockUtilsTest::TEST_ZIP_BLOCKS_NUM_NEED_DIGEST = 3;
+const int32_t HapSigningBlockUtilsTest::TEST_ZIP_BLOCKS_NUM_NEED_DIGEST = 3;
 
 void HapSigningBlockUtilsTest::SetUpTestCase(void)
 {
@@ -145,7 +145,7 @@ HWTEST_F(HapSigningBlockUtilsTest, FindHapSignatureTest001, TestSize.Level1)
      */
     std::string pathFile = "./test_hapverify.hap";
     SignatureInfo signInfo;
-    int sumLen = CreatTestZipFile(pathFile, signInfo);
+    int32_t sumLen = CreatTestZipFile(pathFile, signInfo);
     /*
      * @tc.steps: step2. test FindHapSignature function
      * @tc.expected: step2. the return will be true.
@@ -164,7 +164,7 @@ HWTEST_F(HapSigningBlockUtilsTest, FindHapSignatureTest001, TestSize.Level1)
     hapFile.open(pathFile.c_str(), std::ios::binary | std::ios::out);
     ASSERT_TRUE(hapFile.is_open());
     hapFile.seekp(sumLen - TEST_FILE_CD_OFFSET_POSITION, std::ios_base::beg);
-    unsigned int errorCentralDirOffset = 20;
+    uint32_t errorCentralDirOffset = 20;
     hapFile.write(reinterpret_cast<char*>(&errorCentralDirOffset), sizeof(errorCentralDirOffset));
     hapFile.close();
     ASSERT_FALSE(hapSignBlockUtils.FindHapSignature(hapTestFile, hapSignInfo));
@@ -220,7 +220,7 @@ HWTEST_F(HapSigningBlockUtilsTest, FindEocdInHapTest001, TestSize.Level1)
     std::ofstream hapFile;
     hapFile.open(pathFile.c_str(), std::ios::binary | std::ios::out | std::ios::trunc);
     ASSERT_TRUE(hapFile.is_open());
-    unsigned int centralDirLen = TEST_FILE_BLOCK_LENGTH;
+    uint32_t centralDirLen = TEST_FILE_BLOCK_LENGTH;
     hapFile.write(reinterpret_cast<char*>(&centralDirLen), sizeof(centralDirLen));
     hapFile.close();
     /*
@@ -232,12 +232,12 @@ HWTEST_F(HapSigningBlockUtilsTest, FindEocdInHapTest001, TestSize.Level1)
     std::pair<HapByteBuffer, long long> eocd;
     HapSigningBlockUtils hapSignBlockUtils;
     ASSERT_FALSE(hapSignBlockUtils.FindEocdInHap(hapTestFile, eocd));
-    int maxCommentSize = TEST_INVALID_MAX_COMMENT_SIZE;
+    int32_t maxCommentSize = TEST_INVALID_MAX_COMMENT_SIZE;
     ASSERT_FALSE(hapSignBlockUtils.FindEocdInHap(hapTestFile, maxCommentSize, eocd));
     maxCommentSize = TEST_MAX_COMMENT_SIZE;
     ASSERT_FALSE(hapSignBlockUtils.FindEocdInHap(hapTestFile, maxCommentSize, eocd));
     HapByteBuffer testHapBuffer(TEST_HAPBYTEBUFFER_LENGTH);
-    int offset = 0;
+    int32_t offset = 0;
     ASSERT_FALSE(hapSignBlockUtils.FindEocdInSearchBuffer(testHapBuffer, offset));
 }
 
@@ -253,9 +253,9 @@ HWTEST_F(HapSigningBlockUtilsTest, GetCentralDirectoryOffsetTest001, TestSize.Le
      * @tc.steps: step1. create a test eocd with invalid central offset and length.
      */
     HapByteBuffer testEocd(TEST_ZIP_EOCD_SIZE);
-    int centralDirLen = TEST_FILE_BLOCK_LENGTH;
+    int32_t centralDirLen = TEST_FILE_BLOCK_LENGTH;
     testEocd.PutInt32(TEST_ZIP_ECD_SIZE_FIELD_OFFSET, centralDirLen);
-    int centralDirOffset = TEST_FILE_BLOCK_LENGTH;
+    int32_t centralDirOffset = TEST_FILE_BLOCK_LENGTH;
     testEocd.PutInt32(TEST_ZIP_ECD_OFFSET_FIELD_OFFSET, centralDirOffset);
     HapSigningBlockUtils hapSignBlockUtils;
     ASSERT_FALSE(hapSignBlockUtils.SetUnsignedInt32(testEocd, 0, TEST_INVALID_MAX_COMMENT_SIZE));
@@ -283,7 +283,7 @@ HWTEST_F(HapSigningBlockUtilsTest, ClassifyHapSubSigningBlock001, TestSize.Level
      */
     SignatureInfo signInfo;
     HapByteBuffer subBlock;
-    unsigned int type = PROPERTY_BLOB;
+    uint32_t type = PROPERTY_BLOB;
     HapSigningBlockUtils hapSignBlockUtils;
     hapSignBlockUtils.ClassifyHapSubSigningBlock(signInfo, subBlock, type);
     ASSERT_FALSE(signInfo.optionBlocks.empty());
@@ -309,9 +309,10 @@ HWTEST_F(HapSigningBlockUtilsTest, ComputeDigestsWithOptionalBlock001, TestSize.
     HapSigningBlockUtils hapSignBlockUtils;
     HapByteBuffer chunkDigest(TEST_HAPBYTEBUFFER_LENGTH);
     HapByteBuffer finalDigest;
-    int nid = TEST_NULL_NID;
+    int32_t nid = TEST_NULL_NID;
     DigestParameter errorParam = hapSignBlockUtils.GetDigestParameter(nid);
-    int ret = hapSignBlockUtils.ComputeDigestsWithOptionalBlock(errorParam, optionalBlocks, chunkDigest, finalDigest);
+    int32_t ret = hapSignBlockUtils.ComputeDigestsWithOptionalBlock(
+        errorParam, optionalBlocks, chunkDigest, finalDigest);
     ASSERT_FALSE(ret);
     nid = TEST_SHA256_NID;
     DigestParameter digestParam = hapSignBlockUtils.GetDigestParameter(nid);
@@ -330,8 +331,8 @@ HWTEST_F(HapSigningBlockUtilsTest, GetSumOfChunkDigestLenTest001, TestSize.Level
      * @tc.steps: step1. input some error input to test GetSumOfChunkDigestLen
      * @tc.expected: step1. the return will be false.
      */
-    int chunkCount = 0;
-    int sumOfChunkDigestLen = 0;
+    int32_t chunkCount = 0;
+    int32_t sumOfChunkDigestLen = 0;
     DataSource* contents[TEST_ZIP_BLOCKS_NUM_NEED_DIGEST] = { nullptr, nullptr, nullptr };
     bool ret = HapSigningBlockUtils::GetSumOfChunkDigestLen(contents, 0, 0, chunkCount, sumOfChunkDigestLen);
     ASSERT_FALSE(ret);
@@ -340,7 +341,7 @@ HWTEST_F(HapSigningBlockUtilsTest, GetSumOfChunkDigestLenTest001, TestSize.Level
     ASSERT_FALSE(ret);
     HapByteBuffer testBuffer(TEST_ZIP_EOCD_SIZE);
     HapByteBufferDataSource testSource(testBuffer);
-    for (int i = 0; i < TEST_ZIP_BLOCKS_NUM_NEED_DIGEST; i++) {
+    for (int32_t i = 0; i < TEST_ZIP_BLOCKS_NUM_NEED_DIGEST; i++) {
         contents[i] = &testSource;
     }
     ret = HapSigningBlockUtils::GetSumOfChunkDigestLen(contents,

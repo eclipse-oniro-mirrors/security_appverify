@@ -83,7 +83,7 @@ HWTEST_F(HapVerifyOpensslUtilsTest, GetDigestAlgorithmId001, TestSize.Level1)
      * @tc.steps: step1. use different algorithm IDs to run OpensslVerifyPkcs7
      * @tc.expected: step1. the return will be nID.
      */
-    int nId = HapVerifyOpensslUtils::GetDigestAlgorithmId(ALGORITHM_SHA512_WITH_RSA_PSS);
+    int32_t nId = HapVerifyOpensslUtils::GetDigestAlgorithmId(ALGORITHM_SHA512_WITH_RSA_PSS);
     ASSERT_TRUE(nId == TEST_SHA512_NID);
     nId = HapVerifyOpensslUtils::GetDigestAlgorithmId(ALGORITHM_SHA384_WITH_RSA_PSS);
     ASSERT_TRUE(nId == TEST_SHA384_NID);
