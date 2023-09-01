@@ -28,34 +28,34 @@
 #include "securec.h"
 
 namespace {
-    const int MAX_FILE_LEN = 1000000;
-    const int ONCE_WRITE = 2000;
+    const int32_t MAX_FILE_LEN = 1000000;
+    const int32_t ONCE_WRITE = 2000;
 }
 
-int CopyFile(const char *org, const char *dest)
+int32_t CopyFile(const char *org, const char *dest)
 {
-    int ret = 0;
+    int32_t ret = 0;
     if (org == nullptr || dest == nullptr) {
         return -1;
     }
-    int in = open(dest, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+    int32_t in = open(dest, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
     if (in < 0) {
         return -1;
     }
 
-    int wholeLen = strlen(org);
+    int32_t wholeLen = strlen(org);
     if (wholeLen == 0 || wholeLen > MAX_FILE_LEN) {
         close(in);
         return -1;
     }
     std::unique_ptr<char[]> buffer = std::make_unique<char[]>(wholeLen);
     (void)memset_s(buffer.get(), wholeLen, 0, wholeLen);
-    int len = 0;
+    int32_t len = 0;
     mbedtls_base64_decode(reinterpret_cast<unsigned char *>(buffer.get()), static_cast<size_t>(wholeLen),
         reinterpret_cast<size_t *>(&len), reinterpret_cast<const unsigned char *>(org), static_cast<size_t>(wholeLen));
-    int num = 0;
+    int32_t num = 0;
     while (num < len) {
-        int trueLen = ((len - num) >= ONCE_WRITE) ? ONCE_WRITE : (len - num);
+        int32_t trueLen = ((len - num) >= ONCE_WRITE) ? ONCE_WRITE : (len - num);
         char *temp = buffer.get() + num;
         num += trueLen;
         ret = write(in, temp, trueLen);

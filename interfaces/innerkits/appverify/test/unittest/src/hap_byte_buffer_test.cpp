@@ -93,7 +93,7 @@ HWTEST_F (HapByteBufferTest, GetIntAndPutOperation001, TestSize.Level1)
      * @tc.expected: step1. The return result is false.
      */
     HapByteBuffer emptyBuffer;
-    int dataInt32;
+    int32_t dataInt32;
     ASSERT_FALSE(emptyBuffer.GetInt32(dataInt32));
     long long dataInt64;
     ASSERT_FALSE(emptyBuffer.GetInt64(dataInt64));
@@ -106,7 +106,7 @@ HWTEST_F (HapByteBufferTest, GetIntAndPutOperation001, TestSize.Level1)
     HapByteBuffer testBuffer(1);
     char testChar = TEST_HAPBYTEBUFFER_CHAR_DATA;
     testBuffer.PutData(0, &testChar, sizeof(testChar));
-    unsigned int dataUInt32;
+    uint32_t dataUInt32;
     ASSERT_FALSE(testBuffer.GetUInt32(1, dataUInt32));
     ASSERT_FALSE(testBuffer.GetInt32(1, dataInt32));
     ASSERT_FALSE(testBuffer.GetInt64(1, dataInt64));
@@ -128,7 +128,7 @@ HWTEST_F (HapByteBufferTest, GetIntAndPutOperation001, TestSize.Level1)
         sizeof(TEST_HAPBYTEBUFFER_UINT16_DATA));
     ASSERT_EQ(err, EOK);
     testBuffer2.PutData(sizeof(char), testUInt16, sizeof(testUInt16));
-    int testInt32 = TEST_HAPBYTEBUFFER_INT32_DATA;
+    int32_t testInt32 = TEST_HAPBYTEBUFFER_INT32_DATA;
     testBuffer2.PutInt32(sizeof(char) + sizeof(unsigned short), testInt32);
     char testInt64[TEST_HAPBYTEBUFFER_INT64_LENGTH];
     err = memcpy_s(testInt64, sizeof(testInt64), &TEST_HAPBYTEBUFFER_INT64_DATA,
@@ -173,7 +173,7 @@ HWTEST_F (HapByteBufferTest, Slice001, TestSize.Level1)
      * @tc.steps: step3. Get int32 from buffer1.
      * @tc.expected: step3. The return result is equal to TEST_HAPBYTEBUFFER_INT32_DATA_2.
      */
-    int testDataInt32;
+    int32_t testDataInt32;
     ASSERT_TRUE(buffer1.GetInt32(testDataInt32));
     ASSERT_EQ(testDataInt32, TEST_HAPBYTEBUFFER_INT32_DATA_2);
     /*
@@ -208,10 +208,10 @@ HWTEST_F (HapByteBufferTest, CopyPartialBuffer001, TestSize.Level1)
      */
     buffer1.Clear();
     buffer2.CopyPartialBuffer(buffer1, TEST_HAPBYTEBUFFER_LENGTH_2);
-    int target1;
+    int32_t target1;
     ASSERT_TRUE(buffer2.GetInt32(target1));
     ASSERT_EQ(target1, TEST_HAPBYTEBUFFER_INT32_DATA);
-    int target2;
+    int32_t target2;
     ASSERT_TRUE(buffer2.GetInt32(target2));
     ASSERT_EQ(target2, TEST_HAPBYTEBUFFER_INT32_DATA_2);
 }
@@ -277,7 +277,7 @@ HWTEST_F (HapByteBufferTest, IsEqual002, TestSize.Level1)
      * @tc.steps: step3. Put string to buffer1 and compare.
      * @tc.expected: step3. The return is true.
      */
-    for (int i = 0; i < static_cast<int>(testStr.size()); i++) {
+    for (int32_t i = 0; i < static_cast<int>(testStr.size()); i++) {
         buffer1.PutByte(i, testStr[i]);
     }
     ASSERT_TRUE(buffer1.IsEqual(testStr));

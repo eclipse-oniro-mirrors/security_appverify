@@ -39,7 +39,7 @@ bool Base64StringDecode(const std::string& base64String, HapByteBuffer& output)
     }
 
     const unsigned char* input = reinterpret_cast<const unsigned char*>(base64String.c_str());
-    int len = EVP_DecodeBlock(reinterpret_cast<unsigned char*>(decodeBuffer.get()), input, base64String.size());
+    int32_t len = EVP_DecodeBlock(reinterpret_cast<unsigned char*>(decodeBuffer.get()), input, base64String.size());
     if (len <= 0) {
         return false;
     }

@@ -17,9 +17,9 @@
 #include "app_verify_pub.h"
 #include "parameter.h"
 
-static int GetUdid(unsigned char *udid, int size)
+static int32_t GetUdid(unsigned char *udid, int32_t size)
 {
-    int ret = GetDevUdid((char *)udid, size);
+    int32_t ret = GetDevUdid((char *)udid, size);
     return ret;
 }
 

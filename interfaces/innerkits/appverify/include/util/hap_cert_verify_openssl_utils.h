@@ -31,7 +31,7 @@ class HapCertVerifyOpensslUtils {
 public:
     DLL_EXPORT static X509* GetX509CertFromPemString(const std::string& pemString);
     DLL_EXPORT static X509* GetX509CertFromBase64String(const std::string& base64String);
-    DLL_EXPORT static X509_CRL* GetX509CrlFromDerBuffer(const HapByteBuffer& crlBuffer, int offset, int len);
+    DLL_EXPORT static X509_CRL* GetX509CrlFromDerBuffer(const HapByteBuffer& crlBuffer, int32_t offset, int32_t len);
     DLL_EXPORT static void GenerateCertSignFromCertStack(STACK_OF(X509)* certs, CertSign& certVisitSign);
     DLL_EXPORT static void ClearCertVisitSign(CertSign& certVisitSign);
     DLL_EXPORT static bool GetCertsChain(CertChain& certsChain, CertSign& certVisitSign);
@@ -48,12 +48,12 @@ public:
     DLL_EXPORT static bool GetFingerprintBase64FromPemCert(const std::string& certStr, std::string& fingerprint);
     DLL_EXPORT static bool X509NameCompare(const X509_NAME* a, const X509_NAME* b);
     DLL_EXPORT static bool GetPublickeyBase64(const X509* cert, std::string& publicKey);
-    DLL_EXPORT static int CalculateLenAfterBase64Encode(int len);
+    DLL_EXPORT static int32_t CalculateLenAfterBase64Encode(int32_t len);
 
 private:
     DLL_EXPORT static X509* FindCertOfIssuer(X509* cert, CertSign& certVisitSign);
     DLL_EXPORT static std::string GetDnToString(X509_NAME* name);
-    DLL_EXPORT static void GetTextFromX509Name(X509_NAME* name, int nId, std::string& text);
+    DLL_EXPORT static void GetTextFromX509Name(X509_NAME* name, int32_t nId, std::string& text);
     DLL_EXPORT static X509_CRL* GetCrlBySignedCertIssuer(STACK_OF(X509_CRL)* crls, const X509* cert);
     DLL_EXPORT static bool CheckSignTimeInValidPeriod(const ASN1_TYPE* signTime,
         const ASN1_TIME* notBefore, const ASN1_TIME* notAfter);
@@ -61,11 +61,11 @@ private:
     DLL_EXPORT static bool CheckAsn1TypeIsValid(const ASN1_TYPE* asn1Type);
 
 private:
-    static const unsigned int MIN_CERT_CHAIN_LEN_NEED_VERIFY_CRL;
-    static const int OPENSSL_READ_CRL_MAX_TIME;
-    static const int OPENSSL_READ_CRL_LEN_EACH_TIME;
-    static const int BASE64_ENCODE_LEN_OF_EACH_GROUP_DATA;
-    static const int BASE64_ENCODE_PACKET_LEN;
+    static const uint32_t MIN_CERT_CHAIN_LEN_NEED_VERIFY_CRL;
+    static const int32_t OPENSSL_READ_CRL_MAX_TIME;
+    static const int32_t OPENSSL_READ_CRL_LEN_EACH_TIME;
+    static const int32_t BASE64_ENCODE_LEN_OF_EACH_GROUP_DATA;
+    static const int32_t BASE64_ENCODE_PACKET_LEN;
 };
 } // namespace Verify
 } // namespace Security

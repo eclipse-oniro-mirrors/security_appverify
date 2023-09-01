@@ -30,7 +30,7 @@ struct HapTicketSourceInfo {
     std::string sourceName;
     std::string ticketSigningCert;
     std::string issuer;
-    int maxCertsPath;
+    int32_t maxCertsPath;
     StringVec critialcalCertExtension;
 };
 
@@ -42,7 +42,7 @@ public:
     DLL_EXPORT bool Init();
     DLL_EXPORT void Recovery();
     DLL_EXPORT MatchingResult IsTrustedSource(const std::string& certSubject, const std::string& certIssuer,
-        int certListPath) const;
+        int32_t certListPath) const;
 
 private:
     TrustedTicketManager();
@@ -58,7 +58,7 @@ private:
         const JsonObjVec& trustedTicketJson);
     std::string EncapTrustedTicketSourceString(const HapTicketSourceInfo& ticketSourceInfo);
     MatchingResult MatchTrustedSource(const TicketSourceInfoVec& trustedTicketSources, const std::string& certSubject,
-        const std::string& certIssuer, int certListPath) const;
+        const std::string& certIssuer, int32_t certListPath) const;
     MatchingStates TrustedSourceListCompare(const std::string& certSubject, const std::string& certIssuer,
         const HapTicketSourceInfo& TicketSource) const;
     bool MatchSubject(const std::string& trustedSource, const std::string& certSubject) const;

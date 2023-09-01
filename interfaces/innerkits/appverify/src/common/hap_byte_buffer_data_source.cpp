@@ -43,7 +43,7 @@ void HapByteBufferDataSource::Reset()
     hapByteBuffer.Clear();
 }
 
-bool HapByteBufferDataSource::ReadDataAndDigestUpdate(const DigestParameter& digestParam, int chunkSize)
+bool HapByteBufferDataSource::ReadDataAndDigestUpdate(const DigestParameter& digestParam, int32_t chunkSize)
 {
     const unsigned char* chunk = reinterpret_cast<const unsigned char*>(hapByteBuffer.GetBufferPtr() +
         hapByteBuffer.GetPosition());

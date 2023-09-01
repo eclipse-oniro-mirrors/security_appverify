@@ -155,7 +155,7 @@ std::string TrustedTicketManager::EncapTrustedTicketSourceString(const HapTicket
 }
 
 MatchingResult TrustedTicketManager::IsTrustedSource(const std::string& certSubject,
-    const std::string& certIssuer, int certListPath) const
+    const std::string& certIssuer, int32_t certListPath) const
 {
     MatchingResult ret = MatchTrustedSource(TicketTrustedSources, certSubject, certIssuer, certListPath);
     if (ret.matchState != DO_NOT_MATCH) {
@@ -165,7 +165,7 @@ MatchingResult TrustedTicketManager::IsTrustedSource(const std::string& certSubj
 }
 
 MatchingResult TrustedTicketManager::MatchTrustedSource(const TicketSourceInfoVec& trustedTicketSources,
-    const std::string& certSubject, const std::string& certIssuer, int certListPath) const
+    const std::string& certSubject, const std::string& certIssuer, int32_t certListPath) const
 {
     MatchingResult ret;
     ret.matchState = DO_NOT_MATCH;

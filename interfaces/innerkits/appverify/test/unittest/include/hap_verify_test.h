@@ -15,8 +15,10 @@
 #ifndef HAP_VERIFY_TEST_H
 #define HAP_VERIFY_TEST_H
 
-int HapVerify001(void);
-int HapVerifyEnableDebug001(void);
-int HapVerify002(void);
-int HapVerifyOsApp001(void);
+#include <cstdint>
+
+int32_t HapVerify001(void);
+int32_t HapVerifyEnableDebug001(void);
+int32_t HapVerify002(void);
+int32_t HapVerifyOsApp001(void);
 #endif // HAP_VERIFY_TEST_H

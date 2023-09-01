@@ -16,6 +16,7 @@
 #ifndef MBEDTLS_PKCS7_H
 #define MBEDTLS_PKCS7_H
 #include <stdbool.h>
+#include <stdint.h>
 #include <mbedtls/asn1.h>
 #include <mbedtls/x509.h>
 #include <mbedtls/x509_crt.h>
@@ -59,12 +60,12 @@ typedef enum {
 typedef struct {
     char issuer[MAX_SIGNER_NAME_LEN];
     char subject[MAX_SIGNER_NAME_LEN];
-    int depth;
+    int32_t depth;
 } SignerResovledInfo;
 
 typedef struct {
     SignerResovledInfo *signers;
-    int nrOfSigners;
+    int32_t nrOfSigners;
 } SignersResovedInfo;
 
 /*
@@ -76,7 +77,7 @@ typedef struct {
  * crt is the certs list header, the lower ca cert is at front
  */
 typedef struct {
-    int depth;
+    int32_t depth;
     mbedtls_x509_crt *crt;
 } SignerCertPath;
 
@@ -87,7 +88,7 @@ typedef struct {
  * next is point to the next signer info, as PKCS7 definination, maybe there are multi signer
  */
 typedef struct tagSignerInfo {
-    int version;
+    int32_t version;
     mbedtls_x509_buf serial;
     mbedtls_x509_name issuer;
     mbedtls_x509_crt *rootCert;
@@ -122,7 +123,7 @@ typedef struct tagDigestAlgId {
  * PKCS7 signed-data structure
  */
 typedef struct {
-    int version;
+    int32_t version;
     DigestAlgId digestAlgIds;
     Content content;
     mbedtls_x509_crt *certs;
@@ -155,7 +156,7 @@ typedef struct {
  * Note        : need to call PKCS7_FreeRes to free the resource when success
  *               parse and use, no need to call PKCS7_FreeRes when parse failed
  *******************************************************************************/
-int PKCS7_ParseSignedData(const unsigned char *buf, size_t bufLen, Pkcs7 *pkcs7);
+int32_t PKCS7_ParseSignedData(const unsigned char *buf, size_t bufLen, Pkcs7 *pkcs7);
 
 /*******************************************************************************
  * Function    : PKCS7_VerifyCertsChain
@@ -163,7 +164,7 @@ int PKCS7_ParseSignedData(const unsigned char *buf, size_t bufLen, Pkcs7 *pkcs7)
  * Input       : pkcs7 -- the pkcs7 signed data header.
  * Return      : 0 on success, others on fail
  *******************************************************************************/
-int PKCS7_VerifyCertsChain(const Pkcs7 *pkcs7);
+int32_t PKCS7_VerifyCertsChain(const Pkcs7 *pkcs7);
 
 /*******************************************************************************
  * Function    : PKCS7_FreeRes
@@ -187,8 +188,8 @@ void PKCS7_FreeRes(Pkcs7 *pkcs7);
  *               hashLen - the length of calculated digest hash
  * Return      : 0 on success, others on fail
  *******************************************************************************/
-typedef int (*PKCS7_CalcDigest)(const Pkcs7 *pkcs7, const SignerInfo *signer,
-                                mbedtls_md_type_t algType, unsigned char *hash, size_t *hashLen);
+typedef int32_t (*PKCS7_CalcDigest)(const Pkcs7 *pkcs7, const SignerInfo *signer,
+    mbedtls_md_type_t algType, unsigned char *hash, size_t *hashLen);
 
 /*******************************************************************************
  * Function    : PKCS7_GetContentData
@@ -199,7 +200,7 @@ typedef int (*PKCS7_CalcDigest)(const Pkcs7 *pkcs7, const SignerInfo *signer,
  *               dataLen - the content data length
  * Return      : 0 on success, others on fail
  *******************************************************************************/
-int PKCS7_GetContentData(const Pkcs7 *pkcs7, unsigned char **data, size_t *dataLen);
+int32_t PKCS7_GetContentData(const Pkcs7 *pkcs7, unsigned char **data, size_t *dataLen);
 
 /*******************************************************************************
  * Function    : PKCS7_GetDigestInSignerAuthAttr
@@ -210,7 +211,7 @@ int PKCS7_GetContentData(const Pkcs7 *pkcs7, unsigned char **data, size_t *dataL
  *               digLen  - digest length
  * Return      : 0 on success, others on fail
  *******************************************************************************/
-int PKCS7_GetDigestInSignerAuthAttr(const SignerInfo *signer, unsigned char **dig, size_t *digLen);
+int32_t PKCS7_GetDigestInSignerAuthAttr(const SignerInfo *signer, unsigned char **dig, size_t *digLen);
 
 /*******************************************************************************
  * Function    : PKCS7_GetSignerAuthAttr
@@ -223,7 +224,7 @@ int PKCS7_GetDigestInSignerAuthAttr(const SignerInfo *signer, unsigned char **di
  *               dataLen - signer auth attribute data length
  * Return      : 0 on success, others on fail
  *******************************************************************************/
-int PKCS7_GetSignerAuthAttr(const SignerInfo *signer, unsigned char **data, size_t *dataLen);
+int32_t PKCS7_GetSignerAuthAttr(const SignerInfo *signer, unsigned char **data, size_t *dataLen);
 
 /*******************************************************************************
  * Function    : PKCS7_VerifySignerSignature
@@ -234,7 +235,7 @@ int PKCS7_GetSignerAuthAttr(const SignerInfo *signer, unsigned char **data, size
  * Output      : NA
  * Return      : 0 on success, others on fail
  *******************************************************************************/
-int PKCS7_VerifySignerSignature(const Pkcs7 *pkcs7, PKCS7_CalcDigest calcDigest);
+int32_t PKCS7_VerifySignerSignature(const Pkcs7 *pkcs7, PKCS7_CalcDigest calcDigest);
 
 /*******************************************************************************
  * Function    : PKCS7_GetAllSignersResolvedInfo
@@ -264,7 +265,7 @@ void PKCS7_FreeAllSignersResolvedInfo(SignersResovedInfo *sri);
  * Output      : NA
  * Return      : 0 on success, others on error
  *******************************************************************************/
-int PKCS7_EnableDebugMode(bool mode);
+int32_t PKCS7_EnableDebugMode(bool mode);
 
 #ifdef __cplusplus
 #if __cplusplus

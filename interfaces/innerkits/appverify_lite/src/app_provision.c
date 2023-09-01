@@ -44,7 +44,7 @@ static char *GetStringTag(const cJSON *root, const char *tag)
         LOG_PRINT_STR("failed to get %s", tag);
         return NULL;
     }
-    int objLen = strlen(jsonObj->valuestring);
+    int32_t objLen = strlen(jsonObj->valuestring);
     if (objLen < 0) {
         LOG_PRINT_STR("len error");
         return NULL;
@@ -63,12 +63,12 @@ static char *GetStringTag(const cJSON *root, const char *tag)
     return value;
 }
 
-static void FreeStringAttay(char **array, int num)
+static void FreeStringAttay(char **array, int32_t num)
 {
     if (array == NULL) {
         return;
     }
-    for (int i = 0; i < num; i++) {
+    for (int32_t i = 0; i < num; i++) {
         if (array[i] != NULL) {
             APPV_FREE(array[i]);
         }
@@ -77,14 +77,14 @@ static void FreeStringAttay(char **array, int num)
     return;
 }
 
-static char **GetStringArrayTag(const cJSON *root, const char *tag, int *numReturn)
+static char **GetStringArrayTag(const cJSON *root, const char *tag, int32_t *numReturn)
 {
     cJSON *jsonObj = cJSON_GetObjectItem(root, tag);
     if (jsonObj == NULL) {
         LOG_PRINT_STR("failed to get %s", tag);
         return NULL;
     }
-    int num = cJSON_GetArraySize(jsonObj);
+    int32_t num = cJSON_GetArraySize(jsonObj);
     if (num == 0) {
         LOG_ERROR("array num 0");
         *numReturn = 0;
@@ -98,14 +98,14 @@ static char **GetStringArrayTag(const cJSON *root, const char *tag, int *numRetu
     }
     (void)memset_s(value, sizeof(char *) * num, 0, sizeof(char *) * num);
 
-    for (int i = 0; i < num; i++) {
+    for (int32_t i = 0; i < num; i++) {
         cJSON *item = cJSON_GetArrayItem(jsonObj, i);
         P_NULL_GOTO_WTTH_LOG(item);
         if (item->valuestring == NULL) {
             LOG_ERROR("valuestring is NULL");
             return NULL;
         }
-        int len = strlen(item->valuestring);
+        int32_t len = strlen(item->valuestring);
         value[i] = APPV_MALLOC(len + 1);
         P_NULL_GOTO_WTTH_LOG(value[i]);
 
@@ -123,7 +123,7 @@ EXIT:
     return NULL;
 }
 
-static int GetProfValidity(const cJSON *root, ProfValidity *profVal)
+static int32_t GetProfValidity(const cJSON *root, ProfValidity *profVal)
 {
     cJSON *jsonObj = cJSON_GetObjectItem(root, "validity");
     if (jsonObj == NULL) {
@@ -147,7 +147,7 @@ static int GetProfValidity(const cJSON *root, ProfValidity *profVal)
     return V_OK;
 }
 
-static int GetProfBundleInfo(const cJSON *root, ProfBundleInfo *profVal)
+static int32_t GetProfBundleInfo(const cJSON *root, ProfBundleInfo *profVal)
 {
     cJSON *jsonObj = cJSON_GetObjectItem(root, "bundle-info");
     if (jsonObj == NULL) {
@@ -183,7 +183,7 @@ static int GetProfBundleInfo(const cJSON *root, ProfBundleInfo *profVal)
     return V_OK;
 }
 
-static int GetProfPermission(const cJSON *root, ProfPermission *profVal)
+static int32_t GetProfPermission(const cJSON *root, ProfPermission *profVal)
 {
     cJSON *jsonObj = cJSON_GetObjectItem(root, "permissions");
     if (jsonObj == NULL) {
@@ -195,7 +195,7 @@ static int GetProfPermission(const cJSON *root, ProfPermission *profVal)
     return V_OK;
 }
 
-static int GetProfDebugInfo(const cJSON *root, ProfDebugInfo *profVal)
+static int32_t GetProfDebugInfo(const cJSON *root, ProfDebugInfo *profVal)
 {
     cJSON *jsonObj = cJSON_GetObjectItem(root, "debug-info");
     if (jsonObj == NULL) {
@@ -211,11 +211,11 @@ static int GetProfDebugInfo(const cJSON *root, ProfDebugInfo *profVal)
     return V_OK;
 }
 
-static int GetProfIssuerInfo(const cJSON *root, ProfileProf *pf)
+static int32_t GetProfIssuerInfo(const cJSON *root, ProfileProf *pf)
 {
     pf->issuer = GetStringTag(root, "issuer");
     if (pf->issuer == NULL) {
-        int len = strlen(APP_STORE);
+        int32_t len = strlen(APP_STORE);
         pf->issuer = APPV_MALLOC(len + 1);
         if (pf->issuer == NULL) {
             return V_ERR;
@@ -281,12 +281,12 @@ void ProfFreeData(ProfileProf *pf)
 }
 
 /* parse profile */
-int ParseProfile(const char *buf, int len, ProfileProf *pf)
+int32_t ParseProfile(const char *buf, int32_t len, ProfileProf *pf)
 {
     P_NULL_RETURN_WTTH_LOG(pf);
     P_NULL_RETURN_WTTH_LOG(buf);
     ProfInit(pf);
-    int ret;
+    int32_t ret;
     char *pfStr = strchr(buf, '{');
     P_NULL_RETURN_WTTH_LOG(pfStr);
 
@@ -338,7 +338,7 @@ EXIT:
     return V_ERR;
 }
 
-static int VerifyAppTypeAndDistribution(const ProfileProf *pf)
+static int32_t VerifyAppTypeAndDistribution(const ProfileProf *pf)
 {
     if ((strcmp(pf->type, DEBUG_TYPE) != 0) && (strcmp(pf->type, RELEASE_TYPE) != 0)) {
         LOG_PRINT_STR("invalid app type: %s", pf->type);
@@ -355,7 +355,7 @@ static int VerifyAppTypeAndDistribution(const ProfileProf *pf)
     return V_OK;
 }
 
-static int VerifyAppBundleInfo(const ProfileProf *pf)
+static int32_t VerifyAppBundleInfo(const ProfileProf *pf)
 {
     if (strcmp(pf->type, DEBUG_TYPE) == 0) {
         if (strlen((char *)pf->bundleInfo.devCert) == 0) {
@@ -374,9 +374,9 @@ static int VerifyAppBundleInfo(const ProfileProf *pf)
     return V_OK;
 }
 
-static int VerifyUdid(const ProfileProf *pf)
+static int32_t VerifyUdid(const ProfileProf *pf)
 {
-    unsigned int size = UDID_VERIFY_BYTES + 1;
+    uint32_t size = UDID_VERIFY_BYTES + 1;
     if (pf->debugInfo.devidNum > MAX_UDID_NUM) {
         LOG_ERROR("udid num exceed maximum");
         return V_ERR;
@@ -387,13 +387,13 @@ static int VerifyUdid(const ProfileProf *pf)
         return V_ERR;
     }
     (void)memset_s(udid, size, 0, size);
-    int result = InquiryDeviceUdid(udid, size);
+    int32_t result = InquiryDeviceUdid(udid, size);
     if (result != INQUIRY_UDID_OK) {
         free(udid);
         LOG_ERROR("get udid fail, ret: %d", result);
         return V_ERR;
     }
-    for (int i = 0; i < pf->debugInfo.devidNum; i++) {
+    for (int32_t i = 0; i < pf->debugInfo.devidNum; i++) {
         if (strcmp((const char *)pf->debugInfo.deviceId[i], (const char *)udid) == 0) {
             LOG_INFO("find right udid");
             free(udid);
@@ -407,14 +407,14 @@ static int VerifyUdid(const ProfileProf *pf)
     return V_ERR;
 }
 
-static int VerifyDebugInfo(const ProfileProf *pf)
+static int32_t VerifyDebugInfo(const ProfileProf *pf)
 {
     if (strcmp(pf->type, DEBUG_TYPE) != 0) {
         LOG_INFO("not debug app, return ok");
         return V_OK;
     }
     LOG_PRINT_STR("devid type: %s", pf->debugInfo.devIdType);
-    int ret;
+    int32_t ret;
     if (strcmp(pf->debugInfo.devIdType, "udid") == 0) {
         ret = VerifyUdid(pf);
     } else {
@@ -424,10 +424,10 @@ static int VerifyDebugInfo(const ProfileProf *pf)
     return ret;
 }
 
-int VerifyProfileContent(const ProfileProf *pf)
+int32_t VerifyProfileContent(const ProfileProf *pf)
 {
     P_NULL_RETURN_WTTH_LOG(pf);
-    int ret = VerifyAppTypeAndDistribution(pf);
+    int32_t ret = VerifyAppTypeAndDistribution(pf);
     if (ret != V_OK) {
         LOG_PRINT_STR("invalid profile distribution type : %s", pf->appDistType);
         return V_ERR_INVALID_DISP_TYPE;

@@ -15,7 +15,7 @@
 
 #include "app_common.h"
 
-long long HapGetInt64(const unsigned char *buf, int len)
+long long HapGetInt64(const unsigned char *buf, int32_t len)
 {
     if (buf == NULL) {
         return 0;
@@ -30,18 +30,18 @@ long long HapGetInt64(const unsigned char *buf, int len)
     return (long long)value;
 }
 
-int HapGetInt(const unsigned char *buf, int len)
+int32_t HapGetInt(const unsigned char *buf, int32_t len)
 {
-    unsigned int value = HapGetUnsignedInt(buf, len);
+    uint32_t value = HapGetUnsignedInt(buf, len);
     return (int)value;
 }
 
-unsigned int HapGetUnsignedInt(const unsigned char *buf, int len)
+uint32_t HapGetUnsignedInt(const unsigned char *buf, int32_t len)
 {
     if (buf == NULL) {
         return 0;
     }
-    unsigned int value = 0;
+    uint32_t value = 0;
     if (len != sizeof(int)) {
         return 0;
     }
@@ -51,7 +51,7 @@ unsigned int HapGetUnsignedInt(const unsigned char *buf, int len)
     return value;
 }
 
-short HapGetShort(const unsigned char *buf, int len)
+short HapGetShort(const unsigned char *buf, int32_t len)
 {
     if (buf == NULL) {
         return 0;
@@ -66,13 +66,13 @@ short HapGetShort(const unsigned char *buf, int len)
     return (short)value;
 }
 
-void HapPutInt32(unsigned char *buf, int len, int value)
+void HapPutInt32(unsigned char *buf, int32_t len, int32_t value)
 {
     if (buf == NULL || len < sizeof(int)) {
         return;
     }
-    int i;
-    unsigned int var = (unsigned int)value;
+    int32_t i;
+    uint32_t var = (unsigned int)value;
     for (i = 0; i < sizeof(int); i++) {
         buf[i] = var;
         var = var >> (BYTE_BITS);

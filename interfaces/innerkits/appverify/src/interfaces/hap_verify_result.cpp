@@ -30,12 +30,12 @@ HapVerifyResult::~HapVerifyResult()
 {
 }
 
-int HapVerifyResult::GetVersion() const
+int32_t HapVerifyResult::GetVersion() const
 {
     return version;
 }
 
-void HapVerifyResult::SetVersion(int signatureVersion)
+void HapVerifyResult::SetVersion(int32_t signatureVersion)
 {
     version = signatureVersion;
 }
@@ -75,12 +75,12 @@ void HapVerifyResult::SetSignature(const std::vector<std::string>& inputSignatur
     signatures = inputSignatures;
 }
 
-int HapVerifyResult::GetProperty(std::string& property) const
+int32_t HapVerifyResult::GetProperty(std::string& property) const
 {
     return GetBlockFromOptionalBlocks(PROPERTY_BLOB, property);
 }
 
-int HapVerifyResult::GetBlockFromOptionalBlocks(int blockType, std::string& block) const
+int32_t HapVerifyResult::GetBlockFromOptionalBlocks(int32_t blockType, std::string& block) const
 {
     for (unsigned long i = 0; i < optionalBlocks.size(); i++) {
         if (optionalBlocks[i].optionalType == blockType) {

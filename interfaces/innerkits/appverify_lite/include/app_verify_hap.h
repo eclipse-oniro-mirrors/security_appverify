@@ -16,6 +16,8 @@
 #ifndef SECURITY_APP_VERIFY_HAP_H
 #define SECURITY_APP_VERIFY_HAP_H
 
+#include <stdint.h>
+
 #include "app_centraldirectory.h"
 #include "app_common.h"
 #include "app_file.h"
@@ -45,8 +47,9 @@ extern "C" {
 #define HASH_ALG_SHA384     MBEDTLS_MD_SHA384 /* sha384 */
 #define HASH_ALG_SHA512     MBEDTLS_MD_SHA512 /* sha512 */
 
-bool VerifyIntegrityChunk(int digestAlgorithm, int fp, const SignatureInfo *signInfo, const HapBuf *actualDigest);
-int GetDigestAlgorithmId(unsigned int signAlgorithm);
+bool VerifyIntegrityChunk(
+    int32_t digestAlgorithm, int32_t fp, const SignatureInfo *signInfo, const HapBuf *actualDigest);
+int32_t GetDigestAlgorithmId(uint32_t signAlgorithm);
 
 #ifdef __cplusplus
 #if __cplusplus

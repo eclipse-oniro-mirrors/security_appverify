@@ -32,16 +32,16 @@
 namespace OHOS {
 namespace Security {
 namespace Verify {
-const int HapVerifyV2::HEX_PRINT_LENGTH = 3;
-const int HapVerifyV2::DIGEST_BLOCK_LEN_OFFSET = 8;
-const int HapVerifyV2::DIGEST_ALGORITHM_OFFSET = 12;
-const int HapVerifyV2::DIGEST_LEN_OFFSET = 16;
-const int HapVerifyV2::DIGEST_OFFSET_IN_CONTENT = 20;
+const int32_t HapVerifyV2::HEX_PRINT_LENGTH = 3;
+const int32_t HapVerifyV2::DIGEST_BLOCK_LEN_OFFSET = 8;
+const int32_t HapVerifyV2::DIGEST_ALGORITHM_OFFSET = 12;
+const int32_t HapVerifyV2::DIGEST_LEN_OFFSET = 16;
+const int32_t HapVerifyV2::DIGEST_OFFSET_IN_CONTENT = 20;
 const std::string HapVerifyV2::HAP_APP_PATTERN = "[^]*.hap$";
 const std::string HapVerifyV2::HQF_APP_PATTERN = "[^]*.hqf$";
 const std::string HapVerifyV2::HSP_APP_PATTERN = "[^]*.hsp$";
 
-int HapVerifyV2::Verify(const std::string& filePath, HapVerifyResult& hapVerifyV1Result)
+int32_t HapVerifyV2::Verify(const std::string& filePath, HapVerifyResult& hapVerifyV1Result)
 {
     HAPVERIFY_LOG_DEBUG(LABEL, "Start Verify");
     std::string standardFilePath;
@@ -55,7 +55,7 @@ int HapVerifyV2::Verify(const std::string& filePath, HapVerifyResult& hapVerifyV
         return OPEN_FILE_ERROR;
     }
 
-    int resultCode = Verify(hapFile, hapVerifyV1Result);
+    int32_t resultCode = Verify(hapFile, hapVerifyV1Result);
     return resultCode;
 }
 
@@ -76,7 +76,7 @@ bool HapVerifyV2::CheckFilePath(const std::string& filePath, std::string& standa
     return true;
 }
 
-int HapVerifyV2::Verify(RandomAccessFile& hapFile, HapVerifyResult& hapVerifyV1Result)
+int32_t HapVerifyV2::Verify(RandomAccessFile& hapFile, HapVerifyResult& hapVerifyV1Result)
 {
     SignatureInfo hapSignInfo;
     if (!HapSigningBlockUtils::FindHapSignature(hapFile, hapSignInfo)) {
@@ -90,7 +90,7 @@ int HapVerifyV2::Verify(RandomAccessFile& hapFile, HapVerifyResult& hapVerifyV1R
     if (!VerifyAppPkcs7(pkcs7Context, hapSignInfo.hapSignatureBlock)) {
         return VERIFY_APP_PKCS7_FAIL;
     }
-    int profileIndex = 0;
+    int32_t profileIndex = 0;
     if (!HapSigningBlockUtils::GetOptionalBlockIndex(hapSignInfo.optionBlocks, PROFILE_BLOB, profileIndex)) {
         return NO_PROFILE_BLOCK_FAIL;
     }
@@ -127,7 +127,7 @@ int HapVerifyV2::Verify(RandomAccessFile& hapFile, HapVerifyResult& hapVerifyV1R
 bool HapVerifyV2::VerifyAppPkcs7(Pkcs7Context& pkcs7Context, const HapByteBuffer& hapSignatureBlock)
 {
     const unsigned char* pkcs7Block = reinterpret_cast<const unsigned char*>(hapSignatureBlock.GetBufferPtr());
-    unsigned int pkcs7Len = static_cast<unsigned int>(hapSignatureBlock.GetCapacity());
+    uint32_t pkcs7Len = static_cast<unsigned int>(hapSignatureBlock.GetCapacity());
     if (!HapVerifyOpensslUtils::ParsePkcs7Package(pkcs7Block, pkcs7Len, pkcs7Context)) {
         HAPVERIFY_LOG_ERROR(LABEL, "parse pkcs7 failed");
         return false;
@@ -348,7 +348,7 @@ bool HapVerifyV2::GetDigestAndAlgorithm(Pkcs7Context& digest)
      * byte[]: digest
      */
     /* length of sizeof(digestblock - 4) */
-    int digestBlockLen;
+    int32_t digestBlockLen;
     if (!digest.content.GetInt32(DIGEST_BLOCK_LEN_OFFSET, digestBlockLen)) {
         HAPVERIFY_LOG_ERROR(LABEL, "get digestBlockLen failed");
         return false;
@@ -359,13 +359,13 @@ bool HapVerifyV2::GetDigestAndAlgorithm(Pkcs7Context& digest)
         return false;
     }
     /* length of digest */
-    int digestlen;
+    int32_t digestlen;
     if (!digest.content.GetInt32(DIGEST_LEN_OFFSET, digestlen)) {
         HAPVERIFY_LOG_ERROR(LABEL, "get digestlen failed");
         return false;
     }
 
-    int sum = sizeof(digestlen) + sizeof(digest.digestAlgorithm) + digestlen;
+    int32_t sum = sizeof(digestlen) + sizeof(digest.digestAlgorithm) + digestlen;
     if (sum != digestBlockLen) {
         HAPVERIFY_LOG_ERROR(LABEL, "digestBlockLen: %{public}d is not equal to sum: %{public}d",
             digestBlockLen, sum);
@@ -379,7 +379,7 @@ bool HapVerifyV2::GetDigestAndAlgorithm(Pkcs7Context& digest)
     return true;
 }
 
-int HapVerifyV2::ParseHapProfile(const std::string& filePath, HapVerifyResult& hapVerifyV1Result)
+int32_t HapVerifyV2::ParseHapProfile(const std::string& filePath, HapVerifyResult& hapVerifyV1Result)
 {
     HAPVERIFY_LOG_INFO(LABEL, "start to ParseHapProfile");
     std::string standardFilePath;
@@ -398,13 +398,13 @@ int HapVerifyV2::ParseHapProfile(const std::string& filePath, HapVerifyResult& h
         return SIGNATURE_NOT_FOUND;
     }
 
-    int profileIndex = 0;
+    int32_t profileIndex = 0;
     if (!HapSigningBlockUtils::GetOptionalBlockIndex(hapSignInfo.optionBlocks, PROFILE_BLOB, profileIndex)) {
         return NO_PROFILE_BLOCK_FAIL;
     }
     auto pkcs7ProfileBlock = hapSignInfo.optionBlocks[profileIndex].optionalBlockValue;
     const unsigned char* pkcs7Block = reinterpret_cast<const unsigned char*>(pkcs7ProfileBlock.GetBufferPtr());
-    unsigned int pkcs7Len = static_cast<unsigned int>(pkcs7ProfileBlock.GetCapacity());
+    uint32_t pkcs7Len = static_cast<unsigned int>(pkcs7ProfileBlock.GetCapacity());
     Pkcs7Context profileContext;
     if (!HapVerifyOpensslUtils::ParsePkcs7Package(pkcs7Block, pkcs7Len, profileContext)) {
         HAPVERIFY_LOG_ERROR(LABEL, "parse pkcs7 failed");

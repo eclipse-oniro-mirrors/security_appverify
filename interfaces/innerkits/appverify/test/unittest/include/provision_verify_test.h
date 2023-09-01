@@ -14,12 +14,15 @@
  */
 #ifndef PROVISION_VERIFY_TEST_H
 #define PROVISION_VERIFY_TEST_H
-int ProvisionVerify001(void);
-int ProvisionVerify002(void);
-int ProvisionVerify003(void);
-int ProvisionVerify004(void);
-int ProvisionVerify005(void);
-int ProvisionVerify006(void);
-int ProvisionVerify007(void);
-int ProvisionVerify008(void);
+
+#include <cstdint>
+
+int32_t ProvisionVerify001(void);
+int32_t ProvisionVerify002(void);
+int32_t ProvisionVerify003(void);
+int32_t ProvisionVerify004(void);
+int32_t ProvisionVerify005(void);
+int32_t ProvisionVerify006(void);
+int32_t ProvisionVerify007(void);
+int32_t ProvisionVerify008(void);
 #endif // PROVISION_VERIFY_TEST_H

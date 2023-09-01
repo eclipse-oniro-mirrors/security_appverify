@@ -33,7 +33,7 @@ struct HapAppSourceInfo {
     std::string profileSigningCertificate;
     std::string profileDebugSigningCertificate;
     std::string issuer;
-    int maxCertsPath;
+    int32_t maxCertsPath;
     StringVec critialcalCertExtension;
 };
 
@@ -47,7 +47,7 @@ public:
     DLL_EXPORT bool EnableDebug();
     DLL_EXPORT void DisableDebug();
     DLL_EXPORT MatchingResult IsTrustedSource(const std::string& certSubject, const std::string& certIssuer,
-        HapBlobType blobType, int certListPath) const;
+        HapBlobType blobType, int32_t certListPath) const;
 
 private:
     TrustedSourceManager();
@@ -62,7 +62,7 @@ private:
     bool ParseTrustedAppSourceJson(SourceInfoVec& trustedAppSources, const JsonObjVec& trustedAppSourceJson);
     std::string EncapTrustedAppSourceString(const HapAppSourceInfo& appSourceInfo);
     MatchingResult MatchTrustedSource(const SourceInfoVec& trustedAppSources, const std::string& certSubject,
-        const std::string& certIssuer, HapBlobType blobType, int certListPath) const;
+        const std::string& certIssuer, HapBlobType blobType, int32_t certListPath) const;
     MatchingStates TrustedSourceListCompare(const std::string& certSubject, const std::string& certIssuer,
         const HapAppSourceInfo& appSource, HapBlobType blobType) const;
     TrustedSources GetTrustedSource(std::string& sourceName);

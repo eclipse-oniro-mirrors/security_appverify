@@ -16,6 +16,8 @@
 #ifndef SECURITY_APP_VERIFY_H
 #define SECURITY_APP_VERIFY_H
 
+#include <stdint.h>
+
 #include "mbedtls/pk.h"
 #include "app_centraldirectory.h"
 #include "app_provision.h"
@@ -77,18 +79,18 @@ typedef enum {
 
 /* block head */
 typedef struct {
-    unsigned int type;
-    unsigned int length;
-    unsigned int offset;
+    uint32_t type;
+    uint32_t length;
+    uint32_t offset;
 } BlockHead;
 
 /* sign content */
 typedef struct {
-    int version;  /* version */
-    int blockNum;
-    int size;
-    int algId;
-    int length;
+    int32_t version;  /* version */
+    int32_t blockNum;
+    int32_t size;
+    int32_t algId;
+    int32_t length;
     char hash[NORMAL_HASH_SIZE];
 } ContentInfo;
 
@@ -100,7 +102,7 @@ typedef struct {
 
 /* trusted app list */
 typedef struct {
-    int  maxCertPath;
+    int32_t  maxCertPath;
     char *name;
     char *appSignCert;
     char *profileSignCert;
@@ -109,19 +111,20 @@ typedef struct {
 } TrustAppCert;
 
 typedef struct {
-    int issuerLen;
+    int32_t issuerLen;
     char *issuer;
-    int subjectLen;
+    int32_t subjectLen;
     char *subject;
     mbedtls_pk_type_t pkType;
-    int pkLen;
+    int32_t pkLen;
     char *pkBuf;
 } CertInfo;
 
-int GetAppid(ProfileProf *profile);
-int CalculateHash(const unsigned char *input, int len, int hashAlg, unsigned char *output);
-int GetHashUnitLen(int hashAlg);
-char *GetSignBlockByType(const SignatureInfo *signInfo, int fp, int blockType, int *len, BlockHead *blockHead);
+int32_t GetAppid(ProfileProf *profile);
+int32_t CalculateHash(const unsigned char *input, int32_t len, int32_t hashAlg, unsigned char *output);
+int32_t GetHashUnitLen(int32_t hashAlg);
+char *GetSignBlockByType(
+    const SignatureInfo *signInfo, int32_t fp, int32_t blockType, int32_t *len, BlockHead *blockHead);
 
 #ifdef __cplusplus
 #if __cplusplus

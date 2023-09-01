@@ -15,9 +15,11 @@
 #ifndef HAP_VERIFY_RESULT_TEST_H
 #define HAP_VERIFY_RESULT_TEST_H
 
+#include <cstdint>
+
 #include "test_const.h"
 
-int GetPublicKeyAndSignature001(void);
-int GetProfileAndProperty001(void);
-int SetVersionAndGetVersion001(void);
+int32_t GetPublicKeyAndSignature001(void);
+int32_t GetProfileAndProperty001(void);
+int32_t SetVersionAndGetVersion001(void);
 #endif // HAP_VERIFY_RESULT_TEST_H

@@ -127,7 +127,7 @@ bool HapByteBuffer::GetInt64(int32_t index, long long& value)
     return true;
 }
 
-int HapByteBuffer::GetCapacity() const
+int32_t HapByteBuffer::GetCapacity() const
 {
     return capacity;
 }

@@ -36,8 +36,8 @@
 #include "util/pkcs7_context.h"
 
 namespace {
-const int MAXIMUM_DEVICES = 100;
-const int TICKET_MAX_SIZE = 18432;
+const int32_t MAXIMUM_DEVICES = 100;
+const int32_t TICKET_MAX_SIZE = 18432;
 const std::string TICKET_FILE_PATH = "/data/update/ticket/";
 const std::string VALUE_DEVICE_TYPE_UDID = "udid";
 } // namespace
@@ -103,7 +103,7 @@ AppProvisionVerifyResult CheckDevice(ProvisionInfo& info)
     }
 #else
     char udid[DEV_UUID_LEN] = {0};
-    int ret = GetDevUdid(udid, sizeof(udid));
+    int32_t ret = GetDevUdid(udid, sizeof(udid));
     if (ret != EC_SUCCESS) {
         HAPVERIFY_LOG_ERROR(LABEL, "obtaining current device id failed (%{public}d).", static_cast<int>(ret));
         return PROVISION_DEVICE_UNAUTHORIZED;
@@ -121,7 +121,7 @@ AppProvisionVerifyResult CheckDevice(ProvisionInfo& info)
     return PROVISION_OK;
 }
 
-int CompareTicketAndProfile(const ProvisionInfo& ticketInfo, const ProvisionInfo& profileInfo)
+int32_t CompareTicketAndProfile(const ProvisionInfo& ticketInfo, const ProvisionInfo& profileInfo)
 {
     if (ticketInfo.bundleInfo.bundleName != profileInfo.bundleInfo.bundleName) {
         HAPVERIFY_LOG_ERROR(LABEL, "ticket bundlename doesn't match");
@@ -165,7 +165,7 @@ int CompareTicketAndProfile(const ProvisionInfo& ticketInfo, const ProvisionInfo
 bool VerifyTicketSignature(HapByteBuffer& ticketBlock, Pkcs7Context& pkcs7Context, std::string& ticket)
 {
     const unsigned char* pkcs7Block = reinterpret_cast<const unsigned char*>(ticketBlock.GetBufferPtr());
-    unsigned int pkcs7Len = static_cast<unsigned int>(ticketBlock.GetCapacity());
+    uint32_t pkcs7Len = static_cast<unsigned int>(ticketBlock.GetCapacity());
     if (!HapVerifyOpensslUtils::ParsePkcs7Package(pkcs7Block, pkcs7Len, pkcs7Context)) {
         HAPVERIFY_LOG_ERROR(LABEL, "Parse ticket pkcs7 failed");
         return false;
@@ -201,13 +201,13 @@ bool VerifyTicketSignature(HapByteBuffer& ticketBlock, Pkcs7Context& pkcs7Contex
     return true;
 }
 
-int TicketParseAndVerify(const std::string& ticket, ProvisionInfo& ticketInfo,
+int32_t TicketParseAndVerify(const std::string& ticket, ProvisionInfo& ticketInfo,
     const ProvisionInfo& profileInfo)
 {
     if (ParseProvision(ticket, ticketInfo) != PROVISION_OK) {
         return TICKET_PARSE_FAIL;
     }
-    int ret = CompareTicketAndProfile(ticketInfo, profileInfo);
+    int32_t ret = CompareTicketAndProfile(ticketInfo, profileInfo);
     if (ret != TICKET_OK) {
         return ret;
     }
@@ -217,7 +217,7 @@ int TicketParseAndVerify(const std::string& ticket, ProvisionInfo& ticketInfo,
     return TICKET_OK;
 }
 
-int VerifyTicket(const std::string& filePath, const ProvisionInfo& profileInfo)
+int32_t VerifyTicket(const std::string& filePath, const ProvisionInfo& profileInfo)
 {
     HAPVERIFY_LOG_DEBUG(LABEL, "Enter Ticket Verify");
     RandomAccessFile ticketFile;
@@ -230,7 +230,7 @@ int VerifyTicket(const std::string& filePath, const ProvisionInfo& profileInfo)
         HAPVERIFY_LOG_ERROR(LABEL, "file length %{public}lld is too larger", fileLength);
         return OPEN_TICKET_FILE_ERROR;
     }
-    int fileLen = static_cast<int>(fileLength);
+    int32_t fileLen = static_cast<int>(fileLength);
     HapByteBuffer ticketBlock(fileLen);
     long long ret = ticketFile.ReadFileFullyFromOffset(ticketBlock, 0);
     if (ret < 0) {
@@ -246,7 +246,7 @@ int VerifyTicket(const std::string& filePath, const ProvisionInfo& profileInfo)
     }
 
     ProvisionInfo ticketInfo;
-    int ticketRet = TicketParseAndVerify(ticket, ticketInfo, profileInfo);
+    int32_t ticketRet = TicketParseAndVerify(ticket, ticketInfo, profileInfo);
     if (ticketRet != TICKET_OK) {
         HAPVERIFY_LOG_ERROR(LABEL, "ticket parse failed, error: %{public}d", static_cast<int>(ticketRet));
         return ticketRet;
@@ -263,7 +263,7 @@ bool CheckTicketSource(const ProvisionInfo& profileInfo)
         return false;
     }
 
-    int ret = VerifyTicket(standardFilePath, profileInfo);
+    int32_t ret = VerifyTicket(standardFilePath, profileInfo);
     if (ret != TICKET_VERIFY_SUCCESS) {
         HAPVERIFY_LOG_ERROR(LABEL, "ticket verify failed, result: %{public}d", ret);
         return false;

@@ -55,7 +55,7 @@ enum GetOptionalBlockResultCode {
 };
 
 struct OptionalBlock {
-    int optionalType;
+    int32_t optionalType;
     HapByteBuffer optionalBlockValue;
 };
 
@@ -63,13 +63,13 @@ class HapVerifyResult {
 public:
     DLL_EXPORT HapVerifyResult();
     DLL_EXPORT ~HapVerifyResult();
-    DLL_EXPORT int GetVersion() const;
-    DLL_EXPORT void SetVersion(int signatureVersion);
+    DLL_EXPORT int32_t GetVersion() const;
+    DLL_EXPORT void SetVersion(int32_t signatureVersion);
     DLL_EXPORT void SetPkcs7SignBlock(const HapByteBuffer& pkcs7);
     DLL_EXPORT void SetPkcs7ProfileBlock(const HapByteBuffer& pkcs7);
     DLL_EXPORT void SetOptionalBlocks(const std::vector<OptionalBlock>& option);
     DLL_EXPORT void SetProvisionInfo(const ProvisionInfo& info);
-    DLL_EXPORT int GetProperty(std::string& property) const;
+    DLL_EXPORT int32_t GetProperty(std::string& property) const;
     DLL_EXPORT ProvisionInfo GetProvisionInfo() const;
     DLL_EXPORT std::vector<std::string> GetPublicKey() const;
     DLL_EXPORT std::vector<std::string> GetSignature() const;
@@ -77,10 +77,10 @@ public:
     void SetSignature(const std::vector<std::string>& inputSignatures);
 
 private:
-    DLL_EXPORT int GetBlockFromOptionalBlocks(int blockType, std::string& block) const;
+    DLL_EXPORT int32_t GetBlockFromOptionalBlocks(int32_t blockType, std::string& block) const;
 
 private:
-    int version;
+    int32_t version;
     std::vector<std::string> publicKeys;
     std::vector<std::string> signatures;
     HapByteBuffer pkcs7SignBlock;
