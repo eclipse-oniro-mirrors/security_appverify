@@ -25,13 +25,6 @@ if (os_level == "standard") {
   }
 
   ohos_shared_library("libhapverify") {
-    sanitize = {
-      cfi = true
-      cfi_cross_dso = true
-      debug = false
-    }
-    stack_protector_ret = true
-
     sources = [
       "src/common/hap_byte_buffer.cpp",
       "src/common/hap_byte_buffer_data_source.cpp",
