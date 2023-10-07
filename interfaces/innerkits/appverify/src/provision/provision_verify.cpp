@@ -73,6 +73,7 @@ const string VALUE_NOT_AFTER = "not-after";
 const string KEY_BASEAPP_INFO = "baseapp-info";
 const string KEY_PACKAGE_NAME = "package-name";
 const string KEY_PACKAGE_CERT = "package-cert";
+const string KEY_APP_IDENTIFIER = "app-identifier";
 
 const string GENERIC_BUNDLE_NAME = ".*";
 const string VALUE_DEVELOPMENT_MODE = "1";
@@ -160,6 +161,7 @@ void ParseBundleInfo(const json& obj, ProvisionInfo& out)
         GetStringIfExist(bundleInfo, KEY_BUNDLE_NAME, out.bundleInfo.bundleName);
         GetStringIfExist(bundleInfo, KEY_APL, out.bundleInfo.apl);
         GetStringIfExist(bundleInfo, KEY_APP_FEATURE, out.bundleInfo.appFeature);
+        GetStringIfExist(bundleInfo, KEY_APP_IDENTIFIER, out.bundleInfo.appIdentifier);
         GetStringArrayIfExist(bundleInfo, KEY_DATA_GROUP_IDS, out.bundleInfo.dataGroupIds);
     }
 }
