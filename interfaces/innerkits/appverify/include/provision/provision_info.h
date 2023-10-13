@@ -43,6 +43,7 @@ struct BundleInfo {
     std::string bundleName;
     std::string apl;
     std::string appFeature;
+    std::string appIdentifier;
     std::vector<std::string> dataGroupIds;
 };
 
