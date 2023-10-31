@@ -97,6 +97,13 @@ int32_t ParseHapProfile(const std::string& filePath, HapVerifyResult& hapVerifyV
     HapVerifyV2 hapVerifyV2;
     return hapVerifyV2.ParseHapProfile(filePath, hapVerifyV1Result);
 }
+
+int32_t ParseHapSignatureInfo(const std::string& filePath, SignatureInfo &hapSignInfo)
+{
+    HapVerifyV2 hapVerifyV2;
+    return hapVerifyV2.ParseHapSignatureInfo(filePath, hapSignInfo);
+}
+
 } // namespace Verify
 } // namespace Security
 } // namespace OHOS
