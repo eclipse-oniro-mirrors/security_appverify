@@ -425,6 +425,26 @@ int32_t HapVerifyV2::ParseHapProfile(const std::string& filePath, HapVerifyResul
     hapVerifyV1Result.SetProvisionInfo(info);
     return VERIFY_SUCCESS;
 }
+
+int32_t HapVerifyV2::ParseHapSignatureInfo(const std::string& filePath, SignatureInfo &hapSignInfo)
+{
+    std::string standardFilePath;
+    if (!CheckFilePath(filePath, standardFilePath)) {
+        return FILE_PATH_INVALID;
+    }
+
+    RandomAccessFile hapFile;
+    if (!hapFile.Init(standardFilePath)) {
+        HAPVERIFY_LOG_ERROR(LABEL, "open standard file failed");
+        return OPEN_FILE_ERROR;
+    }
+
+    if (!HapSigningBlockUtils::FindHapSignature(hapFile, hapSignInfo)) {
+        return SIGNATURE_NOT_FOUND;
+    }
+    return VERIFY_SUCCESS;
+}
+
 } // namespace Verify
 } // namespace Security
 } // namespace OHOS
