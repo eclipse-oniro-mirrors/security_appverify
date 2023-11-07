@@ -202,6 +202,8 @@ bool HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context,
         return false;
     }
 
+    SetProfileBlockData(pkcs7Context, hapProfileBlock, provisionInfo);
+
     hapVerifyV1Result.SetProvisionInfo(provisionInfo);
     profileNeadWriteCrl = profileContext.needWriteCrl;
     return true;
@@ -250,6 +252,33 @@ bool HapVerifyV2::GenerateFingerprint(ProvisionInfo& provisionInfo)
     provisionInfo.fingerprint = fingerprint;
     HAPVERIFY_LOG_DEBUG(LABEL, "fingerprint is : %{public}s", fingerprint.c_str());
     return true;
+}
+
+void HapVerifyV2::SetProfileBlockData(const Pkcs7Context& pkcs7Context, const HapByteBuffer& hapProfileBlock,
+    ProvisionInfo& provisionInfo)
+{
+    if (pkcs7Context.matchResult.matchState == MATCH_WITH_SIGN &&
+        pkcs7Context.matchResult.source == APP_GALLARY) {
+        HAPVERIFY_LOG_DEBUG(LABEL, "profile is from app gallary and unnecessary to set profile block");
+        return;
+    }
+    provisionInfo.profileBlockLength = hapProfileBlock.GetCapacity();
+    HAPVERIFY_LOG_DEBUG(LABEL, "profile block data length is %{public}d", provisionInfo.profileBlockLength);
+    if (provisionInfo.profileBlockLength == 0) {
+        HAPVERIFY_LOG_ERROR(LABEL, "invalid profile block");
+        return;
+    }
+    provisionInfo.profileBlock = std::make_unique<unsigned char[]>(provisionInfo.profileBlockLength);
+    unsigned char *profileBlockData = provisionInfo.profileBlock.get();
+    const unsigned char *originalProfile = reinterpret_cast<const unsigned char*>(hapProfileBlock.GetBufferPtr());
+    if (profileBlockData == nullptr || originalProfile ==nullptr) {
+        HAPVERIFY_LOG_ERROR(LABEL, "invalid profileBlockData or originalProfile");
+        return;
+    }
+    if (memcpy_s(profileBlockData, provisionInfo.profileBlockLength, originalProfile,
+        provisionInfo.profileBlockLength) != 0) {
+        HAPVERIFY_LOG_ERROR(LABEL, "memcpy failed");
+    }
 }
 
 bool HapVerifyV2::VerifyProfileInfo(const Pkcs7Context& pkcs7Context, const Pkcs7Context& profileContext,

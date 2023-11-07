@@ -38,6 +38,7 @@ if (os_level == "standard") {
       "src/init/trusted_ticket_manager.cpp",
       "src/interfaces/hap_verify.cpp",
       "src/interfaces/hap_verify_result.cpp",
+      "src/provision/provision_info.cpp",
       "src/provision/provision_verify.cpp",
       "src/ticket/ticket_verify.cpp",
       "src/util/digest_parameter.cpp",
