@@ -18,6 +18,8 @@
 #include <string>
 #include <vector>
 
+#include "common/export_define.h"
+
 namespace OHOS {
 namespace Security {
 namespace Verify {
@@ -73,6 +75,11 @@ struct Metadata {
 };
 
 struct ProvisionInfo {
+    DLL_EXPORT ProvisionInfo();
+    DLL_EXPORT ~ProvisionInfo();
+    DLL_EXPORT ProvisionInfo(const ProvisionInfo &info);
+    DLL_EXPORT ProvisionInfo &operator=(const ProvisionInfo &info);
+
     int32_t versionCode = 0;
     std::string versionName;
     std::string uuid;
@@ -88,6 +95,8 @@ struct ProvisionInfo {
     std::vector<std::string> appPrivilegeCapabilities;
     Validity validity;
     std::vector<Metadata> metadatas;
+    int32_t profileBlockLength = 0;
+    std::unique_ptr<unsigned char[]> profileBlock;
 };
 } // namespace Verify
 } // namespace Security

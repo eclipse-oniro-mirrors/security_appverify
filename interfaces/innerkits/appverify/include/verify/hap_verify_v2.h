@@ -53,6 +53,8 @@ private:
     DLL_EXPORT bool GenerateAppId(ProvisionInfo& provisionInfo);
     DLL_EXPORT bool GenerateFingerprint(ProvisionInfo& provisionInfo);
     bool VerifyProfileSignature(const Pkcs7Context& pkcs7Context, Pkcs7Context& profileContext);
+    void SetProfileBlockData(const Pkcs7Context& pkcs7Context, const HapByteBuffer& hapProfileBlock,
+        ProvisionInfo& provisionInfo);
 
 private:
     static const int32_t HEX_PRINT_LENGTH;
