@@ -54,6 +54,8 @@ DLL_EXPORT AppProvisionVerifyResult ParseProvision(const std::string& appProvisi
  * @return AppProvisionVerifyResult parse result.
  */
 DLL_EXPORT AppProvisionVerifyResult ParseProfile(const std::string& appProvision, ProvisionInfo& info);
+
+DLL_EXPORT void SetRdDevice(bool isRdDevice);
 } // namespace Verify
 } // namespace Security
 } // namespace OHOS
