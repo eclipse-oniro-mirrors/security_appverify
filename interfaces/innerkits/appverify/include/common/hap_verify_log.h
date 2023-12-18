@@ -21,8 +21,8 @@
 namespace OHOS {
 namespace Security {
 namespace Verify {
-static constexpr uint32_t SECURITY_DOMAIN = 0xD002F00;
-static constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, SECURITY_DOMAIN, "HapVerify"};
+static constexpr uint32_t APPVERIFY_DOMAIN = 0xD001120;
+static constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, APPVERIFY_DOMAIN, "HapVerify"};
 
 #define HAPVERIFY_LOG_DEBUG(label, fmt, ...) \
     OHOS::HiviewDFX::HiLog::Debug(label, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
