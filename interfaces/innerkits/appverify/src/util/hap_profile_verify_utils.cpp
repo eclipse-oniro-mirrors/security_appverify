@@ -73,7 +73,7 @@ bool HapProfileVerifyUtils::VerifyProfile(Pkcs7Context& pkcs7Context)
             certSubject.c_str(), certIssuer.c_str());
         return false;
     }
-    HAPVERIFY_LOG_INFO(LABEL, "profile  subject: %{public}s, issuer: %{public}s",
+    HAPVERIFY_LOG_DEBUG(LABEL, "profile subject: %{public}s, issuer: %{public}s",
         certSubject.c_str(), certIssuer.c_str());
     return true;
 }

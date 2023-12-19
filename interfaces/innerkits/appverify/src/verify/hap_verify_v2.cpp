@@ -151,7 +151,7 @@ bool HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context,
         HAPVERIFY_LOG_ERROR(LABEL, "Get info of sign cert failed");
         return false;
     }
-    HAPVERIFY_LOG_INFO(LABEL, "App signature subject: %{public}s, issuer: %{public}s",
+    HAPVERIFY_LOG_DEBUG(LABEL, "App signature subject: %{public}s, issuer: %{public}s",
         certSubject.c_str(), pkcs7Context.certIssuer.c_str());
 
     TrustedSourceManager& trustedSourceManager = TrustedSourceManager::GetInstance();
