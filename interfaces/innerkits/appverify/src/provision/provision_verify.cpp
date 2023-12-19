@@ -29,10 +29,6 @@
 #include "common/hap_verify_log.h"
 #include "init/device_type_manager.h"
 
-#ifdef APPVERIFY_DEVICES_SECURITY
-#include "v1_0/idevices_security_interface.h"
-#endif
-
 using namespace std;
 using namespace nlohmann;
 
@@ -61,7 +57,6 @@ const string KEY_DEVICE_IDS = "device-ids";
 const string KEY_ISSUER = "issuer";
 const string KEY_APP_PRIVILEGE_CAPABILITIES = "app-privilege-capabilities";
 const string KEY_DEVELOPMENT_MODE = "const.product.developmentmode";
-const string KEY_OEM_MODE = "const.boot.oemmode";
 const string VALUE_TYPE_RELEASE = "release";
 const string VALUE_DIST_TYPE_APP_GALLERY = "app_gallery";
 const string VALUE_DIST_TYPE_ENTERPRISE = "enterprise";
@@ -73,7 +68,6 @@ const string VALUE_DEVICE_ID_TYPE_UDID = "udid";
 const string VALUE_VALIDITY = "validity";
 const string VALUE_NOT_BEFORE = "not-before";
 const string VALUE_NOT_AFTER = "not-after";
-const string VALUE_OEM_MODE_RD = "rd";
 
 // reserved field
 const string KEY_BASEAPP_INFO = "baseapp-info";
@@ -87,7 +81,6 @@ const string VALUE_DEVELOPMENT_MODE = "1";
 const int32_t MAXIMUM_NUM_DEVICES = 100;
 const int32_t VERSION_CODE_TWO = 2;
 const int32_t DEVELOPMENT_MODE_LENGTH = 2;
-const int32_t OEM_MODE_LENGTH = 10;
 
 inline void GetStringIfExist(const json& obj, const string& key, string& out)
 {
@@ -138,6 +131,8 @@ const std::map<std::string, int32_t> distTypeMap = {
     {VALUE_DIST_TYPE_OS_INTEGRATION, AppDistType::OS_INTEGRATION},
     {VALUE_DIST_TYPE_CROWDTESTING, AppDistType::CROWDTESTING}
 };
+
+static bool g_isRdDevice = false;
 
 void ParseType(const json& obj, ProvisionInfo& out)
 {
@@ -342,32 +337,9 @@ AppProvisionVerifyResult CheckDeviceID(ProvisionInfo& info)
     return PROVISION_OK;
 }
 
-inline bool IsRdDevice()
+void SetRdDevice(bool isRdDevice)
 {
-    char oemMode[OEM_MODE_LENGTH] = {0};
-    GetParameter(KEY_OEM_MODE.c_str(), nullptr, oemMode, sizeof(oemMode));
-    if (strcmp(oemMode, VALUE_OEM_MODE_RD.c_str()) == 0) {
-        HAPVERIFY_LOG_DEBUG(LABEL, "oem mode is rd, skip device id check");
-        return true;
-    }
-#ifdef APPVERIFY_DEVICES_SECURITY
-    sptr<HDI::DevicesSecurity::V1_0::IDevicesSecurityInterface> devicesSecurityProxy =
-        HDI::DevicesSecurity::V1_0::IDevicesSecurityInterface::Get("devices_security_interface_service", true);
-    if (devicesSecurityProxy == nullptr) {
-        HAPVERIFY_LOG_DEBUG(LABEL, "get devicesSecurityProxy failed, seen as non-rd");
-        return false;
-    }
-    int32_t fuseState = devicesSecurityProxy->GetFuseState();
-    // 0: fused, 1: not fused, -1: error
-    if (fuseState == 1) {
-        HAPVERIFY_LOG_DEBUG(LABEL, "device is not fused, skip device id check");
-        return true;
-    }
-    HAPVERIFY_LOG_DEBUG(LABEL, "device is fused, need to check device id");
-    return false;
-#endif
-    HAPVERIFY_LOG_DEBUG(LABEL, "cannot get fuse state, seen as non-rd");
-    return false;
+    g_isRdDevice = isRdDevice;
 }
 
 AppProvisionVerifyResult ParseAndVerify(const string& appProvision, ProvisionInfo& info)
@@ -383,7 +355,8 @@ AppProvisionVerifyResult ParseAndVerify(const string& appProvision, ProvisionInf
     const char *value = VALUE_DEVELOPMENT_MODE.data();
     bool isDevelopmentMode = (strcmp(developmentMode, value) == 0) ? true : false;
     HAPVERIFY_LOG_DEBUG(LABEL, "Current development mode is %{public}d", isDevelopmentMode);
-    if (info.type == ProvisionType::DEBUG && !isDevelopmentMode && !IsRdDevice()) {
+    HAPVERIFY_LOG_DEBUG(LABEL, "rd device status is %{public}d", g_isRdDevice);
+    if (info.type == ProvisionType::DEBUG && !isDevelopmentMode && !g_isRdDevice) {
         ret = CheckDeviceID(info);
         if (ret != PROVISION_OK) {
             return ret;

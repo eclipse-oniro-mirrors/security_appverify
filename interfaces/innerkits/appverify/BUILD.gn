@@ -61,14 +61,6 @@ if (os_level == "standard") {
     external_deps = [ "c_utils:utils" ]
 
     defines = []
-    if (defined(global_parts_info) &&
-        defined(global_parts_info.hdf_drivers_interface_devices_security)) {
-      defines += [ "APPVERIFY_DEVICES_SECURITY" ]
-
-      external_deps +=
-          [ "drivers_interface_devices_security:libdevices_security_proxy_1.0" ]
-    }
-
     if (is_standard_system) {
       defines += [ "STANDARD_SYSTEM" ]
 

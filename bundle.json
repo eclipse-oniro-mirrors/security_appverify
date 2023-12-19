@@ -26,8 +26,7 @@
           "c_utils",
           "hilog",
           "init",
-          "os_account",
-          "drivers_interface_devices_security"
+          "os_account"
         ],
         "third_party": [
           "json",
