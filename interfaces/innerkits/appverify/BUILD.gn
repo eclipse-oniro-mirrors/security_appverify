@@ -84,6 +84,10 @@ if (os_level == "standard") {
 
     subsystem_name = "security"
     defines += [ "OPENSSL_SUPPRESS_DEPRECATED" ]
+
+    if (is_emulator) {
+      defines += [ "X86_EMULATOR_MODE" ]
+    }
   }
 } else {
   group("libhapverify") {
