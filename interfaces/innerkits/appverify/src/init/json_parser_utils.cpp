@@ -41,7 +41,7 @@ bool JsonParserUtils::ReadTrustedRootCAFromJson(nlohmann::json& jsonObj,
 
     std::string jsonStr = buf.str();
     jsonObj = nlohmann::json::parse(jsonStr, nullptr, false);
-    if (!jsonObj.is_structured()) {
+    if (jsonObj.is_discarded() || (!jsonObj.is_structured())) {
         error += "parse jsonStr failed";
         return false;
     }

@@ -33,7 +33,7 @@ struct HapAppSourceInfo {
     std::string profileSigningCertificate;
     std::string profileDebugSigningCertificate;
     std::string issuer;
-    int32_t maxCertsPath;
+    int32_t maxCertsPath = 0;
     StringVec critialcalCertExtension;
 };
 

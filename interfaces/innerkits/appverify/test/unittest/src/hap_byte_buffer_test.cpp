@@ -186,37 +186,6 @@ HWTEST_F (HapByteBufferTest, Slice001, TestSize.Level1)
 }
 
 /**
- * @tc.name: Test HapByteBuffer function of CopyPartialBuffer
- * @tc.desc: The static function will copy data from an object, detect the data is right;
- * @tc.type: FUNC
- */
-HWTEST_F (HapByteBufferTest, CopyPartialBuffer001, TestSize.Level1)
-{
-    /*
-     * @tc.steps: step1. Copy 8 bytes data from 10st-position in a 15 bytes length buffer.
-     * @tc.expected: step1. The return result is false.
-     */
-    HapByteBuffer buffer1(TEST_HAPBYTEBUFFER_LENGTH);
-    buffer1.PutInt32(0, TEST_HAPBYTEBUFFER_INT32_DATA);
-    buffer1.PutInt32(sizeof(int), TEST_HAPBYTEBUFFER_INT32_DATA_2);
-    HapByteBuffer buffer2(TEST_HAPBYTEBUFFER_LENGTH);
-    buffer1.SetPosition(TEST_HAPBYTEBUFFER_POSITION);
-    ASSERT_FALSE(buffer2.CopyPartialBuffer(buffer1, TEST_HAPBYTEBUFFER_LENGTH_2));
-    /*
-     * @tc.steps: step2. Copy 8 bytes data from first-position in a 15 bytes length buffer.
-     * @tc.expected: step2. Buffer2 return is targeted value.
-     */
-    buffer1.Clear();
-    buffer2.CopyPartialBuffer(buffer1, TEST_HAPBYTEBUFFER_LENGTH_2);
-    int32_t target1;
-    ASSERT_TRUE(buffer2.GetInt32(target1));
-    ASSERT_EQ(target1, TEST_HAPBYTEBUFFER_INT32_DATA);
-    int32_t target2;
-    ASSERT_TRUE(buffer2.GetInt32(target2));
-    ASSERT_EQ(target2, TEST_HAPBYTEBUFFER_INT32_DATA_2);
-}
-
-/**
  * @tc.name: Test HapByteBuffer function of IsEqual001
  * @tc.desc: The static function will return two object whether is equal.
  * @tc.type: FUNC

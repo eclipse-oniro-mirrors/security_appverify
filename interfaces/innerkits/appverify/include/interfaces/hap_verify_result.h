@@ -55,7 +55,7 @@ enum GetOptionalBlockResultCode {
 };
 
 struct OptionalBlock {
-    int32_t optionalType;
+    int32_t optionalType = 0;
     HapByteBuffer optionalBlockValue;
 };
 
@@ -80,7 +80,7 @@ private:
     DLL_EXPORT int32_t GetBlockFromOptionalBlocks(int32_t blockType, std::string& block) const;
 
 private:
-    int32_t version;
+    int32_t version = 0;
     std::vector<std::string> publicKeys;
     std::vector<std::string> signatures;
     HapByteBuffer pkcs7SignBlock;

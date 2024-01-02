@@ -64,8 +64,8 @@ struct DebugInfo {
 };
 
 struct Validity {
-    int64_t notBefore;
-    int64_t notAfter;
+    int64_t notBefore = 0;
+    int64_t notAfter = 0;
 };
 
 struct Metadata {

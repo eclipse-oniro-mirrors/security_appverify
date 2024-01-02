@@ -30,7 +30,7 @@ struct HapTicketSourceInfo {
     std::string sourceName;
     std::string ticketSigningCert;
     std::string issuer;
-    int32_t maxCertsPath;
+    int32_t maxCertsPath = 0;
     StringVec critialcalCertExtension;
 };
 

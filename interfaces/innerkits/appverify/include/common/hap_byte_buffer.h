@@ -59,7 +59,6 @@ public:
     DLL_EXPORT void Slice();
     DLL_EXPORT int32_t Remaining() const;
     DLL_EXPORT bool HasRemaining() const;
-    DLL_EXPORT bool CopyPartialBuffer(const HapByteBuffer& other, int32_t len);
     DLL_EXPORT void Clear();
     DLL_EXPORT bool IsEqual(const HapByteBuffer& other);
     DLL_EXPORT bool IsEqual(const std::string& other);
@@ -72,9 +71,9 @@ private:
     static const int32_t MAX_PRINT_LENGTH;
     static const int32_t HEX_PRINT_LENGTH;
     std::unique_ptr<char[]> buffer;
-    int32_t position;
-    int32_t limit;
-    int32_t capacity;
+    int32_t position = 0;
+    int32_t limit = 0;
+    int32_t capacity = 0;
 };
 } // namespace Verify
 } // namespace Security

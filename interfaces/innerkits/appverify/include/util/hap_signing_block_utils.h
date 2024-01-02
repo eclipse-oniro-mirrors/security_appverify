@@ -40,17 +40,17 @@ enum HapBlobType {
 };
 
 struct HapSignBlockHead {
-    int32_t version;
-    int32_t blockCount;
+    int32_t version = 0;
+    int32_t blockCount = 0;
     long long hapSignBlockSize;
     long long hapSignBlockMagicLo;
     long long hapSignBlockMagicHi;
 };
 
 struct HapSubSignBlockHead {
-    uint32_t type;
-    uint32_t length;
-    uint32_t offset;
+    uint32_t type = 0;
+    uint32_t length = 0;
+    uint32_t offset = 0;
 };
 
 class HapSigningBlockUtils {
