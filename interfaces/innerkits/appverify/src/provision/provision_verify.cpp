@@ -250,7 +250,7 @@ void from_json(const json& obj, ProvisionInfo& out)
 AppProvisionVerifyResult ParseProvision(const string& appProvision, ProvisionInfo& info)
 {
     json obj = json::parse(appProvision, nullptr, false);
-    if (!obj.is_structured()) {
+    if (obj.is_discarded() || (!obj.is_structured())) {
         HAPVERIFY_LOG_ERROR(LABEL, "Parsing appProvision failed. json: %{public}s", appProvision.c_str());
         return PROVISION_INVALID;
     }
@@ -369,7 +369,7 @@ AppProvisionVerifyResult ParseAndVerify(const string& appProvision, ProvisionInf
 AppProvisionVerifyResult ParseProfile(const std::string& appProvision, ProvisionInfo& info)
 {
     json obj = json::parse(appProvision, nullptr, false);
-    if (!obj.is_structured()) {
+    if (obj.is_discarded() || (!obj.is_structured())) {
         HAPVERIFY_LOG_ERROR(LABEL, "Parsing appProvision failed. json: %{public}s", appProvision.c_str());
         return PROVISION_INVALID;
     }

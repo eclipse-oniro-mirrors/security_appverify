@@ -279,28 +279,6 @@ bool HapByteBuffer::HasRemaining() const
     return position < limit;
 }
 
-bool HapByteBuffer::CopyPartialBuffer(const HapByteBuffer& other, int32_t len)
-{
-    int32_t readableDataLen = other.Remaining();
-    if (readableDataLen < len) {
-        HAPVERIFY_LOG_ERROR(LABEL, "readableDataLen %{public}d less than len %{public}d", readableDataLen, len);
-        return false;
-    }
-
-    buffer.reset(nullptr);
-    buffer = std::make_unique<char[]>(len);
-    if (buffer != nullptr && other.GetBufferPtr() != nullptr) {
-        capacity = len;
-        limit = capacity;
-        if (memcpy_s(buffer.get(), capacity, (other.GetBufferPtr() + other.GetPosition()), len) != EOK) {
-            HAPVERIFY_LOG_ERROR(LABEL, "memcpy_s failed");
-            return false;
-        }
-    }
-    position = 0;
-    return true;
-}
-
 void HapByteBuffer::Clear()
 {
     position = 0;

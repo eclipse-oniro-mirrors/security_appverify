@@ -21,7 +21,6 @@
 int32_t HapByteBuffer001(void);
 int32_t GetIntAndPutOperation001(void);
 int32_t Slice001(void);
-int32_t CopyPartialBuffer001(void);
 int32_t IsEqual001(void);
 int32_t IsEqual002(void);
 #endif // HAP_BYTE_BUFFER_TEST_H

@@ -24,8 +24,8 @@ namespace Security {
 namespace Verify {
 struct MmapInfo {
     long long mmapPosition;
-    int32_t readMoreLen;
-    int32_t mmapSize;
+    int32_t readMoreLen = 0;
+    int32_t mmapSize = 0;
     char* mapAddr;
 };
 
@@ -44,7 +44,7 @@ private:
     bool CheckLittleEndian();
     static const int32_t FILE_OPEN_FAIL_ERROR_NUM;
     static int32_t memoryPageSize;
-    int32_t fd;
+    int32_t fd = 0;
     long long fileLength;
 };
 } // namespace Verify
