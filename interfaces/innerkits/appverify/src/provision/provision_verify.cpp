@@ -80,7 +80,9 @@ const string VALUE_DEVELOPMENT_MODE = "1";
 
 const int32_t MAXIMUM_NUM_DEVICES = 100;
 const int32_t VERSION_CODE_TWO = 2;
+#ifndef X86_EMULATOR_MODE
 const int32_t DEVELOPMENT_MODE_LENGTH = 2;
+#endif
 
 inline void GetStringIfExist(const json& obj, const string& key, string& out)
 {
@@ -349,6 +351,7 @@ AppProvisionVerifyResult ParseAndVerify(const string& appProvision, ProvisionInf
     if (ret != PROVISION_OK) {
         return ret;
     }
+#ifndef X86_EMULATOR_MODE
     const char *key = KEY_DEVELOPMENT_MODE.data();
     char developmentMode[DEVELOPMENT_MODE_LENGTH] = {0};
     GetParameter(key, nullptr, developmentMode, sizeof(developmentMode));
@@ -362,6 +365,7 @@ AppProvisionVerifyResult ParseAndVerify(const string& appProvision, ProvisionInf
             return ret;
         }
     }
+#endif
     HAPVERIFY_LOG_DEBUG(LABEL, "Leave HarmonyAppProvision Verify");
     return PROVISION_OK;
 }

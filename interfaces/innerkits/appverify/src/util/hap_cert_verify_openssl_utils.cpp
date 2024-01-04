@@ -174,8 +174,7 @@ bool HapCertVerifyOpensslUtils::GetPublickeyBase64(const X509* cert, std::string
  */
 int32_t HapCertVerifyOpensslUtils::CalculateLenAfterBase64Encode(int32_t len)
 {
-    return static_cast<int>(ceil(static_cast<long double>(len) / BASE64_ENCODE_PACKET_LEN) *
-        BASE64_ENCODE_LEN_OF_EACH_GROUP_DATA + 1);
+    return (len + BASE64_ENCODE_PACKET_LEN - 1) / BASE64_ENCODE_PACKET_LEN * BASE64_ENCODE_LEN_OF_EACH_GROUP_DATA + 1;
 }
 
 bool HapCertVerifyOpensslUtils::CompareX509Cert(const X509* certA, const std::string& base64Cert)
