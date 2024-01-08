@@ -42,18 +42,17 @@ int32_t GetDigestAlgorithmId(uint32_t signAlgorithm)
 
 static int32_t ComputeBlockHash(const char *block, int32_t blockLen, int32_t alg, const HapBuf *result, int32_t *offset)
 {
-    int32_t ret, readLen, rawBufLen;
     const mbedtls_md_info_t *mdInfo = mbedtls_md_info_from_type((mbedtls_md_type_t)alg);
     P_NULL_RETURN_WTTH_LOG(mdInfo);
     int32_t pos = 0;
-    rawBufLen = blockLen;
+    int32_t rawBufLen = blockLen;
     mbedtls_md_context_t *mdCtx = APPV_MALLOC(sizeof(mbedtls_md_context_t));
     P_NULL_RETURN_WTTH_LOG(mdCtx);
     LOG_INFO("alg: %d wholelen: %d", alg, rawBufLen);
     while (rawBufLen > 0) {
         mbedtls_md_init(mdCtx);
-        readLen = (rawBufLen > HASH_BLOB_LEN) ? HASH_BLOB_LEN : rawBufLen;
-        ret = mbedtls_md_setup(mdCtx, mdInfo, 0);
+        int32_t readLen = (rawBufLen > HASH_BLOB_LEN) ? HASH_BLOB_LEN : rawBufLen;
+        int32_t ret = mbedtls_md_setup(mdCtx, mdInfo, 0);
         P_ERR_GOTO_WTTH_LOG(ret);
         size_t hlen = mbedtls_md_get_size(mdInfo);
         if (hlen == 0 || hlen > MAX_HASH_SIZE) {
@@ -111,7 +110,6 @@ static int32_t GetChunkSumCount(int32_t fileSize, int32_t coreDirectorySize, int
 static int32_t ComputeDigestsWithOptionalBlock(const int32_t digestAlgorithm, int32_t fp, const SignatureInfo *signInfo,
     const HapBuf *chunkDigest, const HapBuf *fianlDigest)
 {
-    int32_t ret, readLen;
     int32_t rst = V_ERR;
     char *rawBuf = NULL;
     unsigned char* outbuf = NULL;
@@ -125,14 +123,14 @@ static int32_t ComputeDigestsWithOptionalBlock(const int32_t digestAlgorithm, in
     mbedtls_md_context_t *mdCtx = APPV_MALLOC(sizeof(mbedtls_md_context_t));
     P_NULL_RETURN_WTTH_LOG(mdCtx);
     mbedtls_md_init(mdCtx);
-    ret = mbedtls_md_setup(mdCtx, mdInfo, 0);
+    int32_t ret = mbedtls_md_setup(mdCtx, mdInfo, 0);
     int32_t rawLen = 0;
     BlockHead blockHead = {0};
 
     P_ERR_GOTO_WTTH_LOG(ret);
     ret = mbedtls_md_starts(mdCtx);
     P_ERR_GOTO_WTTH_LOG(ret);
-    readLen = chunkDigest->len;
+    int32_t readLen = chunkDigest->len;
     LOG_INFO("readLen %d", readLen);
     ret = mbedtls_md_update(mdCtx, chunkDigest->buffer, readLen);
     P_ERR_GOTO_WTTH_LOG(ret);

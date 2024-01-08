@@ -55,7 +55,7 @@ void TrustedTicketTest::TearDown()
  * @tc.desc: The static function will return true;
  * @tc.type: FUNC
  */
-HWTEST_F (TrustedTicketTest, CreatTrustedTicketCA001, TestSize.Level1)
+HWTEST_F(TrustedTicketTest, CreatTrustedTicketCA001, TestSize.Level1)
 {
     /*
      * @tc.steps: step1. run init and recovery.
@@ -72,7 +72,7 @@ HWTEST_F (TrustedTicketTest, CreatTrustedTicketCA001, TestSize.Level1)
  * @tc.desc: The static function will return object of matched cert;
  * @tc.type: FUNC
  */
-HWTEST_F (TrustedTicketTest, IsTrustedSourceTest001, TestSize.Level1)
+HWTEST_F(TrustedTicketTest, IsTrustedSourceTest001, TestSize.Level1)
 {
     /*
      * @tc.steps: step1. input nullptr.
@@ -112,7 +112,7 @@ HWTEST_F (TrustedTicketTest, IsTrustedSourceTest001, TestSize.Level1)
     ASSERT_TRUE(trustedticketsource.IsTrustedSource(certSubject, certIssuer, 2).matchState == DO_NOT_MATCH);
 }
 
-HWTEST_F (TrustedTicketTest, IsTrustedSourceTest002, TestSize.Level1)
+HWTEST_F(TrustedTicketTest, IsTrustedSourceTest002, TestSize.Level1)
 {
     /*
      * @tc.steps: step1. input invalid certsubject.

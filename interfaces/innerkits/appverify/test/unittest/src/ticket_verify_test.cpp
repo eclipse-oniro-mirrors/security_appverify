@@ -62,7 +62,7 @@ void TicketVerifyTest::TearDown()
  * @tc.desc: The static function will return an object of TicketVerify;
  * @tc.type: FUNC
  */
-HWTEST_F (TicketVerifyTest, CheckTicketSource001, TestSize.Level1)
+HWTEST_F(TicketVerifyTest, CheckTicketSource001, TestSize.Level1)
 {
     ProvisionInfo profileInfo;
     profileInfo.bundleInfo.bundleName = OVER_MAX_PATH_SIZE;
@@ -75,7 +75,7 @@ HWTEST_F (TicketVerifyTest, CheckTicketSource001, TestSize.Level1)
  * @tc.desc: The static function will return an object of TicketVerify;
  * @tc.type: FUNC
  */
-HWTEST_F (TicketVerifyTest, CheckTicketSource002, TestSize.Level1)
+HWTEST_F(TicketVerifyTest, CheckTicketSource002, TestSize.Level1)
 {
     ProvisionInfo profileInfo;
     profileInfo.bundleInfo.bundleName = BUNDLE_NAME;
@@ -88,7 +88,7 @@ HWTEST_F (TicketVerifyTest, CheckTicketSource002, TestSize.Level1)
  * @tc.desc: The static function will return an object of TicketVerify;
  * @tc.type: FUNC
  */
-HWTEST_F (TicketVerifyTest, CheckTicketSource003, TestSize.Level1)
+HWTEST_F(TicketVerifyTest, CheckTicketSource003, TestSize.Level1)
 {
     ProvisionInfo profileInfo;
     profileInfo.bundleInfo.bundleName = VERIFY_TEST;
@@ -101,7 +101,7 @@ HWTEST_F (TicketVerifyTest, CheckTicketSource003, TestSize.Level1)
  * @tc.desc: The static function will return an object of TicketVerify;
  * @tc.type: FUNC
  */
-HWTEST_F (TicketVerifyTest, CheckTicketSource004, TestSize.Level1)
+HWTEST_F(TicketVerifyTest, CheckTicketSource004, TestSize.Level1)
 {
     ProvisionInfo profileInfo;
     profileInfo.bundleInfo.bundleName = VERIFY_ERR;

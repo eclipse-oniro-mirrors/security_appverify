@@ -57,7 +57,7 @@ void HapByteBufferTest::TearDown()
  * @tc.desc: The static function will return an object of HapByteBuffer;
  * @tc.type: FUNC
  */
-HWTEST_F (HapByteBufferTest, HapByteBuffer001, TestSize.Level1)
+HWTEST_F(HapByteBufferTest, HapByteBuffer001, TestSize.Level1)
 {
     /*
      * @tc.steps: step1. Run HapByteBuffer(buffer1).
@@ -86,7 +86,7 @@ HWTEST_F (HapByteBufferTest, HapByteBuffer001, TestSize.Level1)
  * @tc.desc: The static function will return data from HapByteBuffer's buffer
  * @tc.type: FUNC
  */
-HWTEST_F (HapByteBufferTest, GetIntAndPutOperation001, TestSize.Level1)
+HWTEST_F(HapByteBufferTest, GetIntAndPutOperation001, TestSize.Level1)
 {
     /*
      * @tc.steps: step1. Create an empty buffer and get data from it.
@@ -150,7 +150,7 @@ HWTEST_F (HapByteBufferTest, GetIntAndPutOperation001, TestSize.Level1)
  * @tc.desc: The static function will get an object after slice and detect it is right;
  * @tc.type: FUNC
  */
-HWTEST_F (HapByteBufferTest, Slice001, TestSize.Level1)
+HWTEST_F(HapByteBufferTest, Slice001, TestSize.Level1)
 {
     /*
      * @tc.steps: step1. Set a fixed length buffer.
@@ -190,7 +190,7 @@ HWTEST_F (HapByteBufferTest, Slice001, TestSize.Level1)
  * @tc.desc: The static function will return two object whether is equal.
  * @tc.type: FUNC
  */
-HWTEST_F (HapByteBufferTest, IsEqual001, TestSize.Level1)
+HWTEST_F(HapByteBufferTest, IsEqual001, TestSize.Level1)
 {
     /*
      * @tc.steps: step1. Create a buffer, and compare it with itself.
@@ -225,7 +225,7 @@ HWTEST_F (HapByteBufferTest, IsEqual001, TestSize.Level1)
  * @tc.desc: The static function will return whether the value in buffer is equal to a string.
  * @tc.type: FUNC
  */
-HWTEST_F (HapByteBufferTest, IsEqual002, TestSize.Level1)
+HWTEST_F(HapByteBufferTest, IsEqual002, TestSize.Level1)
 {
     /*
      * @tc.steps: step1. Create a buffer and string, and compare.

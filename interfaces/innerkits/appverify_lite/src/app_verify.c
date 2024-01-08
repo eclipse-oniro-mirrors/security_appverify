@@ -249,7 +249,7 @@ int32_t GetHashUnitLen(int32_t hashAlg)
 }
 
 static int32_t CalcCmpContHash(const Pkcs7 *pkcs7, const SignerInfo *signer,
-                           mbedtls_md_type_t algType, unsigned char *hash, size_t *hashLen)
+    mbedtls_md_type_t algType, unsigned char *hash, size_t *hashLen)
 {
     int32_t rc;
     unsigned char *input = NULL;
@@ -286,7 +286,7 @@ static int32_t CalcCmpContHash(const Pkcs7 *pkcs7, const SignerInfo *signer,
 }
 
 static int32_t CalcDigest(const Pkcs7 *pkcs7, const SignerInfo *signer,
-                      mbedtls_md_type_t algType, unsigned char *hash, size_t *hashLen)
+    mbedtls_md_type_t algType, unsigned char *hash, size_t *hashLen)
 {
     int32_t rc;
     unsigned char *input = NULL;
