@@ -56,7 +56,7 @@ void TrustedRootCaTest::TearDown()
  * @tc.desc: The static function will return true;
  * @tc.type: FUNC
  */
-HWTEST_F (TrustedRootCaTest, CreatTrustedRootCA001, TestSize.Level1)
+HWTEST_F(TrustedRootCaTest, CreatTrustedRootCA001, TestSize.Level1)
 {
     /*
      * @tc.steps: step1. run init and recovery.
@@ -80,7 +80,7 @@ HWTEST_F (TrustedRootCaTest, CreatTrustedRootCA001, TestSize.Level1)
  * @tc.desc: The static function will return object of matched cert;
  * @tc.type: FUNC
  */
-HWTEST_F (TrustedRootCaTest, FindMatchedRootTest001, TestSize.Level1)
+HWTEST_F(TrustedRootCaTest, FindMatchedRootTest001, TestSize.Level1)
 {
     /*
      * @tc.steps: step1. input nullptr.
@@ -114,7 +114,7 @@ HWTEST_F (TrustedRootCaTest, FindMatchedRootTest001, TestSize.Level1)
  * @tc.desc: The static function will return false;
  * @tc.type: FUNC
  */
-HWTEST_F (TrustedRootCaTest, GetTrustedRootCAFromJsonTest001, TestSize.Level1)
+HWTEST_F(TrustedRootCaTest, GetTrustedRootCAFromJsonTest001, TestSize.Level1)
 {
     /*
      * @tc.steps: step1. use an error filePath as input.
