@@ -251,6 +251,8 @@ HWTEST_F(HapVerifyTest, HapVerify003, TestSize.Level0)
     HapVerifyResult hapVerifyResult;
     ASSERT_TRUE(ParseHapProfile(filePath, hapVerifyResult) == VERIFY_SUCCESS);
 
+    SignatureInfo hapSignInfo;
+    ASSERT_TRUE(ParseHapSignatureInfo(filePath, hapSignInfo) == VERIFY_SUCCESS);
     ProvisionInfo profile = hapVerifyResult.GetProvisionInfo();
     ASSERT_EQ(profile.type, ProvisionType::RELEASE);
     ASSERT_EQ(profile.fingerprint, TEST_FINGERPRINT);
