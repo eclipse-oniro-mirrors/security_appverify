@@ -77,7 +77,7 @@ private:
     static const char ZIP_FIRST_LEVEL_CHUNK_PREFIX;
     static const char ZIP_SECOND_LEVEL_CHUNK_PREFIX;
     /* the specifications of hap sign block */
-    static constexpr long long MAX_HAP_SIGN_BLOCK_SIZE = 1024 * 1024 * 10LL; // 10MB
+    static constexpr long long MAX_HAP_SIGN_BLOCK_SIZE = 1024 * 1024 * 1024LL; // 1024MB
     static constexpr int32_t MAX_BLOCK_COUNT = 10;
     static constexpr int32_t VERSION_FOR_NEW_MAGIC_NUM = 3;
 
