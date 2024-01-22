@@ -36,7 +36,6 @@
 #include "util/pkcs7_context.h"
 
 namespace {
-const int32_t MAXIMUM_DEVICES = 100;
 const int32_t TICKET_MAX_SIZE = 18432;
 const std::string TICKET_FILE_PATH = "/data/update/ticket/";
 const std::string VALUE_DEVICE_TYPE_UDID = "udid";
@@ -84,10 +83,7 @@ AppProvisionVerifyResult CheckDevice(ProvisionInfo& info)
         return PROVISION_DEVICE_UNAUTHORIZED;
     }
 
-    if (info.debugInfo.deviceIds.size() > MAXIMUM_DEVICES) {
-        HAPVERIFY_LOG_ERROR(LABEL, "No. of device IDs in list exceed maximum number %{public}d", MAXIMUM_DEVICES);
-        return PROVISION_NUM_DEVICE_EXCEEDED;
-    }
+    HAPVERIFY_LOG_DEBUG(LABEL, "number of device ids in list: %{public}d", info.debugInfo.deviceIds.size());
 
     if (info.debugInfo.deviceIdType != VALUE_DEVICE_TYPE_UDID) {
         HAPVERIFY_LOG_ERROR(LABEL, "type of device ID is not supported.");

@@ -315,9 +315,9 @@ HWTEST_F(ProvisionVerifyTest, ProvisionVerify004, TestSize.Level1)
 HWTEST_F(ProvisionVerifyTest, ProvisionVerify005, TestSize.Level1)
 {
     /*
-     * @tc.steps: step5. input a HarmonyAppProvision with a list of device IDs (Exceed maximum number)
+     * @tc.steps: step5. input a HarmonyAppProvision with a list of device IDs (Exceed 100)
      *     and run ParseAndVerify function.
-     * @tc.expected: step5. return code will be PROVISION_NUM_DEVICE_EXCEEDED.
+     * @tc.expected: step5. return code will be PROVISION_OK.
      */
     std::string prefixNumDeviceExceededProvision = R"(
     {
@@ -346,11 +346,20 @@ HWTEST_F(ProvisionVerifyTest, ProvisionVerify005, TestSize.Level1)
     for (int32_t i = 0; i < MAXIMUM_NUM_DEVICES; i++) {
         prefixNumDeviceExceededProvision += R"("1234ABCD",)";
     }
-    prefixNumDeviceExceededProvision += R"("1234ABCD")";
+    string deviceId = "";
+#ifndef STANDARD_SYSTEM
+    OHOS::AccountSA::OhosAccountKits::GetInstance().GetUdid(deviceId);
+#else
+    char udid[DEV_UUID_LEN] = {0};
+    int32_t udidRet = GetDevUdid(udid, sizeof(udid));
+    ASSERT_EQ(udidRet, EC_SUCCESS);
+    deviceId = std::string(udid, sizeof(udid) - 1);
+#endif
+    prefixNumDeviceExceededProvision += R"(")" + deviceId + R"(")";
     prefixNumDeviceExceededProvision += postfixNumDeviceExceededProvision;
     ProvisionInfo info;
     int32_t ret = ParseAndVerify(prefixNumDeviceExceededProvision, info);
-    ASSERT_EQ(ret, AppProvisionVerifyResult::PROVISION_NUM_DEVICE_EXCEEDED);
+    ASSERT_EQ(ret, AppProvisionVerifyResult::PROVISION_OK);
 }
 
 /**

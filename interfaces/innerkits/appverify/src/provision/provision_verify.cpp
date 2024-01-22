@@ -78,7 +78,6 @@ const string KEY_APP_IDENTIFIER = "app-identifier";
 const string GENERIC_BUNDLE_NAME = ".*";
 const string VALUE_DEVELOPMENT_MODE = "1";
 
-const int32_t MAXIMUM_NUM_DEVICES = 100;
 const int32_t VERSION_CODE_TWO = 2;
 #ifndef X86_EMULATOR_MODE
 const int32_t DEVELOPMENT_MODE_LENGTH = 2;
@@ -302,10 +301,7 @@ AppProvisionVerifyResult CheckDeviceID(ProvisionInfo& info)
         return PROVISION_DEVICE_UNAUTHORIZED;
     }
 
-    if (info.debugInfo.deviceIds.size() > MAXIMUM_NUM_DEVICES) {
-        HAPVERIFY_LOG_ERROR(LABEL, "No. of device IDs in list exceed maximum number %{public}d", MAXIMUM_NUM_DEVICES);
-        return PROVISION_NUM_DEVICE_EXCEEDED;
-    }
+    HAPVERIFY_LOG_DEBUG(LABEL, "number of device ids in list: %{public}d", info.debugInfo.deviceIds.size());
 
     if (info.debugInfo.deviceIdType != VALUE_DEVICE_ID_TYPE_UDID) {
         HAPVERIFY_LOG_ERROR(LABEL, "type of device ID is not supported.");
