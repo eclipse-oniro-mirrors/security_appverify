@@ -297,7 +297,8 @@ AppProvisionVerifyResult CheckDeviceID(ProvisionInfo& info)
         return PROVISION_DEVICE_UNAUTHORIZED;
     }
 
-    HAPVERIFY_LOG_DEBUG(LABEL, "number of device ids in list: %{public}d", info.debugInfo.deviceIds.size());
+    HAPVERIFY_LOG_DEBUG(LABEL, "number of device ids in list: %{public}u",
+        static_cast<uint32_t>(info.debugInfo.deviceIds.size()));
 
     if (info.debugInfo.deviceIdType != VALUE_DEVICE_ID_TYPE_UDID) {
         HAPVERIFY_LOG_ERROR(LABEL, "type of device ID is not supported.");
