@@ -70,6 +70,7 @@ ProvisionInfo &ProvisionInfo::operator=(const ProvisionInfo &info)
             HAPVERIFY_LOG_ERROR(LABEL, "memcpy_s failed");
         }
     }
+    this->appServiceCapabilities = info.appServiceCapabilities;
     return *this;
 }
 } // namespace Verify

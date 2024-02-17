@@ -57,6 +57,7 @@ const string KEY_DEVICE_IDS = "device-ids";
 const string KEY_ISSUER = "issuer";
 const string KEY_APP_PRIVILEGE_CAPABILITIES = "app-privilege-capabilities";
 const string KEY_DEVELOPMENT_MODE = "const.product.developmentmode";
+const string KEY_APP_SERVICE_CAPABILITIES = "app-service-capabilities";
 const string VALUE_TYPE_RELEASE = "release";
 const string VALUE_DIST_TYPE_APP_GALLERY = "app_gallery";
 const string VALUE_DIST_TYPE_ENTERPRISE = "enterprise";
@@ -234,6 +235,7 @@ void from_json(const json& obj, ProvisionInfo& out)
     GetStringArrayIfExist(obj, KEY_APP_PRIVILEGE_CAPABILITIES, out.appPrivilegeCapabilities);
     ParseValidity(obj, out.validity);
     ParseMetadata(obj, out);
+    GetStringIfExist(obj, KEY_APP_SERVICE_CAPABILITIES, out.appServiceCapabilities);
 }
 
 #define RETURN_IF_STRING_IS_EMPTY(str, msg) \

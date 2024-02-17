@@ -97,6 +97,7 @@ struct ProvisionInfo {
     std::vector<Metadata> metadatas;
     int32_t profileBlockLength = 0;
     std::unique_ptr<unsigned char[]> profileBlock;
+    std::string appServiceCapabilities;
 };
 } // namespace Verify
 } // namespace Security
