@@ -56,7 +56,6 @@ const string KEY_DEVICE_ID_TYPE = "device-id-type";
 const string KEY_DEVICE_IDS = "device-ids";
 const string KEY_ISSUER = "issuer";
 const string KEY_APP_PRIVILEGE_CAPABILITIES = "app-privilege-capabilities";
-const string KEY_DEVELOPMENT_MODE = "const.product.developmentmode";
 const string VALUE_TYPE_RELEASE = "release";
 const string VALUE_DIST_TYPE_APP_GALLERY = "app_gallery";
 const string VALUE_DIST_TYPE_ENTERPRISE = "enterprise";
@@ -76,12 +75,8 @@ const string KEY_PACKAGE_CERT = "package-cert";
 const string KEY_APP_IDENTIFIER = "app-identifier";
 
 const string GENERIC_BUNDLE_NAME = ".*";
-const string VALUE_DEVELOPMENT_MODE = "1";
 
 const int32_t VERSION_CODE_TWO = 2;
-#ifndef X86_EMULATOR_MODE
-const int32_t DEVELOPMENT_MODE_LENGTH = 2;
-#endif
 
 inline void GetStringIfExist(const json& obj, const string& key, string& out)
 {
@@ -349,14 +344,8 @@ AppProvisionVerifyResult ParseAndVerify(const string& appProvision, ProvisionInf
         return ret;
     }
 #ifndef X86_EMULATOR_MODE
-    const char *key = KEY_DEVELOPMENT_MODE.data();
-    char developmentMode[DEVELOPMENT_MODE_LENGTH] = {0};
-    GetParameter(key, nullptr, developmentMode, sizeof(developmentMode));
-    const char *value = VALUE_DEVELOPMENT_MODE.data();
-    bool isDevelopmentMode = (strcmp(developmentMode, value) == 0) ? true : false;
-    HAPVERIFY_LOG_DEBUG(LABEL, "Current development mode is %{public}d", isDevelopmentMode);
     HAPVERIFY_LOG_DEBUG(LABEL, "rd device status is %{public}d", g_isRdDevice);
-    if (info.type == ProvisionType::DEBUG && !isDevelopmentMode && !g_isRdDevice) {
+    if (info.type == ProvisionType::DEBUG && !g_isRdDevice) {
         ret = CheckDeviceID(info);
         if (ret != PROVISION_OK) {
             return ret;
