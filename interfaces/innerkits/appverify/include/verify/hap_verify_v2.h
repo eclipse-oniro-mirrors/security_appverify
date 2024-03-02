@@ -55,6 +55,7 @@ private:
     bool VerifyProfileSignature(const Pkcs7Context& pkcs7Context, Pkcs7Context& profileContext);
     void SetProfileBlockData(const Pkcs7Context& pkcs7Context, const HapByteBuffer& hapProfileBlock,
         ProvisionInfo& provisionInfo);
+    void SetOrganization(ProvisionInfo& provisionInfo);
 
 private:
     static const int32_t HEX_PRINT_LENGTH;

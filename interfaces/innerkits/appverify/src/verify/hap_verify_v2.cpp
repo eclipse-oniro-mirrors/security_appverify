@@ -201,7 +201,7 @@ bool HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context,
         HAPVERIFY_LOG_ERROR(LABEL, "Generate appId or generate fingerprint failed");
         return false;
     }
-
+    SetOrganization(provisionInfo);
     SetProfileBlockData(pkcs7Context, hapProfileBlock, provisionInfo);
 
     hapVerifyV1Result.SetProvisionInfo(provisionInfo);
@@ -451,6 +451,7 @@ int32_t HapVerifyV2::ParseHapProfile(const std::string& filePath, HapVerifyResul
         HAPVERIFY_LOG_ERROR(LABEL, "Generate appId or generate fingerprint failed");
         return PROFILE_PARSE_FAIL;
     }
+    SetOrganization(info);
     hapVerifyV1Result.SetProvisionInfo(info);
     return VERIFY_SUCCESS;
 }
@@ -474,6 +475,20 @@ int32_t HapVerifyV2::ParseHapSignatureInfo(const std::string& filePath, Signatur
     return VERIFY_SUCCESS;
 }
 
+void HapVerifyV2::SetOrganization(ProvisionInfo& provisionInfo)
+{
+    std::string& certInProfile = provisionInfo.bundleInfo.distributionCertificate;
+    if (provisionInfo.bundleInfo.distributionCertificate.empty()) {
+        HAPVERIFY_LOG_ERROR(LABEL, "distributionCertificate is empty");
+        return;
+    }
+    std::string organization;
+    if (!HapCertVerifyOpensslUtils::GetOrganizationFromPemCert(certInProfile, organization)) {
+        HAPVERIFY_LOG_ERROR(LABEL, "Generate organization from pem certificate failed");
+        return;
+    }
+    provisionInfo.organization = organization;
+}
 } // namespace Verify
 } // namespace Security
 } // namespace OHOS

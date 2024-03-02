@@ -167,6 +167,20 @@ bool HapCertVerifyOpensslUtils::GetPublickeyBase64(const X509* cert, std::string
     return true;
 }
 
+bool HapCertVerifyOpensslUtils::GetOrganizationFromPemCert(const std::string& certStr, std::string& organization)
+{
+    HAPVERIFY_LOG_DEBUG(LABEL, "GetFingerprintBase64FromPemCert begin");
+    X509* cert = GetX509CertFromPemString(certStr);
+    if (cert == nullptr) {
+        HAPVERIFY_LOG_ERROR(LABEL, "GetX509CertFromPemString failed");
+        return false;
+    }
+    X509_NAME* name = X509_get_subject_name(cert);
+    GetTextFromX509Name(name, NID_organizationName, organization);
+    X509_free(cert);
+    return true;
+}
+
 /*
  * The length after Base64 encoding is 4/3 of the length before encoding,
  * and openssl function will add '\0' to the encoded string.
