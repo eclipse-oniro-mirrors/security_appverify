@@ -49,6 +49,7 @@ public:
     DLL_EXPORT static bool X509NameCompare(const X509_NAME* a, const X509_NAME* b);
     DLL_EXPORT static bool GetPublickeyBase64(const X509* cert, std::string& publicKey);
     DLL_EXPORT static int32_t CalculateLenAfterBase64Encode(int32_t len);
+    DLL_EXPORT static bool GetOrganizationFromPemCert(const std::string& certStr, std::string& organization);
 
 private:
     DLL_EXPORT static X509* FindCertOfIssuer(X509* cert, CertSign& certVisitSign);

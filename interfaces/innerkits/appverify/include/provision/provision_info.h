@@ -98,6 +98,7 @@ struct ProvisionInfo {
     int32_t profileBlockLength = 0;
     std::unique_ptr<unsigned char[]> profileBlock;
     std::string appServiceCapabilities;
+    std::string organization;
 };
 } // namespace Verify
 } // namespace Security

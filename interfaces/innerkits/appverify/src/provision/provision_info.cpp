@@ -71,6 +71,7 @@ ProvisionInfo &ProvisionInfo::operator=(const ProvisionInfo &info)
         }
     }
     this->appServiceCapabilities = info.appServiceCapabilities;
+    this->organization = info.organization;
     return *this;
 }
 } // namespace Verify
