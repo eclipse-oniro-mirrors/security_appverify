@@ -103,6 +103,7 @@ static char **GetStringArrayTag(const cJSON *root, const char *tag, int32_t *num
         P_NULL_GOTO_WTTH_LOG(item);
         if (item->valuestring == NULL) {
             LOG_ERROR("valuestring is NULL");
+            FreeStringAttay(value, num);
             return NULL;
         }
         int32_t len = strlen(item->valuestring);
