@@ -230,7 +230,11 @@ void from_json(const json& obj, ProvisionInfo& out)
     GetStringArrayIfExist(obj, KEY_APP_PRIVILEGE_CAPABILITIES, out.appPrivilegeCapabilities);
     ParseValidity(obj, out.validity);
     ParseMetadata(obj, out);
-    GetStringIfExist(obj, KEY_APP_SERVICES_CAPABILITIES, out.appServiceCapabilities);
+    if (obj.find(KEY_APP_SERVICES_CAPABILITIES) != obj.end()) {
+        if (obj[KEY_APP_SERVICES_CAPABILITIES].dump().size() > 0) {
+            out.appServiceCapabilities = obj[KEY_APP_SERVICES_CAPABILITIES].dump();
+        }
+    }
 }
 
 #define RETURN_IF_STRING_IS_EMPTY(str, msg) \
