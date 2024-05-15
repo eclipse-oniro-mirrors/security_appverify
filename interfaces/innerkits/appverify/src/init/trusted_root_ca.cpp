@@ -110,7 +110,6 @@ bool TrustedRootCa::GetTrustedRootCAFromJson(StringCertMap& rootCertMap, const s
     JsonMap trustedRootCAJsonMap;
     JsonParserUtils::ParseJsonToMap(trustedRootCAJson, trustedRootCAJsonMap);
     for (auto jsonPair : trustedRootCAJsonMap) {
-        HAPVERIFY_LOG_INFO(LABEL, "parse cert: %{public}s", jsonPair.second.c_str());
         X509* cert = HapCertVerifyOpensslUtils::GetX509CertFromPemString(jsonPair.second);
         if (cert == nullptr) {
             HAPVERIFY_LOG_ERROR(LABEL, "GetX509CertFromPemString failed, key: %{public}s value: %{public}s",
