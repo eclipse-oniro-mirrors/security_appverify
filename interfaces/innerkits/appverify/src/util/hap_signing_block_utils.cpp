@@ -59,19 +59,19 @@ bool HapSigningBlockUtils::FindHapSignature(RandomAccessFile& hapFile, Signature
 {
     std::pair<HapByteBuffer, long long> eocdAndOffsetInFile;
     if (!FindEocdInHap(hapFile, eocdAndOffsetInFile)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "find EoCD failed");
+        HAPVERIFY_LOG_ERROR("find EoCD failed");
         return false;
     }
 
     signInfo.hapEocd = eocdAndOffsetInFile.first;
     signInfo.hapEocdOffset = eocdAndOffsetInFile.second;
     if (!GetCentralDirectoryOffset(signInfo.hapEocd, signInfo.hapEocdOffset, signInfo.hapCentralDirOffset)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "get CD offset failed");
+        HAPVERIFY_LOG_ERROR("get CD offset failed");
         return false;
     }
 
     if (!FindHapSigningBlock(hapFile, signInfo.hapCentralDirOffset, signInfo)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "find signing block failed");
+        HAPVERIFY_LOG_ERROR("find signing block failed");
         return false;
     }
     return true;
@@ -85,7 +85,7 @@ bool HapSigningBlockUtils::FindEocdInHap(RandomAccessFile& hapFile, std::pair<Ha
      * Try as a hap without comment block first to avoid unnecessarily reading more data.
      */
     if (FindEocdInHap(hapFile, 0, eocd)) {
-        HAPVERIFY_LOG_DEBUG(LABEL, "Find EoCD of Zip file");
+        HAPVERIFY_LOG_DEBUG("Find EoCD of Zip file");
         return true;
     }
     /*
@@ -101,7 +101,7 @@ bool HapSigningBlockUtils::FindEocdInHap(RandomAccessFile& hapFile, unsigned sho
     long long fileLength = hapFile.GetLength();
     /* check whether has enough space for EoCD in the file. */
     if (fileLength < ZIP_EOCD_SEG_MIN_SIZE) {
-        HAPVERIFY_LOG_ERROR(LABEL, "file length %{public}lld is too smaller", fileLength);
+        HAPVERIFY_LOG_ERROR("file length %{public}lld is too smaller", fileLength);
         return false;
     }
 
@@ -114,13 +114,13 @@ bool HapSigningBlockUtils::FindEocdInHap(RandomAccessFile& hapFile, unsigned sho
     long long searchRangeOffset = fileLength - searchEocdBuffer.GetCapacity();
     long long ret = hapFile.ReadFileFullyFromOffset(searchEocdBuffer, searchRangeOffset);
     if (ret < 0) {
-        HAPVERIFY_LOG_ERROR(LABEL, "read data from hap file error: %{public}lld", ret);
+        HAPVERIFY_LOG_ERROR("read data from hap file error: %{public}lld", ret);
         return false;
     }
 
     int32_t eocdOffsetInSearchBuffer = 0;
     if (!FindEocdInSearchBuffer(searchEocdBuffer, eocdOffsetInSearchBuffer)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "No Eocd is found");
+        HAPVERIFY_LOG_ERROR("No Eocd is found");
         return false;
     }
 
@@ -150,7 +150,7 @@ bool HapSigningBlockUtils::FindEocdInSearchBuffer(HapByteBuffer& searchBuffer, i
 {
     int32_t searchBufferSize = searchBuffer.GetCapacity();
     if (searchBufferSize < ZIP_EOCD_SEG_MIN_SIZE) {
-        HAPVERIFY_LOG_ERROR(LABEL, "The size of searchBuffer %{public}d is smaller than min size of Eocd",
+        HAPVERIFY_LOG_ERROR("The size of searchBuffer %{public}d is smaller than min size of Eocd",
             searchBufferSize);
         return false;
     }
@@ -180,20 +180,20 @@ bool HapSigningBlockUtils::GetCentralDirectoryOffset(HapByteBuffer& eocd, long l
     uint32_t sizeValue;
     if (!eocd.GetUInt32(ZIP_CD_OFFSET_IN_EOCD, offsetValue) ||
         !eocd.GetUInt32(ZIP_CD_SIZE_OFFSET_IN_EOCD, sizeValue)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "GetUInt32 failed");
+        HAPVERIFY_LOG_ERROR("GetUInt32 failed");
         return false;
     }
 
     centralDirectoryOffset = static_cast<long long>(offsetValue);
     if (centralDirectoryOffset > eocdOffset) {
-        HAPVERIFY_LOG_ERROR(LABEL, "centralDirOffset %{public}lld is larger than eocdOffset %{public}lld",
+        HAPVERIFY_LOG_ERROR("centralDirOffset %{public}lld is larger than eocdOffset %{public}lld",
             centralDirectoryOffset, eocdOffset);
         return false;
     }
 
     long long centralDirectorySize = static_cast<long long>(sizeValue);
     if (centralDirectoryOffset + centralDirectorySize != eocdOffset) {
-        HAPVERIFY_LOG_ERROR(LABEL, "centralDirOffset %{public}lld add centralDirSize %{public}lld is not equal\
+        HAPVERIFY_LOG_ERROR("centralDirOffset %{public}lld add centralDirSize %{public}lld is not equal\
             to eocdOffset %{public}lld", centralDirectoryOffset, centralDirectorySize, eocdOffset);
         return false;
     }
@@ -203,7 +203,7 @@ bool HapSigningBlockUtils::GetCentralDirectoryOffset(HapByteBuffer& eocd, long l
 bool HapSigningBlockUtils::SetUnsignedInt32(HapByteBuffer& buffer, int32_t offset, long long value)
 {
     if ((value < 0) || (value > static_cast<long long>(UINT_MAX))) {
-        HAPVERIFY_LOG_ERROR(LABEL, "uint32 value of out range: %{public}lld", value);
+        HAPVERIFY_LOG_ERROR("uint32 value of out range: %{public}lld", value);
         return false;
     }
     buffer.PutInt32(offset, static_cast<int>(value));
@@ -214,7 +214,7 @@ bool HapSigningBlockUtils::FindHapSigningBlock(RandomAccessFile& hapFile, long l
     SignatureInfo& signInfo)
 {
     if (centralDirOffset < HAP_SIG_BLOCK_MIN_SIZE) {
-        HAPVERIFY_LOG_ERROR(LABEL, "HAP too small for HAP Signing Block: %{public}lld", centralDirOffset);
+        HAPVERIFY_LOG_ERROR("HAP too small for HAP Signing Block: %{public}lld", centralDirOffset);
         return false;
     }
     /*
@@ -227,17 +227,17 @@ bool HapSigningBlockUtils::FindHapSigningBlock(RandomAccessFile& hapFile, long l
     HapByteBuffer hapBlockHead(ZIP_HEAD_OF_SIGNING_BLOCK_LENGTH);
     long long ret = hapFile.ReadFileFullyFromOffset(hapBlockHead, centralDirOffset - hapBlockHead.GetCapacity());
     if (ret < 0) {
-        HAPVERIFY_LOG_ERROR(LABEL, "read hapBlockHead error: %{public}lld", ret);
+        HAPVERIFY_LOG_ERROR("read hapBlockHead error: %{public}lld", ret);
         return false;
     }
     HapSignBlockHead hapSignBlockHead;
     if (!ParseSignBlockHead(hapSignBlockHead, hapBlockHead)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "ParseSignBlockHead failed");
+        HAPVERIFY_LOG_ERROR("ParseSignBlockHead failed");
         return false;
     }
 
     if (!CheckSignBlockHead(hapSignBlockHead)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "hapSignBlockHead is invalid");
+        HAPVERIFY_LOG_ERROR("hapSignBlockHead is invalid");
         return false;
     }
 
@@ -245,7 +245,7 @@ bool HapSigningBlockUtils::FindHapSigningBlock(RandomAccessFile& hapFile, long l
     long long blockArrayLen = hapSignBlockHead.hapSignBlockSize - ZIP_HEAD_OF_SIGNING_BLOCK_LENGTH;
     long long hapSignBlockOffset = centralDirOffset - hapSignBlockHead.hapSignBlockSize;
     if (hapSignBlockOffset < 0) {
-        HAPVERIFY_LOG_ERROR(LABEL, "HAP Signing Block offset out of range %{public}lld", hapSignBlockOffset);
+        HAPVERIFY_LOG_ERROR("HAP Signing Block offset out of range %{public}lld", hapSignBlockOffset);
         return false;
     }
     signInfo.hapSigningBlockOffset = hapSignBlockOffset;
@@ -263,19 +263,19 @@ bool HapSigningBlockUtils::CheckSignBlockHead(const HapSignBlockHead& hapSignBlo
 
     if ((hapSignBlockHead.hapSignBlockMagicLo != magic_low) ||
         (hapSignBlockHead.hapSignBlockMagicHi != magic_high)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "No HAP Signing Block before ZIP Central Directory");
+        HAPVERIFY_LOG_ERROR("No HAP Signing Block before ZIP Central Directory");
         return false;
     }
 
     if ((hapSignBlockHead.hapSignBlockSize < ZIP_HEAD_OF_SIGNING_BLOCK_LENGTH) ||
         (hapSignBlockHead.hapSignBlockSize > MAX_HAP_SIGN_BLOCK_SIZE)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "HAP Signing Block size out of range %{public}lld",
+        HAPVERIFY_LOG_ERROR("HAP Signing Block size out of range %{public}lld",
             hapSignBlockHead.hapSignBlockSize);
         return false;
     }
 
     if (hapSignBlockHead.blockCount > MAX_BLOCK_COUNT) {
-        HAPVERIFY_LOG_ERROR(LABEL, "HAP Signing Block count out of range %{public}d", hapSignBlockHead.blockCount);
+        HAPVERIFY_LOG_ERROR("HAP Signing Block count out of range %{public}d", hapSignBlockHead.blockCount);
         return false;
     }
 
@@ -319,25 +319,25 @@ bool HapSigningBlockUtils::FindHapSubSigningBlock(RandomAccessFile& hapFile, int
     long long offsetMax = hapSignBlockOffset + blockArrayLen;
     long long readLen = 0;
     long long readHeadOffset = hapSignBlockOffset;
-    HAPVERIFY_LOG_DEBUG(LABEL, "hapSignBlockOffset %{public}lld blockArrayLen: %{public}lld blockCount: %{public}d",
+    HAPVERIFY_LOG_DEBUG("hapSignBlockOffset %{public}lld blockArrayLen: %{public}lld blockCount: %{public}d",
         hapSignBlockOffset, blockArrayLen, blockCount);
     for (int32_t i = 0; i < blockCount; i++) {
         HapByteBuffer hapBlockHead(ZIP_CD_SIZE_OFFSET_IN_EOCD);
         long long ret = hapFile.ReadFileFullyFromOffset(hapBlockHead, readHeadOffset);
         if (ret < 0) {
-            HAPVERIFY_LOG_ERROR(LABEL, "read hapBlockHead error: %{public}lld", ret);
+            HAPVERIFY_LOG_ERROR("read hapBlockHead error: %{public}lld", ret);
             return false;
         }
         HapSubSignBlockHead subSignBlockHead;
         if (!ParseSubSignBlockHead(subSignBlockHead, hapBlockHead)) {
-            HAPVERIFY_LOG_ERROR(LABEL, "ParseSubSignBlockHead failed");
+            HAPVERIFY_LOG_ERROR("ParseSubSignBlockHead failed");
             return false;
         }
         readLen += sizeof(HapSubSignBlockHead);
 
         readHeadOffset += sizeof(HapSubSignBlockHead);
         if (readHeadOffset > offsetMax) {
-            HAPVERIFY_LOG_ERROR(LABEL, "find %{public}dst next head offset error", i);
+            HAPVERIFY_LOG_ERROR("find %{public}dst next head offset error", i);
             return false;
         }
 
@@ -345,11 +345,11 @@ bool HapSigningBlockUtils::FindHapSubSigningBlock(RandomAccessFile& hapFile, int
         long long headLength = static_cast<long long>(subSignBlockHead.length);
         /* check subSignBlockHead */
         if ((offsetMax - headOffset) < hapSignBlockOffset) {
-            HAPVERIFY_LOG_ERROR(LABEL, "Find %{public}dst subblock data offset error", i);
+            HAPVERIFY_LOG_ERROR("Find %{public}dst subblock data offset error", i);
             return false;
         }
         if ((blockArrayLen - headLength) < readLen) {
-            HAPVERIFY_LOG_ERROR(LABEL, "no enough data to be read for %{public}dst subblock", i);
+            HAPVERIFY_LOG_ERROR("no enough data to be read for %{public}dst subblock", i);
             return false;
         }
 
@@ -357,13 +357,13 @@ bool HapSigningBlockUtils::FindHapSubSigningBlock(RandomAccessFile& hapFile, int
         HapByteBuffer signBuffer(subSignBlockHead.length);
         ret = hapFile.ReadFileFullyFromOffset(signBuffer, dataOffset);
         if (ret < 0) {
-            HAPVERIFY_LOG_ERROR(LABEL, "read %{public}dst subblock error: %{public}lld", i, ret);
+            HAPVERIFY_LOG_ERROR("read %{public}dst subblock error: %{public}lld", i, ret);
             return false;
         }
         readLen += headLength;
 
         if (!ClassifyHapSubSigningBlock(signInfo, signBuffer, subSignBlockHead.type)) {
-            HAPVERIFY_LOG_ERROR(LABEL, "ClassifyHapSubSigningBlock error, type is %{public}d",
+            HAPVERIFY_LOG_ERROR("ClassifyHapSubSigningBlock error, type is %{public}d",
                 subSignBlockHead.type);
             return false;
         }
@@ -371,7 +371,7 @@ bool HapSigningBlockUtils::FindHapSubSigningBlock(RandomAccessFile& hapFile, int
 
     /* size of block must be equal to the sum of all subblocks length */
     if (readLen != blockArrayLen) {
-        HAPVERIFY_LOG_ERROR(LABEL, "readLen: %{public}lld is not same as blockArrayLen: %{public}lld",
+        HAPVERIFY_LOG_ERROR("readLen: %{public}lld is not same as blockArrayLen: %{public}lld",
             readLen, blockArrayLen);
         return false;
     }
@@ -385,7 +385,7 @@ bool HapSigningBlockUtils::ClassifyHapSubSigningBlock(SignatureInfo& signInfo,
     switch (type) {
         case HAP_SIGN_BLOB: {
             if (signInfo.hapSignatureBlock.GetCapacity() != 0) {
-                HAPVERIFY_LOG_ERROR(LABEL, "find more than one hap sign block");
+                HAPVERIFY_LOG_ERROR("find more than one hap sign block");
                 break;
             }
             signInfo.hapSignatureBlock = subBlock;
@@ -424,7 +424,7 @@ bool HapSigningBlockUtils::VerifyHapIntegrity(
     Pkcs7Context& digestInfo, RandomAccessFile& hapFile, SignatureInfo& signInfo)
 {
     if (!SetUnsignedInt32(signInfo.hapEocd, ZIP_CD_OFFSET_IN_EOCD, signInfo.hapSigningBlockOffset)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "Set central dir offset failed");
+        HAPVERIFY_LOG_ERROR("Set central dir offset failed");
         return false;
     }
 
@@ -437,18 +437,18 @@ bool HapSigningBlockUtils::VerifyHapIntegrity(
     DigestParameter digestParam = GetDigestParameter(nId);
     HapByteBuffer chunkDigest;
     if (!ComputeDigestsForEachChunk(digestParam, content, ZIP_BLOCKS_NUM_NEED_DIGEST, chunkDigest)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "Compute Content Digests failed, alg: %{public}d", nId);
+        HAPVERIFY_LOG_ERROR("Compute Content Digests failed, alg: %{public}d", nId);
         return false;
     }
 
     HapByteBuffer actualDigest;
     if (!ComputeDigestsWithOptionalBlock(digestParam, signInfo.optionBlocks, chunkDigest, actualDigest)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "Compute Final Digests failed, alg: %{public}d", nId);
+        HAPVERIFY_LOG_ERROR("Compute Final Digests failed, alg: %{public}d", nId);
         return false;
     }
 
     if (!digestInfo.content.IsEqual(actualDigest)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "digest of contents verify failed, alg %{public}d", nId);
+        HAPVERIFY_LOG_ERROR("digest of contents verify failed, alg %{public}d", nId);
         return false;
     }
     return true;
@@ -460,7 +460,7 @@ bool HapSigningBlockUtils::ComputeDigestsWithOptionalBlock(const DigestParameter
     unsigned char out[EVP_MAX_MD_SIZE];
     int32_t digestLen = HapVerifyOpensslUtils::GetDigest(chunkDigest, optionalBlocks, digestParam, out);
     if (digestLen != digestParam.digestOutputSizeBytes) {
-        HAPVERIFY_LOG_ERROR(LABEL, "GetDigest failed, outLen is not right, %{public}u, %{public}d",
+        HAPVERIFY_LOG_ERROR("GetDigest failed, outLen is not right, %{public}u, %{public}d",
             digestLen, digestParam.digestOutputSizeBytes);
         return false;
     }
@@ -475,7 +475,7 @@ bool HapSigningBlockUtils::GetSumOfChunkDigestLen(DataSource* contents[], int32_
 {
     for (int32_t i = 0; i < len; i++) {
         if (contents[i] == nullptr) {
-            HAPVERIFY_LOG_ERROR(LABEL, "contents[%{public}d] is nullptr", i);
+            HAPVERIFY_LOG_ERROR("contents[%{public}d] is nullptr", i);
             return false;
         }
         contents[i]->Reset();
@@ -483,12 +483,12 @@ bool HapSigningBlockUtils::GetSumOfChunkDigestLen(DataSource* contents[], int32_
     }
 
     if (chunkCount <= 0) {
-        HAPVERIFY_LOG_ERROR(LABEL, "no content for digest");
+        HAPVERIFY_LOG_ERROR("no content for digest");
         return false;
     }
 
     if (chunkDigestLen < 0 || ((INT_MAX - ZIP_CHUNK_DIGEST_PRIFIX_LEN) / chunkCount) < chunkDigestLen) {
-        HAPVERIFY_LOG_ERROR(LABEL, "overflow chunkCount: %{public}d, chunkDigestLen: %{public}d",
+        HAPVERIFY_LOG_ERROR("overflow chunkCount: %{public}d, chunkDigestLen: %{public}d",
             chunkCount, chunkDigestLen);
         return false;
     }
@@ -503,7 +503,7 @@ bool HapSigningBlockUtils::ComputeDigestsForEachChunk(const DigestParameter& dig
     int32_t chunkCount = 0;
     int32_t sumOfChunksLen = 0;
     if (!GetSumOfChunkDigestLen(contents, len, digestParam.digestOutputSizeBytes, chunkCount, sumOfChunksLen)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "GetSumOfChunkDigestLen failed");
+        HAPVERIFY_LOG_ERROR("GetSumOfChunkDigestLen failed");
         return false;
     }
     result.SetCapacity(sumOfChunksLen);
@@ -518,18 +518,18 @@ bool HapSigningBlockUtils::ComputeDigestsForEachChunk(const DigestParameter& dig
         while (contents[i]->HasRemaining()) {
             int32_t chunkSize = std::min(contents[i]->Remaining(), CHUNK_SIZE);
             if (!InitDigestPrefix(digestParam, chunkContentPrefix, chunkSize)) {
-                HAPVERIFY_LOG_ERROR(LABEL, "InitDigestPrefix failed");
+                HAPVERIFY_LOG_ERROR("InitDigestPrefix failed");
                 return false;
             }
 
             if (!contents[i]->ReadDataAndDigestUpdate(digestParam, chunkSize)) {
-                HAPVERIFY_LOG_ERROR(LABEL, "Copy Partial Buffer failed, count: %{public}d", chunkIndex);
+                HAPVERIFY_LOG_ERROR("Copy Partial Buffer failed, count: %{public}d", chunkIndex);
                 return false;
             }
 
             int32_t digestLen = HapVerifyOpensslUtils::GetDigest(digestParam, out);
             if (digestLen != digestParam.digestOutputSizeBytes) {
-                HAPVERIFY_LOG_ERROR(LABEL, "GetDigest failed len: %{public}d digestSizeBytes: %{public}d",
+                HAPVERIFY_LOG_ERROR("GetDigest failed len: %{public}d digestSizeBytes: %{public}d",
                     digestLen, digestParam.digestOutputSizeBytes);
                 return false;
             }
@@ -568,17 +568,17 @@ bool HapSigningBlockUtils::InitDigestPrefix(const DigestParameter& digestParam,
     unsigned char (&chunkContentPrefix)[ZIP_CHUNK_DIGEST_PRIFIX_LEN], int32_t chunkLen)
 {
     if (memcpy_s((chunkContentPrefix + 1), ZIP_CHUNK_DIGEST_PRIFIX_LEN - 1, (&chunkLen), sizeof(chunkLen)) != EOK) {
-        HAPVERIFY_LOG_ERROR(LABEL, "memcpy_s failed");
+        HAPVERIFY_LOG_ERROR("memcpy_s failed");
         return false;
     }
 
     if (!HapVerifyOpensslUtils::DigestInit(digestParam)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "DigestInit failed");
+        HAPVERIFY_LOG_ERROR("DigestInit failed");
         return false;
     }
 
     if (!HapVerifyOpensslUtils::DigestUpdate(digestParam, chunkContentPrefix, ZIP_CHUNK_DIGEST_PRIFIX_LEN)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "DigestUpdate failed");
+        HAPVERIFY_LOG_ERROR("DigestUpdate failed");
         return false;
     }
     return true;

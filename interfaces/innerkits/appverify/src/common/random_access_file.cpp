@@ -51,13 +51,13 @@ bool RandomAccessFile::Init(const std::string& filePath)
     }
 
     if (memoryPageSize <= 0) {
-        HAPVERIFY_LOG_ERROR(LABEL, "getting pagesize failed: %{public}d", memoryPageSize);
+        HAPVERIFY_LOG_ERROR("getting pagesize failed: %{public}d", memoryPageSize);
         return false;
     }
 
     fileLength = lseek(fd, 0, SEEK_END);
     if (fileLength < 0) {
-        HAPVERIFY_LOG_ERROR(LABEL, "getting fileLength failed: %{public}lld", fileLength);
+        HAPVERIFY_LOG_ERROR("getting fileLength failed: %{public}lld", fileLength);
         return false;
     }
     return true;
@@ -81,7 +81,7 @@ bool RandomAccessFile::CheckLittleEndian()
 long long RandomAccessFile::DoMMap(int32_t bufCapacity, long long offset, MmapInfo& mmapInfo)
 {
     if (!CheckLittleEndian()) {
-        HAPVERIFY_LOG_ERROR(LABEL, "CheckLittleEndian: failed");
+        HAPVERIFY_LOG_ERROR("CheckLittleEndian: failed");
         return MMAP_FAILED;
     }
     mmapInfo.mapAddr = reinterpret_cast<char*>(MAP_FAILED);
@@ -97,7 +97,7 @@ long long RandomAccessFile::DoMMap(int32_t bufCapacity, long long offset, MmapIn
     mmapInfo.mapAddr = reinterpret_cast<char*>(mmap(nullptr, mmapInfo.mmapSize, PROT_READ,
         MAP_SHARED | MAP_POPULATE, fd, mmapInfo.mmapPosition));
     if (mmapInfo.mapAddr == MAP_FAILED) {
-        HAPVERIFY_LOG_ERROR(LABEL, "MAP_FAILED: %{public}d", errno);
+        HAPVERIFY_LOG_ERROR("MAP_FAILED: %{public}d", errno);
         return MMAP_FAILED;
     }
     return 0;
@@ -148,7 +148,7 @@ bool RandomAccessFile::ReadFileFromOffsetAndDigestUpdate(const DigestParameter& 
     MmapInfo mmapInfo;
     long long ret = DoMMap(chunkSize, offset, mmapInfo);
     if (ret < 0) {
-        HAPVERIFY_LOG_ERROR(LABEL, "DoMMap failed: %{public}lld", ret);
+        HAPVERIFY_LOG_ERROR("DoMMap failed: %{public}lld", ret);
         return false;
     }
 

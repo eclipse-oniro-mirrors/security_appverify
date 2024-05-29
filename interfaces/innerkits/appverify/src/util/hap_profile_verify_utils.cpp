@@ -31,13 +31,13 @@ bool HapProfileVerifyUtils::ParseProfile(Pkcs7Context& profilePkcs7Context, cons
     if (hapPkcs7Context.matchResult.matchState == MATCH_WITH_SIGN &&
         hapPkcs7Context.matchResult.source == APP_GALLARY) {
         profile = std::string(pkcs7ProfileBlock.GetBufferPtr(), pkcs7ProfileBlock.GetCapacity());
-        HAPVERIFY_LOG_DEBUG(LABEL, "hap include unsigned provision");
+        HAPVERIFY_LOG_DEBUG("hap include unsigned provision");
         return true;
     }
     const unsigned char* pkcs7Block = reinterpret_cast<const unsigned char*>(pkcs7ProfileBlock.GetBufferPtr());
     uint32_t pkcs7Len = static_cast<unsigned int>(pkcs7ProfileBlock.GetCapacity());
     if (!HapVerifyOpensslUtils::ParsePkcs7Package(pkcs7Block, pkcs7Len, profilePkcs7Context)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "parse pkcs7 failed");
+        HAPVERIFY_LOG_ERROR("parse pkcs7 failed");
         return false;
     }
 
@@ -48,12 +48,12 @@ bool HapProfileVerifyUtils::ParseProfile(Pkcs7Context& profilePkcs7Context, cons
 bool HapProfileVerifyUtils::VerifyProfile(Pkcs7Context& pkcs7Context)
 {
     if (!HapVerifyOpensslUtils::GetCertChains(pkcs7Context.p7, pkcs7Context)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "GetCertChains from pkcs7 failed");
+        HAPVERIFY_LOG_ERROR("GetCertChains from pkcs7 failed");
         return false;
     }
 
     if (!HapVerifyOpensslUtils::VerifyPkcs7(pkcs7Context)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "verify profile signature failed");
+        HAPVERIFY_LOG_ERROR("verify profile signature failed");
         return false;
     }
 
@@ -61,7 +61,7 @@ bool HapProfileVerifyUtils::VerifyProfile(Pkcs7Context& pkcs7Context)
     std::string certIssuer;
     if (!HapCertVerifyOpensslUtils::GetSubjectFromX509(pkcs7Context.certChains[0][0], certSubject) ||
         !HapCertVerifyOpensslUtils::GetIssuerFromX509(pkcs7Context.certChains[0][0], certIssuer)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "Get info of sign cert failed");
+        HAPVERIFY_LOG_ERROR("Get info of sign cert failed");
         return false;
     }
 
@@ -69,11 +69,11 @@ bool HapProfileVerifyUtils::VerifyProfile(Pkcs7Context& pkcs7Context)
     pkcs7Context.matchResult = trustedSourceManager.IsTrustedSource(certSubject, certIssuer, PROFILE_BLOB,
         pkcs7Context.certChains[0].size());
     if (pkcs7Context.matchResult.matchState == DO_NOT_MATCH) {
-        HAPVERIFY_LOG_ERROR(LABEL, "profile signature is not trusted source, subject: %{public}s, issuer: %{public}s",
+        HAPVERIFY_LOG_ERROR("profile signature is not trusted source, subject: %{public}s, issuer: %{public}s",
             certSubject.c_str(), certIssuer.c_str());
         return false;
     }
-    HAPVERIFY_LOG_DEBUG(LABEL, "profile subject: %{public}s, issuer: %{public}s",
+    HAPVERIFY_LOG_DEBUG("profile subject: %{public}s, issuer: %{public}s",
         certSubject.c_str(), certIssuer.c_str());
     return true;
 }

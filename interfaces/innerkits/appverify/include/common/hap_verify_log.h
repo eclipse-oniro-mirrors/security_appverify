@@ -21,19 +21,35 @@
 namespace OHOS {
 namespace Security {
 namespace Verify {
-static constexpr uint32_t APPVERIFY_DOMAIN = 0xD0011FE;
-static constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, APPVERIFY_DOMAIN, "HapVerify"};
 
-#define HAPVERIFY_LOG_DEBUG(label, fmt, ...) \
-    OHOS::HiviewDFX::HiLog::Debug(label, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
-#define HAPVERIFY_LOG_INFO(label, fmt, ...) \
-    OHOS::HiviewDFX::HiLog::Info(label, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
-#define HAPVERIFY_LOG_WARN(label, fmt, ...) \
-    OHOS::HiviewDFX::HiLog::Warn(label, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
-#define HAPVERIFY_LOG_ERROR(label, fmt, ...) \
-    OHOS::HiviewDFX::HiLog::Error(label, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
-#define HAPVERIFY_LOG_FATAL(label, fmt, ...) \
-    OHOS::HiviewDFX::HiLog::Fatal(label, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+#ifndef HAPVERIFY_LOG_DOMAIN
+#define HAPVERIFY_LOG_DOMAIN 0xD0011FE
+#endif
+
+#ifndef HAPVERIFY_APP_LOG_TAG
+#define HAPVERIFY_APP_LOG_TAG "HapVerify"
+#endif
+
+#define FILENAME (__builtin_strrchr(__FILE__, '/') ? __builtin_strrchr(__FILE__, '/') + 1 : __FILE__)
+#define HAPVERIFY_LOG_DEBUG(fmt, ...)            \
+    ((void)HILOG_IMPL(LOG_CORE, LOG_DEBUG, HAPVERIFY_LOG_DOMAIN, HAPVERIFY_APP_LOG_TAG, \
+    "[%{public}s(%{public}s:%{public}d)]" fmt, FILENAME, __FUNCTION__, __LINE__, ##__VA_ARGS__))
+
+#define HAPVERIFY_LOG_INFO(fmt, ...)            \
+    ((void)HILOG_IMPL(LOG_CORE, LOG_INFO, HAPVERIFY_LOG_DOMAIN, HAPVERIFY_APP_LOG_TAG, \
+    "[%{public}s(%{public}s:%{public}d)]" fmt, FILENAME, __FUNCTION__, __LINE__, ##__VA_ARGS__))
+
+#define HAPVERIFY_LOG_WARN(fmt, ...)            \
+    ((void)HILOG_IMPL(LOG_CORE, LOG_WARN, HAPVERIFY_LOG_DOMAIN, HAPVERIFY_APP_LOG_TAG, \
+    "[%{public}s(%{public}s:%{public}d)]" fmt, FILENAME, __FUNCTION__, __LINE__, ##__VA_ARGS__))
+
+#define HAPVERIFY_LOG_ERROR(fmt, ...)            \
+    ((void)HILOG_IMPL(LOG_CORE, LOG_ERROR, HAPVERIFY_LOG_DOMAIN, HAPVERIFY_APP_LOG_TAG, \
+    "[%{public}s(%{public}s:%{public}d)]" fmt, FILENAME, __FUNCTION__, __LINE__, ##__VA_ARGS__))
+
+#define HAPVERIFY_LOG_FATAL(fmt, ...)            \
+    ((void)HILOG_IMPL(LOG_CORE, LOG_FATAL, HAPVERIFY_LOG_DOMAIN, HAPVERIFY_APP_LOG_TAG, \
+    "[%{public}s(%{public}s:%{public}d)]" fmt, FILENAME, __FUNCTION__, __LINE__, ##__VA_ARGS__))
 } // namespace Verify
 } // namespace Security
 } // namespace OHOS

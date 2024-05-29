@@ -56,7 +56,7 @@ bool TrustedRootCa::EnableDebug()
 
     isDebug = GetTrustedRootCAFromJson(rootCertsForTest, TRUSTED_ROOT_CA_TEST_FILE_PATH);
     if (isDebug) {
-        HAPVERIFY_LOG_INFO(LABEL, "parse root certs test success, certs num: %{public}zu", rootCertsForTest.size());
+        HAPVERIFY_LOG_INFO("parse root certs test success, certs num: %{public}zu", rootCertsForTest.size());
     }
     return isDebug;
 }
@@ -83,7 +83,7 @@ bool TrustedRootCa::Init()
 
     isInit = GetTrustedRootCAFromJson(rootCerts, TRUSTED_ROOT_CA_FILE_PATH);
     if (isInit) {
-        HAPVERIFY_LOG_INFO(LABEL, "parse root certs success, certs num: %{public}zu", rootCerts.size());
+        HAPVERIFY_LOG_INFO("parse root certs success, certs num: %{public}zu", rootCerts.size());
     }
     return isInit;
 }
@@ -102,7 +102,7 @@ bool TrustedRootCa::GetTrustedRootCAFromJson(StringCertMap& rootCertMap, const s
     nlohmann::json trustedRootCAJson;
     std::string errorInfo;
     if (!JsonParserUtils::ReadTrustedRootCAFromJson(trustedRootCAJson, filePath, errorInfo)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "get jsonObj from %{public}s failed, because %{public}s",
+        HAPVERIFY_LOG_ERROR("get jsonObj from %{public}s failed, because %{public}s",
             filePath.c_str(), errorInfo.c_str());
         return false;
     }
@@ -112,7 +112,7 @@ bool TrustedRootCa::GetTrustedRootCAFromJson(StringCertMap& rootCertMap, const s
     for (auto jsonPair : trustedRootCAJsonMap) {
         X509* cert = HapCertVerifyOpensslUtils::GetX509CertFromPemString(jsonPair.second);
         if (cert == nullptr) {
-            HAPVERIFY_LOG_ERROR(LABEL, "GetX509CertFromPemString failed, key: %{public}s value: %{public}s",
+            HAPVERIFY_LOG_ERROR("GetX509CertFromPemString failed, key: %{public}s value: %{public}s",
                 jsonPair.first.c_str(), jsonPair.second.c_str());
             return false;
         }
@@ -120,7 +120,7 @@ bool TrustedRootCa::GetTrustedRootCAFromJson(StringCertMap& rootCertMap, const s
     }
 
     if (rootCertMap.empty()) {
-        HAPVERIFY_LOG_ERROR(LABEL, "no root cert");
+        HAPVERIFY_LOG_ERROR("no root cert");
         return false;
     }
     return true;
@@ -138,7 +138,7 @@ X509* TrustedRootCa::FindMatchedRoot(X509* caCert)
     }
 
     if (isDebug) {
-        HAPVERIFY_LOG_INFO(LABEL, "try to match with test root");
+        HAPVERIFY_LOG_INFO("try to match with test root");
         root = FindMatchedRoot(rootCertsForTest, caCert);
     }
     return root;

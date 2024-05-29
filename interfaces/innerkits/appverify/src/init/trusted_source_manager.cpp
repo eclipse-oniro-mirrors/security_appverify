@@ -65,7 +65,7 @@ bool TrustedSourceManager::EnableDebug()
     isDebug = GetAppTrustedSources(appTrustedSourcesForTest, versionForTest,
         releaseTimeForTest, APP_TRUSTED_SOURCE_TEST_FILE_PATH);
     if (isDebug) {
-        HAPVERIFY_LOG_INFO(LABEL, "trusted app source test version: %{public}s, releaseTime: %{public}s, Size:"
+        HAPVERIFY_LOG_INFO("trusted app source test version: %{public}s, releaseTime: %{public}s, Size:"
             " %{public}zu", versionForTest.c_str(), releaseTimeForTest.c_str(), appTrustedSourcesForTest.size());
     }
     return isDebug;
@@ -85,7 +85,7 @@ bool TrustedSourceManager::Init()
 
     isInit = GetAppTrustedSources(appTrustedSources, version, releaseTime, APP_TRUSTED_SOURCE_FILE_PATH);
     if (isInit) {
-        HAPVERIFY_LOG_INFO(LABEL, "trusted app source version: %{public}s, releaseTime: %{public}s, Size:"
+        HAPVERIFY_LOG_INFO("trusted app source version: %{public}s, releaseTime: %{public}s, Size:"
             " %{public}zu", version.c_str(), releaseTime.c_str(), appTrustedSources.size());
     }
     return isInit;
@@ -103,30 +103,30 @@ bool TrustedSourceManager::GetAppTrustedSources(SourceInfoVec& trustedAppSources
     nlohmann::json trustedSourceJson;
     std::string errorInfo;
     if (!JsonParserUtils::ReadTrustedRootCAFromJson(trustedSourceJson, filePath, errorInfo)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "get jsonObj from %{public}s failed, because %{public}s",
+        HAPVERIFY_LOG_ERROR("get jsonObj from %{public}s failed, because %{public}s",
             filePath.c_str(), errorInfo.c_str());
         return false;
     }
     if (!JsonParserUtils::GetJsonString(trustedSourceJson, KEY_OF_APP_TRUSTED_SOURCE_VERSION, souucesVersion)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "get version failed");
+        HAPVERIFY_LOG_ERROR("get version failed");
         return false;
     }
     if (!JsonParserUtils::GetJsonString(trustedSourceJson,
         KEY_OF_APP_TRUSTED_SOURCE_RELEASETIME, souucesReleaseTime)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "get releaseTime failed");
+        HAPVERIFY_LOG_ERROR("get releaseTime failed");
         return false;
     }
     JsonObjVec trustedAppSourceJson;
     if (!JsonParserUtils::ParseJsonToObjVec(trustedSourceJson, KEY_OF_APP_TRUSTED_SOURCE, trustedAppSourceJson)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "get JsonObjVec failed");
+        HAPVERIFY_LOG_ERROR("get JsonObjVec failed");
         return false;
     }
     if (!ParseTrustedAppSourceJson(trustedAppSources, trustedAppSourceJson)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "parse JsonObjVec failed");
+        HAPVERIFY_LOG_ERROR("parse JsonObjVec failed");
         return false;
     }
     if (trustedAppSources.empty()) {
-        HAPVERIFY_LOG_ERROR(LABEL, "no app trusted source");
+        HAPVERIFY_LOG_ERROR("no app trusted source");
         return false;
     }
     return true;
@@ -138,38 +138,38 @@ bool TrustedSourceManager::ParseTrustedAppSourceJson(SourceInfoVec& trustedAppSo
     for (auto appSource : trustedAppSourceJson) {
         HapAppSourceInfo hapAppSource;
         if (!JsonParserUtils::GetJsonString(appSource, KEY_OF_SOURCE_NAME, hapAppSource.sourceName)) {
-            HAPVERIFY_LOG_ERROR(LABEL, "Get sourceName Failed");
+            HAPVERIFY_LOG_ERROR("Get sourceName Failed");
             return false;
         }
         hapAppSource.source = GetTrustedSource(hapAppSource.sourceName);
         if (!JsonParserUtils::GetJsonString(appSource, KEY_OF_APP_SIGNING_CERT, hapAppSource.appSigningCert)) {
-            HAPVERIFY_LOG_ERROR(LABEL, "Get appSigningCert Failed");
+            HAPVERIFY_LOG_ERROR("Get appSigningCert Failed");
             return false;
         }
         if (!JsonParserUtils::GetJsonString(appSource, KEY_OF_PROFILE_SIGNING_CERTIFICATE,
             hapAppSource.profileSigningCertificate)) {
-            HAPVERIFY_LOG_ERROR(LABEL, "Get profileSigningCertificate Failed");
+            HAPVERIFY_LOG_ERROR("Get profileSigningCertificate Failed");
             return false;
         }
         if (!JsonParserUtils::GetJsonString(appSource, KEY_OF_PROFILE_DEBUG_SIGNING_CERTIFICATE,
             hapAppSource.profileDebugSigningCertificate)) {
-            HAPVERIFY_LOG_ERROR(LABEL, "Get profileDebugSigningCertificate Failed");
+            HAPVERIFY_LOG_ERROR("Get profileDebugSigningCertificate Failed");
             return false;
         }
         if (!JsonParserUtils::GetJsonString(appSource, KEY_OF_ISSUER, hapAppSource.issuer)) {
-            HAPVERIFY_LOG_ERROR(LABEL, "Get issuer Failed");
+            HAPVERIFY_LOG_ERROR("Get issuer Failed");
             return false;
         }
         if (!JsonParserUtils::GetJsonInt(appSource, KEY_OF_MAX_CERTS_PATH, hapAppSource.maxCertsPath)) {
-            HAPVERIFY_LOG_ERROR(LABEL, "Get maxCertsPath Failed");
+            HAPVERIFY_LOG_ERROR("Get maxCertsPath Failed");
             return false;
         }
         if (!JsonParserUtils::GetJsonStringVec(appSource, KEY_OF_CRITIALCAL_CERT_EXTENSION,
             hapAppSource.critialcalCertExtension)) {
-            HAPVERIFY_LOG_ERROR(LABEL, "Get critialcalCertExtension Failed");
+            HAPVERIFY_LOG_ERROR("Get critialcalCertExtension Failed");
             return false;
         }
-        HAPVERIFY_LOG_INFO(LABEL, "trusted app source: %{public}s", EncapTrustedAppSourceString(hapAppSource).c_str());
+        HAPVERIFY_LOG_INFO("trusted app source: %{public}s", EncapTrustedAppSourceString(hapAppSource).c_str());
         trustedAppSources.push_back(hapAppSource);
     }
     return true;

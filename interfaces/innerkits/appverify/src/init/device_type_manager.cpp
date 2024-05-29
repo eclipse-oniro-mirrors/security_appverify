@@ -52,7 +52,7 @@ bool DeviceTypeManager::GetDeviceType() const
 bool DeviceTypeManager::GetDeviceTypeInfo()
 {
     bool currentDeviceType = GetDeviceType();
-    HAPVERIFY_LOG_DEBUG(LABEL, "current device is type: %{public}d", static_cast<int>(currentDeviceType));
+    HAPVERIFY_LOG_DEBUG("current device is type: %{public}d", static_cast<int>(currentDeviceType));
 
     if (currentDeviceType == deviceType) {
         return currentDeviceType;
@@ -65,7 +65,7 @@ bool DeviceTypeManager::GetDeviceTypeInfo()
         /* Device type change from  commercial to debugging */
         bool ret = rootCertsObj.EnableDebug() && trustedAppSourceManager.EnableDebug();
         if (!ret) {
-            HAPVERIFY_LOG_ERROR(LABEL, "Enable debug failed");
+            HAPVERIFY_LOG_ERROR("Enable debug failed");
             rootCertsObj.DisableDebug();
             trustedAppSourceManager.DisableDebug();
             getDeviceTypeMtx.unlock();
