@@ -239,13 +239,13 @@ void from_json(const json& obj, ProvisionInfo& out)
 
 #define RETURN_IF_STRING_IS_EMPTY(str, msg) \
     if (str.empty()) {                      \
-        HAPVERIFY_LOG_ERROR(LABEL, msg);    \
+        HAPVERIFY_LOG_ERROR(msg);    \
         return PROVISION_INVALID;           \
     }
 
 #define RETURN_IF_INT_IS_NON_POSITIVE(num, msg) \
     if (num <= 0) {                             \
-        HAPVERIFY_LOG_ERROR(LABEL, msg);        \
+        HAPVERIFY_LOG_ERROR(msg);        \
         return PROVISION_INVALID;               \
     }
 
@@ -253,7 +253,7 @@ AppProvisionVerifyResult ParseProvision(const string& appProvision, ProvisionInf
 {
     json obj = json::parse(appProvision, nullptr, false);
     if (obj.is_discarded() || (!obj.is_structured())) {
-        HAPVERIFY_LOG_ERROR(LABEL, "Parsing appProvision failed. json: %{public}s", appProvision.c_str());
+        HAPVERIFY_LOG_ERROR("Parsing appProvision failed. json: %{public}s", appProvision.c_str());
         return PROVISION_INVALID;
     }
     obj.get_to(info);
@@ -270,7 +270,7 @@ AppProvisionVerifyResult ParseProvision(const string& appProvision, ProvisionInf
     }
     RETURN_IF_STRING_IS_EMPTY(info.bundleInfo.bundleName, "Tag bundle-name is empty.")
     if (info.bundleInfo.bundleName == GENERIC_BUNDLE_NAME) {
-        HAPVERIFY_LOG_DEBUG(LABEL, "generic package name: %{public}s, is used.", GENERIC_BUNDLE_NAME.c_str());
+        HAPVERIFY_LOG_DEBUG("generic package name: %{public}s, is used.", GENERIC_BUNDLE_NAME.c_str());
     }
     if (info.versionCode >= VERSION_CODE_TWO) {
         RETURN_IF_STRING_IS_EMPTY(info.bundleInfo.apl, "Tag apl is empty.");
@@ -286,10 +286,10 @@ inline bool CheckDeviceID(const std::vector<std::string>& deviceIds, const strin
     if (iter == deviceIds.end()) {
         DeviceTypeManager& deviceTypeManager = DeviceTypeManager::GetInstance();
         if (!deviceTypeManager.GetDeviceTypeInfo()) {
-            HAPVERIFY_LOG_ERROR(LABEL, "current device is not authorized");
+            HAPVERIFY_LOG_ERROR("current device is not authorized");
             return false;
         }
-        HAPVERIFY_LOG_INFO(LABEL, "current device is a debug device");
+        HAPVERIFY_LOG_INFO("current device is a debug device");
     }
     return true;
 }
@@ -298,15 +298,15 @@ AppProvisionVerifyResult CheckDeviceID(ProvisionInfo& info)
 {
     // Checking device ids
     if (info.debugInfo.deviceIds.empty()) {
-        HAPVERIFY_LOG_ERROR(LABEL, "device-id list is empty.");
+        HAPVERIFY_LOG_ERROR("device-id list is empty.");
         return PROVISION_DEVICE_UNAUTHORIZED;
     }
 
-    HAPVERIFY_LOG_DEBUG(LABEL, "number of device ids in list: %{public}u",
+    HAPVERIFY_LOG_DEBUG("number of device ids in list: %{public}u",
         static_cast<uint32_t>(info.debugInfo.deviceIds.size()));
 
     if (info.debugInfo.deviceIdType != VALUE_DEVICE_ID_TYPE_UDID) {
-        HAPVERIFY_LOG_ERROR(LABEL, "type of device ID is not supported.");
+        HAPVERIFY_LOG_ERROR("type of device ID is not supported.");
         return PROVISION_UNSUPPORTED_DEVICE_TYPE;
     }
 
@@ -314,20 +314,20 @@ AppProvisionVerifyResult CheckDeviceID(ProvisionInfo& info)
 #ifndef STANDARD_SYSTEM
     int32_t ret = OHOS::AccountSA::OhosAccountKits::GetInstance().GetUdid(deviceId);
     if (ret != 0) {
-        HAPVERIFY_LOG_ERROR(LABEL, "obtaining current device id failed (%{public}d).", ret);
+        HAPVERIFY_LOG_ERROR("obtaining current device id failed (%{public}d).", ret);
         return PROVISION_DEVICE_UNAUTHORIZED;
     }
 #else
     char udid[DEV_UUID_LEN] = {0};
     int32_t ret = GetDevUdid(udid, sizeof(udid));
     if (ret != EC_SUCCESS) {
-        HAPVERIFY_LOG_ERROR(LABEL, "obtaining current device id failed (%{public}d).", static_cast<int>(ret));
+        HAPVERIFY_LOG_ERROR("obtaining current device id failed (%{public}d).", static_cast<int>(ret));
         return PROVISION_DEVICE_UNAUTHORIZED;
     }
     deviceId = std::string(udid, sizeof(udid) - 1);
 #endif // STANDARD_SYSTEM
     if (deviceId.empty()) {
-        HAPVERIFY_LOG_ERROR(LABEL, "device-id of current device is empty.");
+        HAPVERIFY_LOG_ERROR("device-id of current device is empty.");
         return PROVISION_DEVICE_UNAUTHORIZED;
     }
 
@@ -344,13 +344,13 @@ void SetRdDevice(bool isRdDevice)
 
 AppProvisionVerifyResult ParseAndVerify(const string& appProvision, ProvisionInfo& info)
 {
-    HAPVERIFY_LOG_DEBUG(LABEL, "Enter HarmonyAppProvision Verify");
+    HAPVERIFY_LOG_DEBUG("Enter HarmonyAppProvision Verify");
     AppProvisionVerifyResult ret = ParseProvision(appProvision, info);
     if (ret != PROVISION_OK) {
         return ret;
     }
 #ifndef X86_EMULATOR_MODE
-    HAPVERIFY_LOG_DEBUG(LABEL, "rd device status is %{public}d", g_isRdDevice);
+    HAPVERIFY_LOG_DEBUG("rd device status is %{public}d", g_isRdDevice);
     if (info.type == ProvisionType::DEBUG && !g_isRdDevice) {
         ret = CheckDeviceID(info);
         if (ret != PROVISION_OK) {
@@ -358,7 +358,7 @@ AppProvisionVerifyResult ParseAndVerify(const string& appProvision, ProvisionInf
         }
     }
 #endif
-    HAPVERIFY_LOG_DEBUG(LABEL, "Leave HarmonyAppProvision Verify");
+    HAPVERIFY_LOG_DEBUG("Leave HarmonyAppProvision Verify");
     return PROVISION_OK;
 }
 
@@ -366,7 +366,7 @@ AppProvisionVerifyResult ParseProfile(const std::string& appProvision, Provision
 {
     json obj = json::parse(appProvision, nullptr, false);
     if (obj.is_discarded() || (!obj.is_structured())) {
-        HAPVERIFY_LOG_ERROR(LABEL, "Parsing appProvision failed. json: %{public}s", appProvision.c_str());
+        HAPVERIFY_LOG_ERROR("Parsing appProvision failed. json: %{public}s", appProvision.c_str());
         return PROVISION_INVALID;
     }
     obj.get_to(info);

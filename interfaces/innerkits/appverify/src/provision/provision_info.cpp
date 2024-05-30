@@ -67,7 +67,7 @@ ProvisionInfo &ProvisionInfo::operator=(const ProvisionInfo &info)
             return *this;
         }
         if (memcpy_s(profileBlockData, info.profileBlockLength, originalProfile, info.profileBlockLength) != EOK) {
-            HAPVERIFY_LOG_ERROR(LABEL, "memcpy_s failed");
+            HAPVERIFY_LOG_ERROR("memcpy_s failed");
         }
     }
     this->appServiceCapabilities = info.appServiceCapabilities;

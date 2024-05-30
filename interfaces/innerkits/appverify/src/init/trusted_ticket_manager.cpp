@@ -58,7 +58,7 @@ bool TrustedTicketManager::Init()
 
     isInit = GetTicketTrustedSources(TicketTrustedSources, version, releaseTime, TICKET_TRUSTED_SOURCE_FILE_PATH);
     if (isInit) {
-        HAPVERIFY_LOG_INFO(LABEL, "trusted ticket source version: %{public}s, releaseTime: %{public}s, Size:"
+        HAPVERIFY_LOG_INFO("trusted ticket source version: %{public}s, releaseTime: %{public}s, Size:"
             " %{public}zu", version.c_str(), releaseTime.c_str(), TicketTrustedSources.size());
     }
     return isInit;
@@ -76,30 +76,30 @@ bool TrustedTicketManager::GetTicketTrustedSources(TicketSourceInfoVec& trustedT
     nlohmann::json trustedSourceJson;
     std::string errorInfo;
     if (!JsonParserUtils::ReadTrustedRootCAFromJson(trustedSourceJson, filePath, errorInfo)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "get jsonObj from %{public}s failed, because %{public}s",
+        HAPVERIFY_LOG_ERROR("get jsonObj from %{public}s failed, because %{public}s",
             filePath.c_str(), errorInfo.c_str());
         return false;
     }
     if (!JsonParserUtils::GetJsonString(trustedSourceJson, KEY_OF_TICKET_TRUSTED_SOURCE_VERSION, sourcesVersion)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "get version failed");
+        HAPVERIFY_LOG_ERROR("get version failed");
         return false;
     }
     if (!JsonParserUtils::GetJsonString(trustedSourceJson,
         KEY_OF_TICKET_TRUSTED_SOURCE_RELEASETIME, sourcesReleaseTime)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "get releaseTime failed");
+        HAPVERIFY_LOG_ERROR("get releaseTime failed");
         return false;
     }
     JsonObjVec trustedTicketJson;
     if (!JsonParserUtils::ParseJsonToObjVec(trustedSourceJson, KEY_OF_TICKET_TRUSTED_SOURCE, trustedTicketJson)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "get JsonObjVec failed");
+        HAPVERIFY_LOG_ERROR("get JsonObjVec failed");
         return false;
     }
     if (!ParseTrustedTicketSourceJson(trustedTicketSources, trustedTicketJson)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "parse JsonObjVec failed");
+        HAPVERIFY_LOG_ERROR("parse JsonObjVec failed");
         return false;
     }
     if (trustedTicketSources.empty()) {
-        HAPVERIFY_LOG_ERROR(LABEL, "no ticket trusted source");
+        HAPVERIFY_LOG_ERROR("no ticket trusted source");
         return false;
     }
     return true;
@@ -111,29 +111,29 @@ bool TrustedTicketManager::ParseTrustedTicketSourceJson(TicketSourceInfoVec& tru
     for (auto TicketSource : trustedTicketJson) {
         HapTicketSourceInfo hapTicketSource;
         if (!JsonParserUtils::GetJsonString(TicketSource, KEY_OF_SOURCE_NAME, hapTicketSource.sourceName)) {
-            HAPVERIFY_LOG_ERROR(LABEL, "Get sourceName Failed");
+            HAPVERIFY_LOG_ERROR("Get sourceName Failed");
             return false;
         }
         hapTicketSource.source = OTHER_TRUSTED_SOURCE;
         if (!JsonParserUtils::GetJsonString(TicketSource, KEY_OF_TICKET_SIGNING_CERT,
             hapTicketSource.ticketSigningCert)) {
-            HAPVERIFY_LOG_ERROR(LABEL, "Get ticketSigningCert Failed");
+            HAPVERIFY_LOG_ERROR("Get ticketSigningCert Failed");
             return false;
         }
         if (!JsonParserUtils::GetJsonString(TicketSource, KEY_OF_ISSUER, hapTicketSource.issuer)) {
-            HAPVERIFY_LOG_ERROR(LABEL, "Get issuer Failed");
+            HAPVERIFY_LOG_ERROR("Get issuer Failed");
             return false;
         }
         if (!JsonParserUtils::GetJsonInt(TicketSource, KEY_OF_MAX_CERTS_PATH, hapTicketSource.maxCertsPath)) {
-            HAPVERIFY_LOG_ERROR(LABEL, "Get maxCertsPath Failed");
+            HAPVERIFY_LOG_ERROR("Get maxCertsPath Failed");
             return false;
         }
         if (!JsonParserUtils::GetJsonStringVec(TicketSource, KEY_OF_CRITIALCAL_CERT_EXTENSION,
             hapTicketSource.critialcalCertExtension)) {
-            HAPVERIFY_LOG_ERROR(LABEL, "Get critialcalCertExtension Failed");
+            HAPVERIFY_LOG_ERROR("Get critialcalCertExtension Failed");
             return false;
         }
-        HAPVERIFY_LOG_INFO(LABEL, "trusted ticket source: %{public}s",
+        HAPVERIFY_LOG_INFO("trusted ticket source: %{public}s",
             EncapTrustedTicketSourceString(hapTicketSource).c_str());
         trustedTicketSources.push_back(hapTicketSource);
     }

@@ -73,30 +73,30 @@ bool HapCrlManager::ParseCrls(HapByteBuffer& crlsBuffer)
 {
     uint32_t numOfCrl;
     if (!crlsBuffer.GetUInt32(0, numOfCrl)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "get numOfCrl failed");
+        HAPVERIFY_LOG_ERROR("get numOfCrl failed");
         return false;
     }
 
     int32_t hasUsed = static_cast<int>(sizeof(numOfCrl));
     crlsBuffer.SetPosition(hasUsed);
-    HAPVERIFY_LOG_DEBUG(LABEL, "total crl num: %{public}u", numOfCrl);
+    HAPVERIFY_LOG_DEBUG("total crl num: %{public}u", numOfCrl);
     while (numOfCrl && hasUsed <= crlsBuffer.GetCapacity()) {
         int32_t crlLen;
         if (!crlsBuffer.GetInt32(crlLen)) {
-            HAPVERIFY_LOG_ERROR(LABEL, "get crlLen failed");
+            HAPVERIFY_LOG_ERROR("get crlLen failed");
             return false;
         }
         hasUsed += static_cast<int>(sizeof(crlLen));
         X509_CRL* crl = HapCertVerifyOpensslUtils::GetX509CrlFromDerBuffer(crlsBuffer, hasUsed, crlLen);
         if (crl == nullptr) {
-            HAPVERIFY_LOG_WARN(LABEL, "crl file is destroyed");
+            HAPVERIFY_LOG_WARN("crl file is destroyed");
             return false;
         }
 
         std::string crlIssuer;
         if (!HapCertVerifyOpensslUtils::GetIssuerFromX509Crl(crl, crlIssuer)) {
             X509_CRL_free(crl);
-            HAPVERIFY_LOG_WARN(LABEL, "GetIssuerFromX509Crl failed");
+            HAPVERIFY_LOG_WARN("GetIssuerFromX509Crl failed");
             return false;
         }
 
@@ -107,7 +107,7 @@ bool HapCrlManager::ParseCrls(HapByteBuffer& crlsBuffer)
 
         hasUsed += crlLen;
         crlsBuffer.SetPosition(hasUsed);
-        HAPVERIFY_LOG_INFO(LABEL, "get %{public}ust crl's Issuer: %{public}s", numOfCrl, crlIssuer.c_str());
+        HAPVERIFY_LOG_INFO("get %{public}ust crl's Issuer: %{public}s", numOfCrl, crlIssuer.c_str());
         numOfCrl--;
     }
     return true;
@@ -119,13 +119,13 @@ bool HapCrlManager::ReadCrls(HapByteBuffer& crlsBuffer)
     crlRandomAccess.Init(HAP_CRL_FILE_PATH);
     long long fileLen = crlRandomAccess.GetLength();
     if (fileLen <= 0) {
-        HAPVERIFY_LOG_WARN(LABEL, "crl fileLen: %{public}lld", fileLen);
+        HAPVERIFY_LOG_WARN("crl fileLen: %{public}lld", fileLen);
         return true;
     }
     crlsBuffer.SetCapacity(fileLen);
     long long readLen = crlRandomAccess.ReadFileFullyFromOffset(crlsBuffer, 0);
     if (readLen != fileLen) {
-        HAPVERIFY_LOG_ERROR(LABEL, "read file len: %{public}lld is not same as %{public}lld", readLen, fileLen);
+        HAPVERIFY_LOG_ERROR("read file len: %{public}lld is not same as %{public}lld", readLen, fileLen);
         return false;
     }
     return true;
@@ -136,7 +136,7 @@ void HapCrlManager::WriteCrlsToFile()
     crlMtx.lock();
     std::ofstream crlFile(HAP_CRL_FILE_PATH, std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
     if (!crlFile.is_open()) {
-        HAPVERIFY_LOG_ERROR(LABEL, "open %{public}s failed", HAP_CRL_FILE_PATH.c_str());
+        HAPVERIFY_LOG_ERROR("open %{public}s failed", HAP_CRL_FILE_PATH.c_str());
         crlMtx.unlock();
         return;
     }
@@ -145,7 +145,7 @@ void HapCrlManager::WriteCrlsToFile()
     for (auto crlPair : crlsMap) {
         HapCertVerifyOpensslUtils::WriteX509CrlToStream(crlFile, crlPair.second);
     }
-    HAPVERIFY_LOG_INFO(LABEL, "Write %{public}u crls to file done", numOfCrl);
+    HAPVERIFY_LOG_INFO("Write %{public}u crls to file done", numOfCrl);
     crlFile.close();
     crlMtx.unlock();
 }
@@ -173,7 +173,7 @@ void HapCrlManager::UpdateCrlByIssuer(const std::string& issuer, X509_CRL* crl)
 bool HapCrlManager::CrlCheck(X509* cert, X509_CRL* targetCrl, Pkcs7Context& pkcs7Context)
 {
     if (cert == nullptr) {
-        HAPVERIFY_LOG_ERROR(LABEL, "invalid input");
+        HAPVERIFY_LOG_ERROR("invalid input");
         return false;
     }
 
@@ -181,7 +181,7 @@ bool HapCrlManager::CrlCheck(X509* cert, X509_CRL* targetCrl, Pkcs7Context& pkcs
     /* crl in package compare with local crl, and decide which one to use */
     targetCrl = GetFinalCrl(targetCrl, pkcs7Context);
     if (targetCrl == nullptr) {
-        HAPVERIFY_LOG_INFO(LABEL, "no crl");
+        HAPVERIFY_LOG_INFO("no crl");
         crlMtx.unlock();
         return true;
     }
@@ -191,7 +191,7 @@ bool HapCrlManager::CrlCheck(X509* cert, X509_CRL* targetCrl, Pkcs7Context& pkcs
         std::string certSuject;
         HapCertVerifyOpensslUtils::GetSerialNumberFromX509(cert, certNumber);
         HapCertVerifyOpensslUtils::GetSubjectFromX509(cert, certSuject);
-        HAPVERIFY_LOG_ERROR(LABEL, "cert(issuer: %{public}s, subject: %{public}s, number:%{public}lld) is revoked",
+        HAPVERIFY_LOG_ERROR("cert(issuer: %{public}s, subject: %{public}s, number:%{public}lld) is revoked",
             pkcs7Context.certIssuer.c_str(), certSuject.c_str(), certNumber);
         crlMtx.unlock();
         return false;
@@ -220,7 +220,7 @@ X509_CRL* HapCrlManager::GetFinalCrl(X509_CRL* crlInPackage, Pkcs7Context& pkcs7
     const ASN1_TIME* localCrlUpdateTime = X509_CRL_get0_lastUpdate(localCrl);
     const ASN1_TIME* packageCrlUpdateTime = X509_CRL_get0_lastUpdate(crlInPackage);
     if (localCrlUpdateTime == nullptr || packageCrlUpdateTime == nullptr) {
-        HAPVERIFY_LOG_INFO(LABEL, "crl no update time");
+        HAPVERIFY_LOG_INFO("crl no update time");
         return nullptr;
     }
     if (ASN1_TIME_compare(localCrlUpdateTime, packageCrlUpdateTime) >= 0) {

@@ -43,7 +43,7 @@ const std::string HapVerifyV2::HSP_APP_PATTERN = "[^]*.hsp$";
 
 int32_t HapVerifyV2::Verify(const std::string& filePath, HapVerifyResult& hapVerifyV1Result)
 {
-    HAPVERIFY_LOG_DEBUG(LABEL, "Start Verify");
+    HAPVERIFY_LOG_DEBUG("Start Verify");
     std::string standardFilePath;
     if (!CheckFilePath(filePath, standardFilePath)) {
         return FILE_PATH_INVALID;
@@ -51,7 +51,7 @@ int32_t HapVerifyV2::Verify(const std::string& filePath, HapVerifyResult& hapVer
 
     RandomAccessFile hapFile;
     if (!hapFile.Init(standardFilePath)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "open standard file failed");
+        HAPVERIFY_LOG_ERROR("open standard file failed");
         return OPEN_FILE_ERROR;
     }
 
@@ -63,14 +63,14 @@ bool HapVerifyV2::CheckFilePath(const std::string& filePath, std::string& standa
 {
     char path[PATH_MAX + 1] = { 0x00 };
     if (filePath.size() > PATH_MAX || realpath(filePath.c_str(), path) == nullptr) {
-        HAPVERIFY_LOG_ERROR(LABEL, "filePath is not a standard path");
+        HAPVERIFY_LOG_ERROR("filePath is not a standard path");
         return false;
     }
     standardFilePath = std::string(path);
     if (!std::regex_match(standardFilePath, std::regex(HAP_APP_PATTERN)) &&
         !std::regex_match(standardFilePath, std::regex(HSP_APP_PATTERN)) &&
         !std::regex_match(standardFilePath, std::regex(HQF_APP_PATTERN))) {
-        HAPVERIFY_LOG_ERROR(LABEL, "file is not hap, hsp or hqf package");
+        HAPVERIFY_LOG_ERROR("file is not hap, hsp or hqf package");
         return false;
     }
     return true;
@@ -97,27 +97,27 @@ int32_t HapVerifyV2::Verify(RandomAccessFile& hapFile, HapVerifyResult& hapVerif
     bool profileNeedWriteCrl = false;
     if (!VerifyAppSourceAndParseProfile(pkcs7Context, hapSignInfo.optionBlocks[profileIndex].optionalBlockValue,
         hapVerifyV1Result, profileNeedWriteCrl)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "APP source is not trusted");
+        HAPVERIFY_LOG_ERROR("APP source is not trusted");
         return APP_SOURCE_NOT_TRUSTED;
     }
     if (!GetDigestAndAlgorithm(pkcs7Context)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "Get digest failed");
+        HAPVERIFY_LOG_ERROR("Get digest failed");
         return GET_DIGEST_FAIL;
     }
     std::vector<std::string> publicKeys;
     if (!HapVerifyOpensslUtils::GetPublickeys(pkcs7Context.certChains[0], publicKeys)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "Get publicKeys failed");
+        HAPVERIFY_LOG_ERROR("Get publicKeys failed");
         return GET_PUBLICKEY_FAIL;
     }
     hapVerifyV1Result.SetPublicKey(publicKeys);
     std::vector<std::string> certSignatures;
     if (!HapVerifyOpensslUtils::GetSignatures(pkcs7Context.certChains[0], certSignatures)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "Get sianatures failed");
+        HAPVERIFY_LOG_ERROR("Get sianatures failed");
         return GET_SIGNATURE_FAIL;
     }
     hapVerifyV1Result.SetSignature(certSignatures);
     if (!HapSigningBlockUtils::VerifyHapIntegrity(pkcs7Context, hapFile, hapSignInfo)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "Verify Integrity failed");
+        HAPVERIFY_LOG_ERROR("Verify Integrity failed");
         return VERIFY_INTEGRITY_FAIL;
     }
     WriteCrlIfNeed(pkcs7Context, profileNeedWriteCrl);
@@ -129,15 +129,15 @@ bool HapVerifyV2::VerifyAppPkcs7(Pkcs7Context& pkcs7Context, const HapByteBuffer
     const unsigned char* pkcs7Block = reinterpret_cast<const unsigned char*>(hapSignatureBlock.GetBufferPtr());
     uint32_t pkcs7Len = static_cast<unsigned int>(hapSignatureBlock.GetCapacity());
     if (!HapVerifyOpensslUtils::ParsePkcs7Package(pkcs7Block, pkcs7Len, pkcs7Context)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "parse pkcs7 failed");
+        HAPVERIFY_LOG_ERROR("parse pkcs7 failed");
         return false;
     }
     if (!HapVerifyOpensslUtils::GetCertChains(pkcs7Context.p7, pkcs7Context)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "GetCertChains from pkcs7 failed");
+        HAPVERIFY_LOG_ERROR("GetCertChains from pkcs7 failed");
         return false;
     }
     if (!HapVerifyOpensslUtils::VerifyPkcs7(pkcs7Context)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "verify signature failed");
+        HAPVERIFY_LOG_ERROR("verify signature failed");
         return false;
     }
     return true;
@@ -148,10 +148,10 @@ bool HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context,
 {
     std::string certSubject;
     if (!HapCertVerifyOpensslUtils::GetSubjectFromX509(pkcs7Context.certChains[0][0], certSubject)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "Get info of sign cert failed");
+        HAPVERIFY_LOG_ERROR("Get info of sign cert failed");
         return false;
     }
-    HAPVERIFY_LOG_DEBUG(LABEL, "App signature subject: %{public}s, issuer: %{public}s",
+    HAPVERIFY_LOG_DEBUG("App signature subject: %{public}s, issuer: %{public}s",
         certSubject.c_str(), pkcs7Context.certIssuer.c_str());
 
     TrustedSourceManager& trustedSourceManager = TrustedSourceManager::GetInstance();
@@ -161,12 +161,12 @@ bool HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context,
     Pkcs7Context profileContext;
     std::string profile;
     if (!HapProfileVerifyUtils::ParseProfile(profileContext, pkcs7Context, hapProfileBlock, profile)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "Parse profile pkcs7 failed");
+        HAPVERIFY_LOG_ERROR("Parse profile pkcs7 failed");
         return false;
     }
 
     if (!VerifyProfileSignature(pkcs7Context, profileContext)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "VerifyProfileSignature failed");
+        HAPVERIFY_LOG_ERROR("VerifyProfileSignature failed");
         return false;
     }
     /*
@@ -178,16 +178,16 @@ bool HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context,
     ProvisionInfo provisionInfo;
     if (pkcs7Context.matchResult.matchState == DO_NOT_MATCH) {
         if (!HapProfileVerifyUtils::VerifyProfile(profileContext)) {
-            HAPVERIFY_LOG_ERROR(LABEL, "profile verify failed");
+            HAPVERIFY_LOG_ERROR("profile verify failed");
             return false;
         }
         AppProvisionVerifyResult profileRet = ParseAndVerify(profile, provisionInfo);
         if (profileRet != PROVISION_OK) {
-            HAPVERIFY_LOG_ERROR(LABEL, "profile parsing failed, error: %{public}d", static_cast<int>(profileRet));
+            HAPVERIFY_LOG_ERROR("profile parsing failed, error: %{public}d", static_cast<int>(profileRet));
             return false;
         }
         if (!VerifyProfileInfo(pkcs7Context, profileContext, provisionInfo)) {
-            HAPVERIFY_LOG_ERROR(LABEL, "VerifyProfileInfo failed");
+            HAPVERIFY_LOG_ERROR("VerifyProfileInfo failed");
             return false;
         }
         isCallParseAndVerify = true;
@@ -198,7 +198,7 @@ bool HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context,
     }
 
     if (!GenerateAppId(provisionInfo) || !GenerateFingerprint(provisionInfo)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "Generate appId or generate fingerprint failed");
+        HAPVERIFY_LOG_ERROR("Generate appId or generate fingerprint failed");
         return false;
     }
     SetOrganization(provisionInfo);
@@ -214,7 +214,7 @@ bool HapVerifyV2::VerifyProfileSignature(const Pkcs7Context& pkcs7Context, Pkcs7
     if (pkcs7Context.matchResult.matchState == MATCH_WITH_SIGN &&
         pkcs7Context.matchResult.source == APP_THIRD_PARTY_PRELOAD) {
         if (!HapProfileVerifyUtils::VerifyProfile(profileContext)) {
-            HAPVERIFY_LOG_ERROR(LABEL, "profile verify failed");
+            HAPVERIFY_LOG_ERROR("profile verify failed");
             return false;
         }
     }
@@ -226,14 +226,14 @@ bool HapVerifyV2::GenerateAppId(ProvisionInfo& provisionInfo)
     std::string& certInProfile = provisionInfo.bundleInfo.distributionCertificate;
     if (provisionInfo.bundleInfo.distributionCertificate.empty()) {
         certInProfile = provisionInfo.bundleInfo.developmentCertificate;
-        HAPVERIFY_LOG_DEBUG(LABEL, "use development Certificate");
+        HAPVERIFY_LOG_DEBUG("use development Certificate");
     }
     std::string publicKey;
     if (!HapCertVerifyOpensslUtils::GetPublickeyBase64FromPemCert(certInProfile, publicKey)) {
         return false;
     }
     provisionInfo.appId = publicKey;
-    HAPVERIFY_LOG_DEBUG(LABEL, "provisionInfo.appId: %{public}s", provisionInfo.appId.c_str());
+    HAPVERIFY_LOG_DEBUG("provisionInfo.appId: %{public}s", provisionInfo.appId.c_str());
     return true;
 }
 
@@ -242,15 +242,15 @@ bool HapVerifyV2::GenerateFingerprint(ProvisionInfo& provisionInfo)
     std::string& certInProfile = provisionInfo.bundleInfo.distributionCertificate;
     if (provisionInfo.bundleInfo.distributionCertificate.empty()) {
         certInProfile = provisionInfo.bundleInfo.developmentCertificate;
-        HAPVERIFY_LOG_DEBUG(LABEL, "use development Certificate");
+        HAPVERIFY_LOG_DEBUG("use development Certificate");
     }
     std::string fingerprint;
     if (!HapCertVerifyOpensslUtils::GetFingerprintBase64FromPemCert(certInProfile, fingerprint)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "Generate fingerprint from pem certificate failed");
+        HAPVERIFY_LOG_ERROR("Generate fingerprint from pem certificate failed");
         return false;
     }
     provisionInfo.fingerprint = fingerprint;
-    HAPVERIFY_LOG_DEBUG(LABEL, "fingerprint is : %{public}s", fingerprint.c_str());
+    HAPVERIFY_LOG_DEBUG("fingerprint is : %{public}s", fingerprint.c_str());
     return true;
 }
 
@@ -259,25 +259,25 @@ void HapVerifyV2::SetProfileBlockData(const Pkcs7Context& pkcs7Context, const Ha
 {
     if (pkcs7Context.matchResult.matchState == MATCH_WITH_SIGN &&
         pkcs7Context.matchResult.source == APP_GALLARY) {
-        HAPVERIFY_LOG_DEBUG(LABEL, "profile is from app gallary and unnecessary to set profile block");
+        HAPVERIFY_LOG_DEBUG("profile is from app gallary and unnecessary to set profile block");
         return;
     }
     provisionInfo.profileBlockLength = hapProfileBlock.GetCapacity();
-    HAPVERIFY_LOG_DEBUG(LABEL, "profile block data length is %{public}d", provisionInfo.profileBlockLength);
+    HAPVERIFY_LOG_DEBUG("profile block data length is %{public}d", provisionInfo.profileBlockLength);
     if (provisionInfo.profileBlockLength == 0) {
-        HAPVERIFY_LOG_ERROR(LABEL, "invalid profile block");
+        HAPVERIFY_LOG_ERROR("invalid profile block");
         return;
     }
     provisionInfo.profileBlock = std::make_unique<unsigned char[]>(provisionInfo.profileBlockLength);
     unsigned char *profileBlockData = provisionInfo.profileBlock.get();
     const unsigned char *originalProfile = reinterpret_cast<const unsigned char*>(hapProfileBlock.GetBufferPtr());
     if (profileBlockData == nullptr || originalProfile ==nullptr) {
-        HAPVERIFY_LOG_ERROR(LABEL, "invalid profileBlockData or originalProfile");
+        HAPVERIFY_LOG_ERROR("invalid profileBlockData or originalProfile");
         return;
     }
     if (memcpy_s(profileBlockData, provisionInfo.profileBlockLength, originalProfile,
         provisionInfo.profileBlockLength) != 0) {
-        HAPVERIFY_LOG_ERROR(LABEL, "memcpy failed");
+        HAPVERIFY_LOG_ERROR("memcpy failed");
     }
 }
 
@@ -290,17 +290,17 @@ bool HapVerifyV2::VerifyProfileInfo(const Pkcs7Context& pkcs7Context, const Pkcs
     std::string& certInProfile = provisionInfo.bundleInfo.developmentCertificate;
     if (provisionInfo.type == ProvisionType::RELEASE) {
         if (!IsAppDistributedTypeAllowInstall(provisionInfo.distributionType, provisionInfo)) {
-            HAPVERIFY_LOG_ERROR(LABEL, "untrusted source app with release profile distributionType: %{public}d",
+            HAPVERIFY_LOG_ERROR("untrusted source app with release profile distributionType: %{public}d",
                 static_cast<int>(provisionInfo.distributionType));
             return false;
         }
         certInProfile = provisionInfo.bundleInfo.distributionCertificate;
-        HAPVERIFY_LOG_DEBUG(LABEL, "allow install app with release profile distributionType: %{public}d",
+        HAPVERIFY_LOG_DEBUG("allow install app with release profile distributionType: %{public}d",
             static_cast<int>(provisionInfo.distributionType));
     }
-    HAPVERIFY_LOG_DEBUG(LABEL, "provisionInfo.type: %{public}d", static_cast<int>(provisionInfo.type));
+    HAPVERIFY_LOG_DEBUG("provisionInfo.type: %{public}d", static_cast<int>(provisionInfo.type));
     if (!HapCertVerifyOpensslUtils::CompareX509Cert(pkcs7Context.certChains[0][0], certInProfile)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "developed cert is not same as signed cert");
+        HAPVERIFY_LOG_ERROR("developed cert is not same as signed cert");
         return false;
     }
     return true;
@@ -313,7 +313,7 @@ bool HapVerifyV2::IsAppDistributedTypeAllowInstall(const AppDistType& type, cons
             return false;
         case AppDistType::APP_GALLERY:
             if (CheckTicketSource(provisionInfo)) {
-                HAPVERIFY_LOG_INFO(LABEL, "current device is allowed to install opentest application");
+                HAPVERIFY_LOG_INFO("current device is allowed to install opentest application");
                 return true;
             }
             return false;
@@ -335,7 +335,7 @@ bool HapVerifyV2::CheckProfileSignatureIsRight(const MatchingStates& matchState,
     } else if (matchState == MATCH_WITH_PROFILE_DEBUG && type == ProvisionType::DEBUG) {
         return true;
     }
-    HAPVERIFY_LOG_ERROR(LABEL, "isTrustedSource: %{public}d is not match with profile type: %{public}d",
+    HAPVERIFY_LOG_ERROR("isTrustedSource: %{public}d is not match with profile type: %{public}d",
         static_cast<int>(matchState), static_cast<int>(type));
     return false;
 }
@@ -357,7 +357,7 @@ bool HapVerifyV2::ParseAndVerifyProfileIfNeed(const std::string& profile,
     }
     AppProvisionVerifyResult profileRet = ParseAndVerify(profile, provisionInfo);
     if (profileRet != PROVISION_OK) {
-        HAPVERIFY_LOG_ERROR(LABEL, "profile parse failed, error: %{public}d", static_cast<int>(profileRet));
+        HAPVERIFY_LOG_ERROR("profile parse failed, error: %{public}d", static_cast<int>(profileRet));
         return false;
     }
     return true;
@@ -379,24 +379,24 @@ bool HapVerifyV2::GetDigestAndAlgorithm(Pkcs7Context& digest)
     /* length of sizeof(digestblock - 4) */
     int32_t digestBlockLen;
     if (!digest.content.GetInt32(DIGEST_BLOCK_LEN_OFFSET, digestBlockLen)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "get digestBlockLen failed");
+        HAPVERIFY_LOG_ERROR("get digestBlockLen failed");
         return false;
     }
     /* Algorithm ID */
     if (!digest.content.GetInt32(DIGEST_ALGORITHM_OFFSET, digest.digestAlgorithm)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "get digestAlgorithm failed");
+        HAPVERIFY_LOG_ERROR("get digestAlgorithm failed");
         return false;
     }
     /* length of digest */
     int32_t digestlen;
     if (!digest.content.GetInt32(DIGEST_LEN_OFFSET, digestlen)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "get digestlen failed");
+        HAPVERIFY_LOG_ERROR("get digestlen failed");
         return false;
     }
 
     int32_t sum = sizeof(digestlen) + sizeof(digest.digestAlgorithm) + digestlen;
     if (sum != digestBlockLen) {
-        HAPVERIFY_LOG_ERROR(LABEL, "digestBlockLen: %{public}d is not equal to sum: %{public}d",
+        HAPVERIFY_LOG_ERROR("digestBlockLen: %{public}d is not equal to sum: %{public}d",
             digestBlockLen, sum);
         return false;
     }
@@ -410,7 +410,7 @@ bool HapVerifyV2::GetDigestAndAlgorithm(Pkcs7Context& digest)
 
 int32_t HapVerifyV2::ParseHapProfile(const std::string& filePath, HapVerifyResult& hapVerifyV1Result)
 {
-    HAPVERIFY_LOG_INFO(LABEL, "start to ParseHapProfile");
+    HAPVERIFY_LOG_INFO("start to ParseHapProfile");
     std::string standardFilePath;
     if (!CheckFilePath(filePath, standardFilePath)) {
         return FILE_PATH_INVALID;
@@ -418,7 +418,7 @@ int32_t HapVerifyV2::ParseHapProfile(const std::string& filePath, HapVerifyResul
 
     RandomAccessFile hapFile;
     if (!hapFile.Init(standardFilePath)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "open standard file failed");
+        HAPVERIFY_LOG_ERROR("open standard file failed");
         return OPEN_FILE_ERROR;
     }
 
@@ -436,11 +436,11 @@ int32_t HapVerifyV2::ParseHapProfile(const std::string& filePath, HapVerifyResul
     uint32_t pkcs7Len = static_cast<unsigned int>(pkcs7ProfileBlock.GetCapacity());
     Pkcs7Context profileContext;
     if (!HapVerifyOpensslUtils::ParsePkcs7Package(pkcs7Block, pkcs7Len, profileContext)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "parse pkcs7 failed");
+        HAPVERIFY_LOG_ERROR("parse pkcs7 failed");
         return false;
     }
     std::string profile = std::string(profileContext.content.GetBufferPtr(), profileContext.content.GetCapacity());
-    HAPVERIFY_LOG_DEBUG(LABEL, "profile is %{public}s", profile.c_str());
+    HAPVERIFY_LOG_DEBUG("profile is %{public}s", profile.c_str());
     ProvisionInfo info;
     auto ret = ParseProfile(profile, info);
     if (ret != PROVISION_OK) {
@@ -448,7 +448,7 @@ int32_t HapVerifyV2::ParseHapProfile(const std::string& filePath, HapVerifyResul
     }
 
     if (!GenerateFingerprint(info)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "Generate appId or generate fingerprint failed");
+        HAPVERIFY_LOG_ERROR("Generate appId or generate fingerprint failed");
         return PROFILE_PARSE_FAIL;
     }
     SetOrganization(info);
@@ -465,7 +465,7 @@ int32_t HapVerifyV2::ParseHapSignatureInfo(const std::string& filePath, Signatur
 
     RandomAccessFile hapFile;
     if (!hapFile.Init(standardFilePath)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "open standard file failed");
+        HAPVERIFY_LOG_ERROR("open standard file failed");
         return OPEN_FILE_ERROR;
     }
 
@@ -479,12 +479,12 @@ void HapVerifyV2::SetOrganization(ProvisionInfo& provisionInfo)
 {
     std::string& certInProfile = provisionInfo.bundleInfo.distributionCertificate;
     if (provisionInfo.bundleInfo.distributionCertificate.empty()) {
-        HAPVERIFY_LOG_ERROR(LABEL, "distributionCertificate is empty");
+        HAPVERIFY_LOG_ERROR("distributionCertificate is empty");
         return;
     }
     std::string organization;
     if (!HapCertVerifyOpensslUtils::GetOrganizationFromPemCert(certInProfile, organization)) {
-        HAPVERIFY_LOG_ERROR(LABEL, "Generate organization from pem certificate failed");
+        HAPVERIFY_LOG_ERROR("Generate organization from pem certificate failed");
         return;
     }
     provisionInfo.organization = organization;
