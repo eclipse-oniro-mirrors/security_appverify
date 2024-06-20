@@ -65,6 +65,11 @@ if (os_level == "standard") {
     cflags_cc = [
       "-DHILOG_ENABLE",
       "-fvisibility=hidden",
+      "-fno-unroll-loops",
+      "-fno-unwind-tables",
+      "-fno-asynchronous-unwind-tables",
+      "-g0",
+      "-Os",
     ]
 
     deps = [ "//third_party/openssl:libcrypto_shared" ]
