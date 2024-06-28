@@ -15,8 +15,6 @@
 
 #include "init/trusted_root_ca.h"
 
-#include "nlohmann/json.hpp"
-
 #include "common/hap_verify_log.h"
 #include "util/hap_cert_verify_openssl_utils.h"
 
@@ -99,9 +97,9 @@ void TrustedRootCa::Recovery()
 
 bool TrustedRootCa::GetTrustedRootCAFromJson(StringCertMap& rootCertMap, const std::string& filePath)
 {
-    nlohmann::json trustedRootCAJson;
+    cJSON* trustedRootCAJson = NULL;
     std::string errorInfo;
-    if (!JsonParserUtils::ReadTrustedRootCAFromJson(trustedRootCAJson, filePath, errorInfo)) {
+    if (!JsonParserUtils::ReadTrustedRootCAFromJson(&trustedRootCAJson, filePath, errorInfo)) {
         HAPVERIFY_LOG_ERROR("get jsonObj from %{public}s failed, because %{public}s",
             filePath.c_str(), errorInfo.c_str());
         return false;
@@ -123,6 +121,7 @@ bool TrustedRootCa::GetTrustedRootCAFromJson(StringCertMap& rootCertMap, const s
         HAPVERIFY_LOG_ERROR("no root cert");
         return false;
     }
+    cJSON_Delete(trustedRootCAJson);
     return true;
 }
 

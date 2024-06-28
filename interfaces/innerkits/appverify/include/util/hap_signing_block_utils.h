@@ -108,7 +108,7 @@ private:
         int& chunkCount, int& sumOfChunkDigestLen);
     static bool ParseSignBlockHead(HapSignBlockHead& hapSignBlockHead, HapByteBuffer& hapBlockHead);
     static bool ParseSubSignBlockHead(HapSubSignBlockHead& subSignBlockHead, HapByteBuffer& hapBlockHead);
-    static inline bool CheckSignBlockHead(const HapSignBlockHead& hapSignBlockHead);
+    static bool CheckSignBlockHead(const HapSignBlockHead& hapSignBlockHead);
 };
 } // namespace Verify
 } // namespace Security

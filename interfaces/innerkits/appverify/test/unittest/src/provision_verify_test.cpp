@@ -44,7 +44,7 @@ const std::string INVALID_PROVISION_2 = R"(
         "validity": {
             "not-before": 1262275201,
             "not-after": 2524579301
-        },
+        }, }
         "bundle-info": {
             "developer-id": "developer_id_1_1",
             "development-certificate": "ABCD",
@@ -53,7 +53,7 @@ const std::string INVALID_PROVISION_2 = R"(
             "apl": "normal",
             "app-feature": "hos_normal_app"
         }
-    }})";   // brackets mismatching
+    })";   // brackets mismatching
 const std::string INVALID_PROVISION_3 = R"(
     {
         "version-code": 2,

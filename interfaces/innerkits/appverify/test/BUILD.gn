@@ -20,8 +20,6 @@ config("verify_test_config") {
   include_dirs = [
     "//base/security/appverify/interfaces/innerkits/appverify/test/unittest/include",
     "//base/security/appverify/interfaces/innerkits/appverify/include",
-    "//third_party/openssl/include",
-    "//third_party/json/single_include",
   ]
   cflags = [ "-fvisibility=hidden" ]
   ldflags = [ "-Wl,--exclude-libs,ALL" ]
@@ -50,23 +48,26 @@ ohos_unittest("verify_test") {
   deps = [
     "//base/security/appverify/interfaces/innerkits/appverify:libhapverify",
     "//third_party/googletest:gtest_main",
-    "//third_party/openssl:libcrypto_static",
+  ]
+
+  external_deps = [
+    "cJSON:cjson",
+    "c_utils:utils",
+    "openssl:libcrypto_shared",
   ]
 
   if (is_standard_system) {
     defines = [ "STANDARD_SYSTEM" ]
 
-    external_deps = [
-      "c_utils:utils",
+    external_deps += [
       "hilog:libhilog",
       "init:libbegetutil",
     ]
   } else {
-    external_deps = [
-      "c_utils:utils",
-      "hilog:libhilog",
+    external_deps += [
       "ipc:ipc_core",
       "os_account:libaccountkits",
+      "shared_library:libhilog",
     ]
   }
 

@@ -18,8 +18,6 @@
 #include <algorithm>
 #include <regex>
 
-#include "nlohmann/json.hpp"
-
 #ifndef STANDARD_SYSTEM
 #include "ohos_account_kits.h"
 #else
@@ -66,7 +64,7 @@ bool CheckPermissions(std::vector<std::string> ticketPermissions, std::vector<st
     return true;
 }
 
-inline bool CheckDevice(const std::vector<std::string>& deviceIds, const std::string& deviceId)
+bool CheckDevice(const std::vector<std::string>& deviceIds, const std::string& deviceId)
 {
     auto iter = find(deviceIds.begin(), deviceIds.end(), deviceId);
     if (iter == deviceIds.end()) {
