@@ -62,6 +62,7 @@ const string VALUE_DIST_TYPE_APP_GALLERY = "app_gallery";
 const string VALUE_DIST_TYPE_ENTERPRISE = "enterprise";
 const string VALUE_DIST_TYPE_ENTERPRISE_NORMAL = "enterprise_normal";
 const string VALUE_DIST_TYPE_ENTERPRISE_MDM = "enterprise_mdm";
+const string VALUR_DIST_TYPE_INTERNALTESTING = "internaltesting";
 const string VALUE_DIST_TYPE_OS_INTEGRATION = "os_integration";
 const string VALUE_DIST_TYPE_CROWDTESTING = "crowdtesting";
 const string VALUE_DEVICE_ID_TYPE_UDID = "udid";
@@ -126,7 +127,8 @@ const std::map<std::string, int32_t> distTypeMap = {
     {VALUE_DIST_TYPE_ENTERPRISE_NORMAL, AppDistType::ENTERPRISE_NORMAL},
     {VALUE_DIST_TYPE_ENTERPRISE_MDM, AppDistType::ENTERPRISE_MDM},
     {VALUE_DIST_TYPE_OS_INTEGRATION, AppDistType::OS_INTEGRATION},
-    {VALUE_DIST_TYPE_CROWDTESTING, AppDistType::CROWDTESTING}
+    {VALUE_DIST_TYPE_CROWDTESTING, AppDistType::CROWDTESTING},
+    {VALUR_DIST_TYPE_INTERNALTESTING, AppDistType::INTERNALTESTING}
 };
 
 static bool g_isRdDevice = false;
@@ -351,7 +353,8 @@ AppProvisionVerifyResult ParseAndVerify(const string& appProvision, ProvisionInf
     }
 #ifndef X86_EMULATOR_MODE
     HAPVERIFY_LOG_DEBUG("rd device status is %{public}d", g_isRdDevice);
-    if (info.type == ProvisionType::DEBUG && !g_isRdDevice) {
+    if ((info.type == ProvisionType::DEBUG && !g_isRdDevice) 
+        || info.distributionType == Security::Verify::AppDistType::INTERNALTESTING) {
         ret = CheckDeviceID(info);
         if (ret != PROVISION_OK) {
             return ret;

@@ -26,6 +26,7 @@ const char ENTERPRISE[] = "enterprise";
 const char ENTERPRISE_NORMAL[] = "enterprise_normal";
 const char ENTERPRISE_MDM[] = "enterprise_mdm";
 const char OS_INTEGRATION[] = "os_integration";
+const char INTERNALTESTING[] = "internaltesting";
 
 static void ProfInit(ProfileProf *pf)
 {
@@ -348,7 +349,7 @@ static int32_t VerifyAppTypeAndDistribution(const ProfileProf *pf)
     if (strcmp(pf->type, RELEASE_TYPE) == 0) {
         if ((strcmp(pf->appDistType, APP_GALLERY) != 0) && (strcmp(pf->appDistType, ENTERPRISE) != 0) &&
             (strcmp(pf->appDistType, ENTERPRISE_NORMAL) != 0) && (strcmp(pf->appDistType, ENTERPRISE_MDM) != 0) &&
-            (strcmp(pf->appDistType, OS_INTEGRATION) != 0)) {
+            (strcmp(pf->appDistType, INTERNALTESTING) != 0) && (strcmp(pf->appDistType, OS_INTEGRATION) != 0)) {
             LOG_PRINT_STR("invalid app dis type: %s", pf->appDistType);
             return V_ERR;
         }
