@@ -16,8 +16,9 @@
 #include "provision/provision_verify.h"
 
 #include <algorithm>
+#include <map>
 
-#include "nlohmann/json.hpp"
+#include "cJSON.h"
 
 #ifndef STANDARD_SYSTEM
 #include "ohos_account_kits.h"
@@ -29,91 +30,110 @@
 #include "common/hap_verify_log.h"
 #include "init/device_type_manager.h"
 
-using namespace std;
-using namespace nlohmann;
 
 namespace {
-const string KEY_VERSION_CODE = "version-code";
-const string KEY_VERSION_NAME = "version-name";
-const string KEY_UUID = "uuid";
-const string KEY_TYPE = "type";
-const string KEY_APP_DIST_TYPE = "app-distribution-type";
-const string KEY_BUNDLE_INFO = "bundle-info";
-const string KEY_DEVELOPER_ID = "developer-id";
-const string KEY_DEVELOPMENT_CERTIFICATE = "development-certificate";
-const string KEY_DISTRIBUTION_CERTIFICATE = "distribution-certificate";
-const string KEY_BUNDLE_NAME = "bundle-name";
-const string KEY_APL = "apl";
-const string KEY_APP_FEATURE = "app-feature";
-const string KEY_ACLS = "acls";
-const string KEY_ALLOWED_ACLS = "allowed-acls";
-const string KEY_PERMISSIONS = "permissions";
-const string KEY_DATA_GROUP_IDS = "data-group-ids";
-const string KEY_RESTRICTED_PERMISSIONS = "restricted-permissions";
-const string KEY_RESTRICTED_CAPABILITIES = "restricted-capabilities";
-const string KEY_DEBUG_INFO = "debug-info";
-const string KEY_DEVICE_ID_TYPE = "device-id-type";
-const string KEY_DEVICE_IDS = "device-ids";
-const string KEY_ISSUER = "issuer";
-const string KEY_APP_PRIVILEGE_CAPABILITIES = "app-privilege-capabilities";
-const string KEY_APP_SERVICES_CAPABILITIES = "app-services-capabilities";
-const string VALUE_TYPE_RELEASE = "release";
-const string VALUE_DIST_TYPE_APP_GALLERY = "app_gallery";
-const string VALUE_DIST_TYPE_ENTERPRISE = "enterprise";
-const string VALUE_DIST_TYPE_ENTERPRISE_NORMAL = "enterprise_normal";
-const string VALUE_DIST_TYPE_ENTERPRISE_MDM = "enterprise_mdm";
-const string VALUE_DIST_TYPE_OS_INTEGRATION = "os_integration";
-const string VALUE_DIST_TYPE_CROWDTESTING = "crowdtesting";
-const string VALUE_DEVICE_ID_TYPE_UDID = "udid";
-const string VALUE_VALIDITY = "validity";
-const string VALUE_NOT_BEFORE = "not-before";
-const string VALUE_NOT_AFTER = "not-after";
+const std::string KEY_VERSION_CODE = "version-code";
+const std::string KEY_VERSION_NAME = "version-name";
+const std::string KEY_UUID = "uuid";
+const std::string KEY_TYPE = "type";
+const std::string KEY_APP_DIST_TYPE = "app-distribution-type";
+const std::string KEY_BUNDLE_INFO = "bundle-info";
+const std::string KEY_DEVELOPER_ID = "developer-id";
+const std::string KEY_DEVELOPMENT_CERTIFICATE = "development-certificate";
+const std::string KEY_DISTRIBUTION_CERTIFICATE = "distribution-certificate";
+const std::string KEY_BUNDLE_NAME = "bundle-name";
+const std::string KEY_APL = "apl";
+const std::string KEY_APP_FEATURE = "app-feature";
+const std::string KEY_ACLS = "acls";
+const std::string KEY_ALLOWED_ACLS = "allowed-acls";
+const std::string KEY_PERMISSIONS = "permissions";
+const std::string KEY_DATA_GROUP_IDS = "data-group-ids";
+const std::string KEY_RESTRICTED_PERMISSIONS = "restricted-permissions";
+const std::string KEY_RESTRICTED_CAPABILITIES = "restricted-capabilities";
+const std::string KEY_DEBUG_INFO = "debug-info";
+const std::string KEY_DEVICE_ID_TYPE = "device-id-type";
+const std::string KEY_DEVICE_IDS = "device-ids";
+const std::string KEY_ISSUER = "issuer";
+const std::string KEY_APP_PRIVILEGE_CAPABILITIES = "app-privilege-capabilities";
+const std::string KEY_APP_SERVICES_CAPABILITIES = "app-services-capabilities";
+const std::string VALUE_TYPE_RELEASE = "release";
+const std::string VALUE_DIST_TYPE_APP_GALLERY = "app_gallery";
+const std::string VALUE_DIST_TYPE_ENTERPRISE = "enterprise";
+const std::string VALUE_DIST_TYPE_ENTERPRISE_NORMAL = "enterprise_normal";
+const std::string VALUE_DIST_TYPE_ENTERPRISE_MDM = "enterprise_mdm";
+const std::string VALUE_DIST_TYPE_OS_INTEGRATION = "os_integration";
+const std::string VALUE_DIST_TYPE_CROWDTESTING = "crowdtesting";
+const std::string VALUE_DEVICE_ID_TYPE_UDID = "udid";
+const std::string VALUE_VALIDITY = "validity";
+const std::string VALUE_NOT_BEFORE = "not-before";
+const std::string VALUE_NOT_AFTER = "not-after";
 
 // reserved field
-const string KEY_BASEAPP_INFO = "baseapp-info";
-const string KEY_PACKAGE_NAME = "package-name";
-const string KEY_PACKAGE_CERT = "package-cert";
-const string KEY_APP_IDENTIFIER = "app-identifier";
+const std::string KEY_BASEAPP_INFO = "baseapp-info";
+const std::string KEY_PACKAGE_NAME = "package-name";
+const std::string KEY_PACKAGE_CERT = "package-cert";
+const std::string KEY_APP_IDENTIFIER = "app-identifier";
 
-const string GENERIC_BUNDLE_NAME = ".*";
+const std::string GENERIC_BUNDLE_NAME = ".*";
 
 const int32_t VERSION_CODE_TWO = 2;
 
-inline void GetStringIfExist(const json& obj, const string& key, string& out)
+void GetStringIfExist(const cJSON* obj, const std::string& key, std::string& out)
 {
-    if (obj.find(key.c_str()) != obj.end() && obj[key.c_str()].is_string()) {
-        obj[key.c_str()].get_to(out);
+    if (obj == NULL || !cJSON_IsObject(obj)) {
+        return;
+    }
+    cJSON* jsonValue = cJSON_GetObjectItemCaseSensitive(obj, key.c_str());
+    if (jsonValue != NULL && cJSON_IsString(jsonValue)) {
+        out = jsonValue->valuestring;
     }
 }
 
-inline void GetInt32IfExist(const json& obj, const string& key, int32_t& out)
+void GetInt32IfExist(const cJSON* obj, const std::string& key, int32_t& out)
 {
-    if (obj.find(key.c_str()) != obj.end() && obj[key.c_str()].is_number_integer()) {
-        obj[key.c_str()].get_to(out);
+    if (obj == NULL || !cJSON_IsObject(obj)) {
+        return;
+    }
+    cJSON* jsonValue = cJSON_GetObjectItemCaseSensitive(obj, key.c_str());
+    if (jsonValue != NULL && cJSON_IsNumber(jsonValue)) {
+        out = jsonValue->valueint;
     }
 }
 
-inline void GetInt64IfExist(const json& obj, const string& key, int64_t& out)
+void GetInt64IfExist(const cJSON* obj, const std::string& key, int64_t& out)
 {
-    if (obj.find(key.c_str()) != obj.end() && obj[key.c_str()].is_number_integer()) {
-        obj[key.c_str()].get_to(out);
+    if (obj == NULL || !cJSON_IsObject(obj)) {
+        return;
+    }
+    cJSON* jsonValue = cJSON_GetObjectItemCaseSensitive(obj, key.c_str());
+    if (jsonValue != NULL && cJSON_IsNumber(jsonValue)) {
+        out = cJSON_GetNumberValue(jsonValue);
     }
 }
 
-inline void GetStringArrayIfExist(const json& obj, const string& key, vector<string>& out)
+void GetStringArrayIfExist(const cJSON* obj, const std::string& key, std::vector<std::string>& out)
 {
-    if (obj.find(key.c_str()) != obj.end() && obj[key.c_str()].is_array()) {
-        for (auto& item : obj[key.c_str()]) {
-            if (item.is_string()) {
-                out.push_back(item.get<string>());
-            }
+    if (obj == NULL || !cJSON_IsObject(obj)) {
+        return;
+    }
+    cJSON* jsonArray = cJSON_GetObjectItemCaseSensitive(obj, key.c_str());
+    if (jsonArray == NULL || !cJSON_IsArray(jsonArray)) {
+        return;
+    }
+    cJSON* item = NULL;
+    cJSON_ArrayForEach(item, jsonArray) {
+        if (item != NULL && cJSON_IsString(item)) {
+            out.emplace_back(item->valuestring);
         }
     }
 }
 
-inline bool IsObjectExist(const json& obj, const string& key)
+void GetJsonObjectIfExist(const cJSON* obj, const std::string& key, cJSON** out)
 {
-    return obj.find(key.c_str()) != obj.end() && obj[key.c_str()].is_object();
+    if (obj == NULL || !cJSON_IsObject(obj)) {
+        return;
+    }
+    *out = cJSON_GetObjectItemCaseSensitive(obj, key.c_str());
 }
 } // namespace
 
@@ -131,17 +151,17 @@ const std::map<std::string, int32_t> distTypeMap = {
 
 static bool g_isRdDevice = false;
 
-void ParseType(const json& obj, ProvisionInfo& out)
+void ParseType(const cJSON* obj, ProvisionInfo& out)
 {
-    string type;
+    std::string type;
     GetStringIfExist(obj, KEY_TYPE, type);
     /* If not release, then it's debug */
     out.type = (type == VALUE_TYPE_RELEASE) ? ProvisionType::RELEASE : ProvisionType::DEBUG;
 }
 
-void ParseAppDistType(const json& obj, ProvisionInfo& out)
+void ParseAppDistType(const cJSON* obj, ProvisionInfo& out)
 {
-    string distType;
+    std::string distType;
     GetStringIfExist(obj, KEY_APP_DIST_TYPE, distType);
     if (distTypeMap.find(distType) != distTypeMap.end()) {
         out.distributionType = static_cast<AppDistType>(distTypeMap.at(distType));
@@ -150,71 +170,67 @@ void ParseAppDistType(const json& obj, ProvisionInfo& out)
     out.distributionType = AppDistType::NONE_TYPE;
 }
 
-void ParseBundleInfo(const json& obj, ProvisionInfo& out)
+void ParseBundleInfo(const cJSON* obj, ProvisionInfo& out)
 {
-    if (IsObjectExist(obj, KEY_BUNDLE_INFO)) {
-        const auto& bundleInfo = obj[KEY_BUNDLE_INFO];
-        GetStringIfExist(bundleInfo, KEY_DEVELOPER_ID, out.bundleInfo.developerId);
-        GetStringIfExist(bundleInfo, KEY_DEVELOPMENT_CERTIFICATE, out.bundleInfo.developmentCertificate);
-        GetStringIfExist(bundleInfo, KEY_DISTRIBUTION_CERTIFICATE, out.bundleInfo.distributionCertificate);
-        GetStringIfExist(bundleInfo, KEY_BUNDLE_NAME, out.bundleInfo.bundleName);
-        GetStringIfExist(bundleInfo, KEY_APL, out.bundleInfo.apl);
-        GetStringIfExist(bundleInfo, KEY_APP_FEATURE, out.bundleInfo.appFeature);
-        GetStringIfExist(bundleInfo, KEY_APP_IDENTIFIER, out.bundleInfo.appIdentifier);
-        GetStringArrayIfExist(bundleInfo, KEY_DATA_GROUP_IDS, out.bundleInfo.dataGroupIds);
-    }
+    cJSON* bundleInfo = NULL;
+    GetJsonObjectIfExist(obj, KEY_BUNDLE_INFO, &bundleInfo);
+    GetStringIfExist(bundleInfo, KEY_DEVELOPER_ID, out.bundleInfo.developerId);
+    GetStringIfExist(bundleInfo, KEY_DEVELOPMENT_CERTIFICATE, out.bundleInfo.developmentCertificate);
+    GetStringIfExist(bundleInfo, KEY_DISTRIBUTION_CERTIFICATE, out.bundleInfo.distributionCertificate);
+    GetStringIfExist(bundleInfo, KEY_BUNDLE_NAME, out.bundleInfo.bundleName);
+    GetStringIfExist(bundleInfo, KEY_APL, out.bundleInfo.apl);
+    GetStringIfExist(bundleInfo, KEY_APP_FEATURE, out.bundleInfo.appFeature);
+    GetStringIfExist(bundleInfo, KEY_APP_IDENTIFIER, out.bundleInfo.appIdentifier);
+    GetStringArrayIfExist(bundleInfo, KEY_DATA_GROUP_IDS, out.bundleInfo.dataGroupIds);
 }
 
-void ParseAcls(const json& obj, ProvisionInfo& out)
+void ParseAcls(const cJSON* obj, ProvisionInfo& out)
 {
-    if (IsObjectExist(obj, KEY_ACLS)) {
-        const auto& acls = obj[KEY_ACLS];
-        GetStringArrayIfExist(acls, KEY_ALLOWED_ACLS, out.acls.allowedAcls);
-    }
+    cJSON* acls = NULL;
+    GetJsonObjectIfExist(obj, KEY_ACLS, &acls);
+    GetStringArrayIfExist(acls, KEY_ALLOWED_ACLS, out.acls.allowedAcls);
 }
 
-void ParsePermissions(const json& obj, ProvisionInfo& out)
+void ParsePermissions(const cJSON* obj, ProvisionInfo& out)
 {
-    if (IsObjectExist(obj, KEY_PERMISSIONS)) {
-        const auto& permissions = obj[KEY_PERMISSIONS];
-        GetStringArrayIfExist(permissions, KEY_RESTRICTED_PERMISSIONS, out.permissions.restrictedPermissions);
-        GetStringArrayIfExist(permissions, KEY_RESTRICTED_CAPABILITIES, out.permissions.restrictedCapabilities);
-    }
+    cJSON* permissions = NULL;
+    GetJsonObjectIfExist(obj, KEY_PERMISSIONS, &permissions);
+    GetStringArrayIfExist(permissions, KEY_RESTRICTED_PERMISSIONS, out.permissions.restrictedPermissions);
+    GetStringArrayIfExist(permissions, KEY_RESTRICTED_CAPABILITIES, out.permissions.restrictedCapabilities);
 }
 
-void ParseDebugInfo(const json& obj, ProvisionInfo& out)
+void ParseDebugInfo(const cJSON* obj, ProvisionInfo& out)
 {
-    if (IsObjectExist(obj, KEY_DEBUG_INFO)) {
-        GetStringIfExist(obj[KEY_DEBUG_INFO], KEY_DEVICE_ID_TYPE, out.debugInfo.deviceIdType);
-        GetStringArrayIfExist(obj[KEY_DEBUG_INFO], KEY_DEVICE_IDS, out.debugInfo.deviceIds);
-    }
+    cJSON* debugInfo = NULL;
+    GetJsonObjectIfExist(obj, KEY_DEBUG_INFO, &debugInfo);
+    GetStringIfExist(debugInfo, KEY_DEVICE_ID_TYPE, out.debugInfo.deviceIdType);
+    GetStringArrayIfExist(debugInfo, KEY_DEVICE_IDS, out.debugInfo.deviceIds);
 }
 
-void ParseValidity(const json& obj, Validity& out)
+void ParseValidity(const cJSON* obj, Validity& out)
 {
-    if (IsObjectExist(obj, VALUE_VALIDITY)) {
-        GetInt64IfExist(obj[VALUE_VALIDITY], VALUE_NOT_BEFORE, out.notBefore);
-        GetInt64IfExist(obj[VALUE_VALIDITY], VALUE_NOT_AFTER, out.notAfter);
-    }
+    cJSON* validity = NULL;
+    GetJsonObjectIfExist(obj, VALUE_VALIDITY, &validity);
+    GetInt64IfExist(validity, VALUE_NOT_BEFORE, out.notBefore);
+    GetInt64IfExist(validity, VALUE_NOT_AFTER, out.notAfter);
 }
 
-void ParseMetadata(const json& obj, ProvisionInfo& out)
+void ParseMetadata(const cJSON* obj, ProvisionInfo& out)
 {
-    if (IsObjectExist(obj, KEY_BASEAPP_INFO)) {
-        const auto& baseAppInfo = obj[KEY_BASEAPP_INFO];
-        Metadata metadata;
-        metadata.name = KEY_PACKAGE_NAME;
-        GetStringIfExist(baseAppInfo, KEY_PACKAGE_NAME, metadata.value);
-        out.metadatas.emplace_back(metadata);
-        metadata.name = KEY_PACKAGE_CERT;
-        GetStringIfExist(baseAppInfo, KEY_PACKAGE_CERT, metadata.value);
-        out.metadatas.emplace_back(metadata);
-    }
+    cJSON* baseAppInfo = NULL;
+    GetJsonObjectIfExist(obj, KEY_BASEAPP_INFO, &baseAppInfo);
+    Metadata metadata;
+    metadata.name = KEY_PACKAGE_NAME;
+    GetStringIfExist(baseAppInfo, KEY_PACKAGE_NAME, metadata.value);
+    out.metadatas.emplace_back(metadata);
+    metadata.name = KEY_PACKAGE_CERT;
+    GetStringIfExist(baseAppInfo, KEY_PACKAGE_CERT, metadata.value);
+    out.metadatas.emplace_back(metadata);
 }
 
-void from_json(const json& obj, ProvisionInfo& out)
+void from_json(const cJSON* obj, ProvisionInfo& out)
 {
-    if (!obj.is_object()) {
+    if (obj == NULL || !cJSON_IsObject(obj)) {
         return;
     }
     GetInt32IfExist(obj, KEY_VERSION_CODE, out.versionCode);
@@ -230,10 +246,14 @@ void from_json(const json& obj, ProvisionInfo& out)
     GetStringArrayIfExist(obj, KEY_APP_PRIVILEGE_CAPABILITIES, out.appPrivilegeCapabilities);
     ParseValidity(obj, out.validity);
     ParseMetadata(obj, out);
-    if (obj.find(KEY_APP_SERVICES_CAPABILITIES) != obj.end()) {
-        if (obj[KEY_APP_SERVICES_CAPABILITIES].dump().size() > 0) {
-            out.appServiceCapabilities = obj[KEY_APP_SERVICES_CAPABILITIES].dump();
+    
+    cJSON* jsonValue = cJSON_GetObjectItemCaseSensitive(obj, KEY_APP_SERVICES_CAPABILITIES.c_str());
+    if (jsonValue != NULL) {
+        char* dumpString = cJSON_Print(jsonValue);
+        if (dumpString != NULL) {
+            out.appServiceCapabilities = dumpString;
         }
+        free(dumpString);
     }
 }
 
@@ -249,14 +269,14 @@ void from_json(const json& obj, ProvisionInfo& out)
         return PROVISION_INVALID;               \
     }
 
-AppProvisionVerifyResult ParseProvision(const string& appProvision, ProvisionInfo& info)
+AppProvisionVerifyResult ParseProvision(const std::string& appProvision, ProvisionInfo& info)
 {
-    json obj = json::parse(appProvision, nullptr, false);
-    if (obj.is_discarded() || (!obj.is_structured())) {
-        HAPVERIFY_LOG_ERROR("Parsing appProvision failed. json: %{public}s", appProvision.c_str());
+    cJSON* obj = cJSON_Parse(appProvision.c_str());
+    if (obj == NULL || !cJSON_IsObject(obj)) {
         return PROVISION_INVALID;
     }
-    obj.get_to(info);
+    from_json(obj, info);
+    cJSON_Delete(obj);
 
     RETURN_IF_INT_IS_NON_POSITIVE(info.versionCode, "Tag version code is empty.")
     RETURN_IF_STRING_IS_EMPTY(info.versionName, "Tag version name is empty.")
@@ -280,7 +300,7 @@ AppProvisionVerifyResult ParseProvision(const string& appProvision, ProvisionInf
     return PROVISION_OK;
 }
 
-inline bool CheckDeviceID(const std::vector<std::string>& deviceIds, const string& deviceId)
+bool CheckDeviceID(const std::vector<std::string>& deviceIds, const std::string& deviceId)
 {
     auto iter = find(deviceIds.begin(), deviceIds.end(), deviceId);
     if (iter == deviceIds.end()) {
@@ -310,7 +330,7 @@ AppProvisionVerifyResult CheckDeviceID(ProvisionInfo& info)
         return PROVISION_UNSUPPORTED_DEVICE_TYPE;
     }
 
-    string deviceId;
+    std::string deviceId;
 #ifndef STANDARD_SYSTEM
     int32_t ret = OHOS::AccountSA::OhosAccountKits::GetInstance().GetUdid(deviceId);
     if (ret != 0) {
@@ -342,7 +362,7 @@ void SetRdDevice(bool isRdDevice)
     g_isRdDevice = isRdDevice;
 }
 
-AppProvisionVerifyResult ParseAndVerify(const string& appProvision, ProvisionInfo& info)
+AppProvisionVerifyResult ParseAndVerify(const std::string& appProvision, ProvisionInfo& info)
 {
     HAPVERIFY_LOG_DEBUG("Enter HarmonyAppProvision Verify");
     AppProvisionVerifyResult ret = ParseProvision(appProvision, info);
@@ -364,12 +384,12 @@ AppProvisionVerifyResult ParseAndVerify(const string& appProvision, ProvisionInf
 
 AppProvisionVerifyResult ParseProfile(const std::string& appProvision, ProvisionInfo& info)
 {
-    json obj = json::parse(appProvision, nullptr, false);
-    if (obj.is_discarded() || (!obj.is_structured())) {
-        HAPVERIFY_LOG_ERROR("Parsing appProvision failed. json: %{public}s", appProvision.c_str());
+    cJSON* jsonObj = cJSON_Parse(appProvision.c_str());
+    if (jsonObj == NULL || !cJSON_IsObject(jsonObj)) {
         return PROVISION_INVALID;
     }
-    obj.get_to(info);
+    from_json(jsonObj, info);
+    cJSON_Delete(jsonObj);
     return PROVISION_OK;
 }
 } // namespace Verify

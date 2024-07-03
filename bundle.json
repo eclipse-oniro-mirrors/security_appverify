@@ -23,15 +23,14 @@
       "ram": "500kb",
       "deps": {
         "components": [
+          "cJSON",
           "c_utils",
           "hilog",
           "init",
+          "openssl",
           "os_account"
         ],
         "third_party": [
-          "json",
-          "openssl",
-          "cJSON",
           "bounds_checking_function",
           "mbedtls"
         ]

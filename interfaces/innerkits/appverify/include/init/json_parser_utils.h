@@ -19,23 +19,23 @@
 #include <unordered_map>
 #include <vector>
 
-#include "nlohmann/json.hpp"
+#include "cJSON.h"
 
 namespace OHOS {
 namespace Security {
 namespace Verify {
 using JsonMap = std::unordered_map<std::string, std::string>;
-using JsonObjVec = std::vector<nlohmann::json>;
+using JsonObjVec = std::vector<cJSON*>;
 using StringVec = std::vector<std::string>;
 
 class JsonParserUtils {
 public:
-    static bool ReadTrustedRootCAFromJson(nlohmann::json& jsonObj, const std::string& jsonPath, std::string& error);
-    static bool GetJsonString(const nlohmann::json& json, const std::string& key, std::string& value);
-    static bool ParseJsonToObjVec(const nlohmann::json& json, const std::string& key, JsonObjVec& jsonObjVec);
-    static bool GetJsonInt(const nlohmann::json& json, const std::string& key, int& value);
-    static bool GetJsonStringVec(const nlohmann::json& json, const std::string& key, StringVec& value);
-    static void ParseJsonToMap(const nlohmann::json& json, JsonMap& JsonMap);
+    static bool ReadTrustedRootCAFromJson(cJSON** jsonObj, const std::string& jsonPath, std::string& error);
+    static bool GetJsonString(const cJSON* json, const std::string& key, std::string& value);
+    static bool ParseJsonToObjVec(const cJSON* json, const std::string& key, JsonObjVec& jsonObjVec);
+    static bool GetJsonInt(const cJSON* json, const std::string& key, int& value);
+    static bool GetJsonStringVec(const cJSON* json, const std::string& key, StringVec& value);
+    static void ParseJsonToMap(const cJSON* json, JsonMap& JsonMap);
 };
 } // namespace Verify
 } // namespace Security

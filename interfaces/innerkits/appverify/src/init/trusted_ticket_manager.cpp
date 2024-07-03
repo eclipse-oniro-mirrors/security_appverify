@@ -17,8 +17,6 @@
 
 #include <regex>
 
-#include "nlohmann/json.hpp"
-
 #include "common/hap_verify_log.h"
 
 namespace OHOS {
@@ -73,9 +71,9 @@ void TrustedTicketManager::Recovery()
 bool TrustedTicketManager::GetTicketTrustedSources(TicketSourceInfoVec& trustedTicketSources,
     std::string& sourcesVersion, std::string& sourcesReleaseTime, const std::string& filePath)
 {
-    nlohmann::json trustedSourceJson;
+    cJSON* trustedSourceJson = NULL;
     std::string errorInfo;
-    if (!JsonParserUtils::ReadTrustedRootCAFromJson(trustedSourceJson, filePath, errorInfo)) {
+    if (!JsonParserUtils::ReadTrustedRootCAFromJson(&trustedSourceJson, filePath, errorInfo)) {
         HAPVERIFY_LOG_ERROR("get jsonObj from %{public}s failed, because %{public}s",
             filePath.c_str(), errorInfo.c_str());
         return false;
@@ -102,6 +100,7 @@ bool TrustedTicketManager::GetTicketTrustedSources(TicketSourceInfoVec& trustedT
         HAPVERIFY_LOG_ERROR("no ticket trusted source");
         return false;
     }
+    cJSON_Delete(trustedSourceJson);
     return true;
 }
 

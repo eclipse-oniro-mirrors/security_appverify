@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace Security {
 namespace Verify {
-bool JsonParserUtils::ReadTrustedRootCAFromJson(nlohmann::json& jsonObj,
+bool JsonParserUtils::ReadTrustedRootCAFromJson(cJSON** jsonObj,
     const std::string& jsonPath, std::string& error)
 {
     std::ifstream jsonFileStream;
@@ -40,63 +40,85 @@ bool JsonParserUtils::ReadTrustedRootCAFromJson(nlohmann::json& jsonObj,
     jsonFileStream.close();
 
     std::string jsonStr = buf.str();
-    jsonObj = nlohmann::json::parse(jsonStr, nullptr, false);
-    if (jsonObj.is_discarded() || (!jsonObj.is_structured())) {
+    *jsonObj = cJSON_Parse(jsonStr.c_str());
+    if (*jsonObj == NULL) {
         error += "parse jsonStr failed";
         return false;
     }
     return true;
 }
 
-bool JsonParserUtils::GetJsonString(const nlohmann::json& json, const std::string& key, std::string& value)
+bool JsonParserUtils::GetJsonString(const cJSON* json, const std::string& key, std::string& value)
 {
-    if (!json.is_object()) {
+    if (json == NULL || !cJSON_IsObject(json)) {
         return false;
     }
-    if (json.find(key) != json.end() && json.at(key).is_string()) {
-        value = json.at(key).get<std::string>();
+    cJSON* jsonValue = cJSON_GetObjectItemCaseSensitive(json, key.c_str());
+    if (jsonValue != NULL && cJSON_IsString(jsonValue)) {
+        value = jsonValue->valuestring;
     }
     return true;
 }
 
-bool JsonParserUtils::GetJsonInt(const nlohmann::json& json, const std::string& key, int& value)
+bool JsonParserUtils::GetJsonInt(const cJSON* json, const std::string& key, int& value)
 {
-    if (!json.is_object()) {
+    if (json == NULL || !cJSON_IsObject(json)) {
         return false;
     }
-    if (json.find(key) != json.end() && json.at(key).is_number()) {
-        value = json.at(key).get<int>();
+    cJSON* jsonValue = cJSON_GetObjectItemCaseSensitive(json, key.c_str());
+    if (jsonValue != NULL && cJSON_IsNumber(jsonValue)) {
+        value = jsonValue->valueint;
     }
     return true;
 }
 
-bool JsonParserUtils::GetJsonStringVec(const nlohmann::json& json, const std::string& key, StringVec& value)
+bool JsonParserUtils::GetJsonStringVec(const cJSON* json, const std::string& key, StringVec& value)
 {
-    if (!json.is_object()) {
+    if (json == NULL || !cJSON_IsObject(json)) {
         return false;
     }
-    if (json.find(key) != json.end() && json.at(key).is_array()) {
-        value = json.at(key).get<StringVec>();
+    cJSON* jsonArray = cJSON_GetObjectItemCaseSensitive(json, key.c_str());
+    if (jsonArray == NULL || !cJSON_IsArray(jsonArray)) {
+        return false;
+    }
+    cJSON* item = NULL;
+    cJSON_ArrayForEach(item, jsonArray) {
+        if (item != NULL && cJSON_IsString(item)) {
+            value.emplace_back(item->valuestring);
+        }
     }
     return true;
 }
 
-bool JsonParserUtils::ParseJsonToObjVec(const nlohmann::json& json, const std::string& key, JsonObjVec& jsonObjVec)
+bool JsonParserUtils::ParseJsonToObjVec(const cJSON* json, const std::string& key, JsonObjVec& jsonObjVec)
 {
-    if (!json.is_object()) {
+    if (json == NULL || !cJSON_IsObject(json)) {
         return false;
     }
-    if (json.find(key) != json.end() && json.at(key).is_array()) {
-        jsonObjVec = json.at(key).get<JsonObjVec>();
+    cJSON* jsonArray = cJSON_GetObjectItemCaseSensitive(json, key.c_str());
+    if (jsonArray == NULL || !cJSON_IsArray(jsonArray)) {
+        return false;
+    }
+    cJSON* item = NULL;
+    cJSON_ArrayForEach(item, jsonArray) {
+        if (item != NULL && cJSON_IsObject(item)) {
+            jsonObjVec.emplace_back(item);
+        }
     }
     return true;
 }
 
-void JsonParserUtils::ParseJsonToMap(const nlohmann::json& json, JsonMap& jsonMap)
+void JsonParserUtils::ParseJsonToMap(const cJSON* json, JsonMap& jsonMap)
 {
-    for (auto it = json.begin(); it != json.end(); it++) {
-        if (it.value().is_string()) {
-            jsonMap[it.key()] = it.value().get<std::string>();
+    if (json == NULL || !cJSON_IsObject(json)) {
+        return;
+    }
+    cJSON* item = NULL;
+    cJSON_ArrayForEach(item, json) {
+        if (item != NULL && cJSON_IsString(item)) {
+            std::string key = item->string;
+            std::string value = item->valuestring;
+            jsonMap[key] = value;
         }
     }
 }

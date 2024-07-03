@@ -16,12 +16,7 @@ import("//build/ohos.gni")
 if (os_level == "standard") {
   config("libhapverify_config") {
     visibility = [ ":*" ]
-    include_dirs = [
-      "include",
-      "//third_party/openssl/include",
-      "//third_party/json/include",
-      "//third_party/json/single_include",
-    ]
+    include_dirs = [ "include" ]
   }
 
   ohos_shared_library("libhapverify") {
@@ -65,16 +60,15 @@ if (os_level == "standard") {
     cflags_cc = [
       "-DHILOG_ENABLE",
       "-fvisibility=hidden",
-      "-fno-unroll-loops",
-      "-fno-unwind-tables",
-      "-fno-asynchronous-unwind-tables",
-      "-g0",
-      "-Os",
     ]
 
-    deps = [ "//third_party/openssl:libcrypto_shared" ]
+    deps = []
 
-    external_deps = [ "c_utils:utils" ]
+    external_deps = [
+      "cJSON:cjson",
+      "c_utils:utils",
+      "openssl:libcrypto_shared",
+    ]
 
     defines = []
     if (is_standard_system) {

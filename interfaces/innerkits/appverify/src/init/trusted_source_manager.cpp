@@ -15,8 +15,6 @@
 
 #include "init/trusted_source_manager.h"
 
-#include "nlohmann/json.hpp"
-
 #include "common/hap_verify_log.h"
 
 namespace OHOS {
@@ -100,9 +98,9 @@ void TrustedSourceManager::Recovery()
 bool TrustedSourceManager::GetAppTrustedSources(SourceInfoVec& trustedAppSources, std::string& souucesVersion,
     std::string& souucesReleaseTime, const std::string& filePath)
 {
-    nlohmann::json trustedSourceJson;
+    cJSON* trustedSourceJson = NULL;
     std::string errorInfo;
-    if (!JsonParserUtils::ReadTrustedRootCAFromJson(trustedSourceJson, filePath, errorInfo)) {
+    if (!JsonParserUtils::ReadTrustedRootCAFromJson(&trustedSourceJson, filePath, errorInfo)) {
         HAPVERIFY_LOG_ERROR("get jsonObj from %{public}s failed, because %{public}s",
             filePath.c_str(), errorInfo.c_str());
         return false;
@@ -129,6 +127,7 @@ bool TrustedSourceManager::GetAppTrustedSources(SourceInfoVec& trustedAppSources
         HAPVERIFY_LOG_ERROR("no app trusted source");
         return false;
     }
+    cJSON_Delete(trustedSourceJson);
     return true;
 }
 
