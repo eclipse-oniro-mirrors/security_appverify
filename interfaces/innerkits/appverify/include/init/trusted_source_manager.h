@@ -35,6 +35,7 @@ struct HapAppSourceInfo {
     std::string issuer;
     int32_t maxCertsPath = 0;
     StringVec critialcalCertExtension;
+    std::string rootCa;
 };
 
 using SourceInfoVec = std::vector<HapAppSourceInfo>;
@@ -79,6 +80,7 @@ private:
     static const std::string KEY_OF_PROFILE_SIGNING_CERTIFICATE;
     static const std::string KEY_OF_PROFILE_DEBUG_SIGNING_CERTIFICATE;
     static const std::string KEY_OF_ISSUER;
+    static const std::string KEY_OF_ROOT_CA;
     static const std::string KEY_OF_MAX_CERTS_PATH;
     static const std::string KEY_OF_CRITIALCAL_CERT_EXTENSION;
     static const std::string APP_GALLERY_SOURCE_NAME;

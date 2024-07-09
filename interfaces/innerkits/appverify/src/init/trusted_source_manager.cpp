@@ -32,6 +32,7 @@ const std::string TrustedSourceManager::KEY_OF_APP_SIGNING_CERT = "app-signing-c
 const std::string TrustedSourceManager::KEY_OF_PROFILE_SIGNING_CERTIFICATE = "profile-signing-certificate";
 const std::string TrustedSourceManager::KEY_OF_PROFILE_DEBUG_SIGNING_CERTIFICATE = "profile-debug-signing-certificate";
 const std::string TrustedSourceManager::KEY_OF_ISSUER = "issuer-ca";
+const std::string TrustedSourceManager::KEY_OF_ROOT_CA = "root-ca";
 const std::string TrustedSourceManager::KEY_OF_MAX_CERTS_PATH = "max-certs-path";
 const std::string TrustedSourceManager::KEY_OF_CRITIALCAL_CERT_EXTENSION = "critialcal-cert-extension";
 const std::string TrustedSourceManager::APP_GALLERY_SOURCE_NAME = "huawei app gallery";
@@ -159,6 +160,10 @@ bool TrustedSourceManager::ParseTrustedAppSourceJson(SourceInfoVec& trustedAppSo
             HAPVERIFY_LOG_ERROR("Get issuer Failed");
             return false;
         }
+        if (!JsonParserUtils::GetJsonString(appSource, KEY_OF_ROOT_CA, hapAppSource.rootCa)) {
+            HAPVERIFY_LOG_ERROR("Get root ca Failed");
+            return false;
+        }
         if (!JsonParserUtils::GetJsonInt(appSource, KEY_OF_MAX_CERTS_PATH, hapAppSource.maxCertsPath)) {
             HAPVERIFY_LOG_ERROR("Get maxCertsPath Failed");
             return false;
@@ -182,6 +187,7 @@ std::string TrustedSourceManager::EncapTrustedAppSourceString(const HapAppSource
         "profileSigningCertificate: " + appSourceInfo.profileSigningCertificate + "\n" +
         "profileDebugSigningCertificate: " + appSourceInfo.profileDebugSigningCertificate + "\n" +
         "issuer: " + appSourceInfo.issuer + "\n" +
+        "rootCa: " + appSourceInfo.rootCa + "\n" +
         "maxCertsPath: " + std::to_string(appSourceInfo.maxCertsPath) + "\n" +
         "critialcalCertExtension: ";
     for (auto extension : appSourceInfo.critialcalCertExtension) {
@@ -214,6 +220,7 @@ MatchingResult TrustedSourceManager::MatchTrustedSource(const SourceInfoVec& tru
             ret.matchState = TrustedSourceListCompare(certSubject, certIssuer, appSource, blobType);
             if (ret.matchState != DO_NOT_MATCH) {
                 ret.source = appSource.source;
+                ret.rootCa = appSource.rootCa;
                 break;
             }
         }

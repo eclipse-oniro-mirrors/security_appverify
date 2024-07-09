@@ -207,15 +207,16 @@ HWTEST_F(HapCertVerifyOpensslUtilsTest, GetCertsChainTest001, TestSize.Level1)
     CertChain certsChain;
     CertSign certVisitSign;
     certVisitSign[certX509] = false;
-    ASSERT_FALSE(HapCertVerifyOpensslUtils::GetCertsChain(certsChain, certVisitSign));
+    Pkcs7Context pkcs7Context;
+    ASSERT_FALSE(HapCertVerifyOpensslUtils::GetCertsChain(certsChain, certVisitSign, pkcs7Context));
     /*
      * @tc.steps: step2. Push a self signed cert to certChain.
      * @tc.expected: step2. The return is false due to can not verify by root ca.
      */
     certsChain.push_back(certX509);
-    ASSERT_FALSE(HapCertVerifyOpensslUtils::GetCertsChain(certsChain, certVisitSign));
+    ASSERT_FALSE(HapCertVerifyOpensslUtils::GetCertsChain(certsChain, certVisitSign, pkcs7Context));
     certVisitSign[certX509] = true;
-    ASSERT_FALSE(HapCertVerifyOpensslUtils::GetCertsChain(certsChain, certVisitSign));
+    ASSERT_FALSE(HapCertVerifyOpensslUtils::GetCertsChain(certsChain, certVisitSign, pkcs7Context));
     X509_free(certX509);
 }
 

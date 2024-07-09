@@ -8,6 +8,7 @@
             "profile-signing-certificate":"C=CN, O=Huawei, OU=HOS AppGallery, CN=HOS Profile Management",
             "profile-debug-signing-certificate":"C=CN, O=Huawei, OU=HOS AppGallery, CN=HOS Profile Management Debug",
             "issuer-ca":"C=CN, O=Huawei, OU=Huawei CBG, CN=Huawei CBG Software Signing Service CA",
+            "root-ca":"C=CN, O=Huawei, OU=Huawei CBG, CN=Huawei CBG Root CA G2",
             "max-certs-path":3,
             "critialcal-cert-extension":["keyusage","huawei-signing-capability"]
         },
@@ -17,6 +18,7 @@
             "profile-signing-certificate":"C=CN, O=Huawei CBG, OU=HOS Development Team, CN=HOS Application Provision Profile Release",
             "profile-debug-signing-certificate":"C=CN, O=Huawei CBG, OU=HOS Development Team, CN=HOS Application Provision Profile Release_Debug",
             "issuer-ca":"C=CN, O=Huawei, OU=Huawei CBG, CN=Huawei CBG Software Signing Service CA",
+            "root-ca":"C=CN, O=Huawei, OU=Huawei CBG, CN=Huawei CBG Root CA G2",
             "max-certs-path":3,
             "critialcal-cert-extension":["keyusage","huawei-signing-capability"]
         },
@@ -26,6 +28,7 @@
             "profile-signing-certificate":"C=CN, O=OpenHarmony, OU=OpenHarmony Team, CN=OpenHarmony Application Profile Release",
             "profile-debug-signing-certificate":"C=CN, O=OpenHarmony, OU=OpenHarmony Team, CN=OpenHarmony Application Profile Debug",
             "issuer-ca":"C=CN, O=OpenHarmony, OU=OpenHarmony Team, CN=OpenHarmony Application CA",
+            "root-ca":"C=CN, O=OpenHarmony, OU=OpenHarmony Team, CN=OpenHarmony Application Root CA",
             "max-certs-path":3,
             "critialcal-cert-extension":["keyusage"]
         }

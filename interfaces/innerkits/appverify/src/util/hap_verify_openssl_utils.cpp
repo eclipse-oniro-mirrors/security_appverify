@@ -118,7 +118,7 @@ bool HapVerifyOpensslUtils::GetCertChains(PKCS7* p7, Pkcs7Context& pkcs7Context)
 bool HapVerifyOpensslUtils::VerifyCertChain(CertChain& certsChain, PKCS7* p7,
     PKCS7_SIGNER_INFO* signInfo, Pkcs7Context& pkcs7Context, CertSign& certVisitSign)
 {
-    if (!HapCertVerifyOpensslUtils::GetCertsChain(certsChain, certVisitSign)) {
+    if (!HapCertVerifyOpensslUtils::GetCertsChain(certsChain, certVisitSign, pkcs7Context)) {
         HAPVERIFY_LOG_ERROR("get cert chain for signInfo failed");
         return false;
     }

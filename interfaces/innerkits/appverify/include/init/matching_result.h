@@ -36,6 +36,7 @@ enum MatchingStates {
 struct MatchingResult {
     MatchingStates matchState;
     TrustedSources source;
+    std::string rootCa;
 };
 } // namespace Verify
 } // namespace Security

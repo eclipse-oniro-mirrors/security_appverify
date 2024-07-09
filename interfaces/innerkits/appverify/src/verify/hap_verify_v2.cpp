@@ -158,6 +158,13 @@ bool HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context,
     pkcs7Context.matchResult = trustedSourceManager.IsTrustedSource(certSubject, pkcs7Context.certIssuer,
         HAP_SIGN_BLOB, pkcs7Context.certChains[0].size());
 
+    if (pkcs7Context.matchResult.matchState == MATCH_WITH_SIGN &&
+        pkcs7Context.matchResult.rootCa != pkcs7Context.rootCa) {
+        HAPVERIFY_LOG_ERROR("MatchRootCa failed, target rootCa: %{public}s, rootCa in pkcs7: %{public}s",
+            pkcs7Context.matchResult.rootCa.c_str(), pkcs7Context.rootCa.c_str());
+        return false;
+    }
+
     Pkcs7Context profileContext;
     std::string profile;
     if (!HapProfileVerifyUtils::ParseProfile(profileContext, pkcs7Context, hapProfileBlock, profile)) {
@@ -179,6 +186,11 @@ bool HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context,
     if (pkcs7Context.matchResult.matchState == DO_NOT_MATCH) {
         if (!HapProfileVerifyUtils::VerifyProfile(profileContext)) {
             HAPVERIFY_LOG_ERROR("profile verify failed");
+            return false;
+        }
+        if (profileContext.matchResult.rootCa != pkcs7Context.rootCa) {
+            HAPVERIFY_LOG_ERROR("MatchProfileRootCa failed, target rootCa: %{public}s, rootCa in profile: %{public}s",
+                profileContext.matchResult.rootCa.c_str(), pkcs7Context.rootCa.c_str());
             return false;
         }
         AppProvisionVerifyResult profileRet = ParseAndVerify(profile, provisionInfo);
