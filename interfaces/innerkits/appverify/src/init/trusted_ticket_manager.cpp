@@ -80,24 +80,29 @@ bool TrustedTicketManager::GetTicketTrustedSources(TicketSourceInfoVec& trustedT
     }
     if (!JsonParserUtils::GetJsonString(trustedSourceJson, KEY_OF_TICKET_TRUSTED_SOURCE_VERSION, sourcesVersion)) {
         HAPVERIFY_LOG_ERROR("get version failed");
+        cJSON_Delete(trustedSourceJson);
         return false;
     }
     if (!JsonParserUtils::GetJsonString(trustedSourceJson,
         KEY_OF_TICKET_TRUSTED_SOURCE_RELEASETIME, sourcesReleaseTime)) {
         HAPVERIFY_LOG_ERROR("get releaseTime failed");
+        cJSON_Delete(trustedSourceJson);
         return false;
     }
     JsonObjVec trustedTicketJson;
     if (!JsonParserUtils::ParseJsonToObjVec(trustedSourceJson, KEY_OF_TICKET_TRUSTED_SOURCE, trustedTicketJson)) {
         HAPVERIFY_LOG_ERROR("get JsonObjVec failed");
+        cJSON_Delete(trustedSourceJson);
         return false;
     }
     if (!ParseTrustedTicketSourceJson(trustedTicketSources, trustedTicketJson)) {
         HAPVERIFY_LOG_ERROR("parse JsonObjVec failed");
+        cJSON_Delete(trustedSourceJson);
         return false;
     }
     if (trustedTicketSources.empty()) {
         HAPVERIFY_LOG_ERROR("no ticket trusted source");
+        cJSON_Delete(trustedSourceJson);
         return false;
     }
     cJSON_Delete(trustedSourceJson);
