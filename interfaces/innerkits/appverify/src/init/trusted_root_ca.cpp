@@ -112,6 +112,7 @@ bool TrustedRootCa::GetTrustedRootCAFromJson(StringCertMap& rootCertMap, const s
         if (cert == nullptr) {
             HAPVERIFY_LOG_ERROR("GetX509CertFromPemString failed, key: %{public}s value: %{public}s",
                 jsonPair.first.c_str(), jsonPair.second.c_str());
+            cJSON_Delete(trustedRootCAJson);
             return false;
         }
         rootCertMap[jsonPair.first] = cert;
@@ -119,6 +120,7 @@ bool TrustedRootCa::GetTrustedRootCAFromJson(StringCertMap& rootCertMap, const s
 
     if (rootCertMap.empty()) {
         HAPVERIFY_LOG_ERROR("no root cert");
+        cJSON_Delete(trustedRootCAJson);
         return false;
     }
     cJSON_Delete(trustedRootCAJson);

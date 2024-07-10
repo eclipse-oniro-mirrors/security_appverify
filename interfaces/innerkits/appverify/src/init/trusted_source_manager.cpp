@@ -107,24 +107,29 @@ bool TrustedSourceManager::GetAppTrustedSources(SourceInfoVec& trustedAppSources
     }
     if (!JsonParserUtils::GetJsonString(trustedSourceJson, KEY_OF_APP_TRUSTED_SOURCE_VERSION, souucesVersion)) {
         HAPVERIFY_LOG_ERROR("get version failed");
+        cJSON_Delete(trustedSourceJson);
         return false;
     }
     if (!JsonParserUtils::GetJsonString(trustedSourceJson,
         KEY_OF_APP_TRUSTED_SOURCE_RELEASETIME, souucesReleaseTime)) {
         HAPVERIFY_LOG_ERROR("get releaseTime failed");
+        cJSON_Delete(trustedSourceJson);
         return false;
     }
     JsonObjVec trustedAppSourceJson;
     if (!JsonParserUtils::ParseJsonToObjVec(trustedSourceJson, KEY_OF_APP_TRUSTED_SOURCE, trustedAppSourceJson)) {
         HAPVERIFY_LOG_ERROR("get JsonObjVec failed");
+        cJSON_Delete(trustedSourceJson);
         return false;
     }
     if (!ParseTrustedAppSourceJson(trustedAppSources, trustedAppSourceJson)) {
         HAPVERIFY_LOG_ERROR("parse JsonObjVec failed");
+        cJSON_Delete(trustedSourceJson);
         return false;
     }
     if (trustedAppSources.empty()) {
         HAPVERIFY_LOG_ERROR("no app trusted source");
+        cJSON_Delete(trustedSourceJson);
         return false;
     }
     cJSON_Delete(trustedSourceJson);

@@ -26,6 +26,10 @@ namespace Verify {
 bool JsonParserUtils::ReadTrustedRootCAFromJson(cJSON** jsonObj,
     const std::string& jsonPath, std::string& error)
 {
+    if (jsonObj == NULL) {
+        error += "jsonObj is NULL";
+        return false;
+    }
     std::ifstream jsonFileStream;
     jsonFileStream.open(jsonPath.c_str(), std::ios::in);
     if (!jsonFileStream.is_open()) {

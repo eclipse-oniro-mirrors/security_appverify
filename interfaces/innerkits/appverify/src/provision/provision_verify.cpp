@@ -253,7 +253,7 @@ void from_json(const cJSON* obj, ProvisionInfo& out)
         if (dumpString != NULL) {
             out.appServiceCapabilities = dumpString;
         }
-        free(dumpString);
+        cJSON_free(dumpString);
     }
 }
 
