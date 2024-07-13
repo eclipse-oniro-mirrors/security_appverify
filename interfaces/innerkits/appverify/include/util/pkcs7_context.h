@@ -38,6 +38,7 @@ struct Pkcs7Context {
     PKCS7* p7;
     Pkcs7CertChains certChains;
     HapByteBuffer content;
+    std::string rootCa;
 
     Pkcs7Context()
         : needWriteCrl(false), digestAlgorithm(0), matchResult(), certIssuer(),

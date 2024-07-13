@@ -34,7 +34,7 @@ public:
     DLL_EXPORT static X509_CRL* GetX509CrlFromDerBuffer(const HapByteBuffer& crlBuffer, int32_t offset, int32_t len);
     DLL_EXPORT static void GenerateCertSignFromCertStack(STACK_OF(X509)* certs, CertSign& certVisitSign);
     DLL_EXPORT static void ClearCertVisitSign(CertSign& certVisitSign);
-    DLL_EXPORT static bool GetCertsChain(CertChain& certsChain, CertSign& certVisitSign);
+    DLL_EXPORT static bool GetCertsChain(CertChain& certsChain, CertSign& certVisitSign, Pkcs7Context& pkcs7Context);
     DLL_EXPORT static bool CertVerify(X509* cert, const X509* issuerCert);
     DLL_EXPORT static bool GetSubjectFromX509(const X509* cert, std::string& subject);
     DLL_EXPORT static bool GetIssuerFromX509(const X509* cert, std::string& issuer);

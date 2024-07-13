@@ -296,7 +296,8 @@ void HapCertVerifyOpensslUtils::ClearCertVisitSign(CertSign& certVisitSign)
     }
 }
 
-bool HapCertVerifyOpensslUtils::GetCertsChain(CertChain& certsChain, CertSign& certVisitSign)
+bool HapCertVerifyOpensslUtils::GetCertsChain(CertChain& certsChain, CertSign& certVisitSign,
+    Pkcs7Context& pkcs7Context)
 {
     if (certsChain.empty() || certVisitSign.empty()) {
         HAPVERIFY_LOG_ERROR("input is invalid");
@@ -313,9 +314,10 @@ bool HapCertVerifyOpensslUtils::GetCertsChain(CertChain& certsChain, CertSign& c
 
     TrustedRootCa& rootCertsObj = TrustedRootCa::GetInstance();
     issuerCert = rootCertsObj.FindMatchedRoot(certsChain[certsChain.size() - 1]);
+    std::string caIssuer;
+    GetIssuerFromX509(certsChain[certsChain.size() - 1], caIssuer);
+    pkcs7Context.rootCa = caIssuer;
     if (issuerCert == nullptr) {
-        std::string caIssuer;
-        GetIssuerFromX509(certsChain[certsChain.size() - 1], caIssuer);
         HAPVERIFY_LOG_ERROR("it do not come from trusted root, issuer: %{public}s", caIssuer.c_str());
         return false;
     }
