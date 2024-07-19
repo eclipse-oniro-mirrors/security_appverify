@@ -260,8 +260,9 @@ void HapCertVerifyOpensslUtils::WriteX509CrlToStream(std::ofstream& crlFile, X50
     crlFile.seekp(posStart + sizeof(totalLen));
     char buf[OPENSSL_READ_CRL_LEN_EACH_TIME];
     int32_t readLen = BIO_read(derBio, buf, sizeof(buf));
-    int32_t readTime = 0;
-    while (readLen > 0 && (++readTime < OPENSSL_READ_CRL_MAX_TIME)) {
+    int32_t readTime = 1;
+    while (readLen > 0 && (readTime < OPENSSL_READ_CRL_MAX_TIME)) {
+        readTime++;
         crlFile.write(buf, readLen);
         totalLen += readLen;
         readLen = BIO_read(derBio, buf, sizeof(buf));
