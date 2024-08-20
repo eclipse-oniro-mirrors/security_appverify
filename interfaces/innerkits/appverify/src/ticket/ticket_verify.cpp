@@ -187,11 +187,11 @@ bool VerifyTicketSignature(HapByteBuffer& ticketBlock, Pkcs7Context& pkcs7Contex
     pkcs7Context.matchResult = trustedTicketSourceManager.IsTrustedSource(certSubject, pkcs7Context.certIssuer,
         pkcs7Context.certChains[0].size());
     if (pkcs7Context.matchResult.matchState == DO_NOT_MATCH) {
-        HAPVERIFY_LOG_ERROR("Ticket signature is not trusted source, subject: %{public}s, issuer: %{public}s",
+        HAPVERIFY_LOG_ERROR("Ticket signature is not trusted source, subject: %{private}s, issuer: %{public}s",
             certSubject.c_str(), pkcs7Context.certIssuer.c_str());
         return false;
     }
-    HAPVERIFY_LOG_INFO("Ticket subject: %{public}s, issuer: %{public}s",
+    HAPVERIFY_LOG_INFO("Ticket subject: %{private}s, issuer: %{public}s",
         certSubject.c_str(), pkcs7Context.certIssuer.c_str());
     return true;
 }
