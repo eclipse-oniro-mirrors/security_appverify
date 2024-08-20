@@ -151,7 +151,7 @@ bool HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context,
         HAPVERIFY_LOG_ERROR("Get info of sign cert failed");
         return false;
     }
-    HAPVERIFY_LOG_DEBUG("App signature subject: %{public}s, issuer: %{public}s",
+    HAPVERIFY_LOG_DEBUG("App signature subject: %{private}s, issuer: %{public}s",
         certSubject.c_str(), pkcs7Context.certIssuer.c_str());
 
     TrustedSourceManager& trustedSourceManager = TrustedSourceManager::GetInstance();
@@ -262,7 +262,7 @@ bool HapVerifyV2::GenerateFingerprint(ProvisionInfo& provisionInfo)
         return false;
     }
     provisionInfo.fingerprint = fingerprint;
-    HAPVERIFY_LOG_DEBUG("fingerprint is : %{public}s", fingerprint.c_str());
+    HAPVERIFY_LOG_DEBUG("fingerprint is : %{private}s", fingerprint.c_str());
     return true;
 }
 

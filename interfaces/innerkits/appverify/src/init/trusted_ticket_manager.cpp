@@ -137,7 +137,7 @@ bool TrustedTicketManager::ParseTrustedTicketSourceJson(TicketSourceInfoVec& tru
             HAPVERIFY_LOG_ERROR("Get critialcalCertExtension Failed");
             return false;
         }
-        HAPVERIFY_LOG_INFO("trusted ticket source: %{public}s",
+        HAPVERIFY_LOG_INFO("trusted ticket source: %{private}s",
             EncapTrustedTicketSourceString(hapTicketSource).c_str());
         trustedTicketSources.push_back(hapTicketSource);
     }
