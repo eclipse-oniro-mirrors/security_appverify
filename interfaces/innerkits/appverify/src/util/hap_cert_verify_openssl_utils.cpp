@@ -133,7 +133,7 @@ bool HapCertVerifyOpensslUtils::GetFingerprintBase64FromPemCert(const std::strin
         fingerprint += buff;
     }
     X509_free(cert);
-    HAPVERIFY_LOG_DEBUG("GetFingerprintBase64FromPemCert end %{public}s", fingerprint.c_str());
+    HAPVERIFY_LOG_DEBUG("GetFingerprintBase64FromPemCert end %{private}s", fingerprint.c_str());
     return true;
 }
 

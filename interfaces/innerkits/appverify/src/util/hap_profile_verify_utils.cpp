@@ -69,11 +69,11 @@ bool HapProfileVerifyUtils::VerifyProfile(Pkcs7Context& pkcs7Context)
     pkcs7Context.matchResult = trustedSourceManager.IsTrustedSource(certSubject, certIssuer, PROFILE_BLOB,
         pkcs7Context.certChains[0].size());
     if (pkcs7Context.matchResult.matchState == DO_NOT_MATCH) {
-        HAPVERIFY_LOG_ERROR("profile signature is not trusted source, subject: %{public}s, issuer: %{public}s",
+        HAPVERIFY_LOG_ERROR("profile signature is not trusted source, subject: %{private}s, issuer: %{public}s",
             certSubject.c_str(), certIssuer.c_str());
         return false;
     }
-    HAPVERIFY_LOG_DEBUG("profile subject: %{public}s, issuer: %{public}s",
+    HAPVERIFY_LOG_DEBUG("profile subject: %{private}s, issuer: %{public}s",
         certSubject.c_str(), certIssuer.c_str());
     return true;
 }
