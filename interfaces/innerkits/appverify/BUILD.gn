@@ -17,6 +17,7 @@ if (os_level == "standard") {
   config("libhapverify_config") {
     visibility = [ ":*" ]
     include_dirs = [ "include" ]
+    configs = [ "//build/config/compiler:exceptions" ]
   }
 
   ohos_shared_library("libhapverify") {
@@ -60,6 +61,7 @@ if (os_level == "standard") {
     cflags_cc = [
       "-DHILOG_ENABLE",
       "-fvisibility=hidden",
+      "-fexceptions",
     ]
 
     deps = []
