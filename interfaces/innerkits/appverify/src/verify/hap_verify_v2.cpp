@@ -232,7 +232,8 @@ bool HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context,
 bool HapVerifyV2::VerifyProfileSignature(const Pkcs7Context& pkcs7Context, Pkcs7Context& profileContext)
 {
     if (pkcs7Context.matchResult.matchState == MATCH_WITH_SIGN &&
-        pkcs7Context.matchResult.source == APP_THIRD_PARTY_PRELOAD) {
+        (pkcs7Context.matchResult.source == APP_THIRD_PARTY_PRELOAD ||
+        pkcs7Context.matchResult.source == APP_SYSTEM)) {
         if (!HapProfileVerifyUtils::VerifyProfile(profileContext)) {
             HAPVERIFY_LOG_ERROR("profile verify failed");
             return false;
