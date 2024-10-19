@@ -92,4 +92,160 @@ HWTEST_F(HapVerifyOpensslUtilsTest, GetDigestAlgorithmId001, TestSize.Level1)
     nId = HapVerifyOpensslUtils::GetDigestAlgorithmId(0);
     ASSERT_TRUE(nId == 0);
 }
+
+/**
+ * @tc.name: Test ParsePkcs7Package functions
+ * @tc.desc: ParsePkcs7Package
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyOpensslUtilsTest, ParsePkcs7Package_0100, TestSize.Level1)
+{
+    unsigned char packageData[] = "test";
+    uint32_t packageLen = 1;
+    Pkcs7Context pkcs7Context;
+    auto ret = HapVerifyOpensslUtils::ParsePkcs7Package(packageData, packageLen, pkcs7Context);
+    EXPECT_FALSE(ret);
+    ret = HapVerifyOpensslUtils::ParsePkcs7Package(nullptr, packageLen, pkcs7Context);
+    EXPECT_FALSE(ret);
+    packageLen = 0;
+    ret = HapVerifyOpensslUtils::ParsePkcs7Package(packageData, packageLen, pkcs7Context);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: Test GetCertChains functions
+ * @tc.desc: GetCertChains
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyOpensslUtilsTest, GetCertChains_0100, TestSize.Level1)
+{
+    Pkcs7Context pkcs7Context;
+    auto ret = HapVerifyOpensslUtils::GetCertChains(nullptr, pkcs7Context);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: Test VerifyPkcs7 functions
+ * @tc.desc: VerifyPkcs7
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyOpensslUtilsTest, VerifyPkcs7_0100, TestSize.Level1)
+{
+    HapVerifyOpensslUtils hapVerifyOpensslUtils;
+    Pkcs7Context pkcs7Context;
+    pkcs7Context.p7 = nullptr;
+    auto ret = hapVerifyOpensslUtils.VerifyPkcs7(pkcs7Context);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: Test AsnStringCmp functions
+ * @tc.desc: AsnStringCmp
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyOpensslUtilsTest, AsnStringCmp_0100, TestSize.Level1)
+{
+    unsigned char data[] = "";
+    int32_t len = 0;
+    auto ret = HapVerifyOpensslUtils::AsnStringCmp(nullptr, data, len);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: Test AsnStringCmp functions
+ * @tc.desc: AsnStringCmp
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyOpensslUtilsTest, AsnStringCmp_0200, TestSize.Level1)
+{
+    unsigned char data[] = "";
+    int32_t len = 0;
+    ASN1_OCTET_STRING asnStr;
+    asnStr.data = nullptr;
+    auto ret = HapVerifyOpensslUtils::AsnStringCmp(&asnStr, data, len);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: Test AsnStringCmp functions
+ * @tc.desc: AsnStringCmp
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyOpensslUtilsTest, AsnStringCmp_0300, TestSize.Level1)
+{
+    int32_t len = 0;
+    unsigned char data[] = "c";
+    ASN1_OCTET_STRING asnStr = {1, 1, data, 1};
+    auto ret = HapVerifyOpensslUtils::AsnStringCmp(&asnStr, nullptr, len);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: Test AsnStringCmp functions
+ * @tc.desc: AsnStringCmp
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyOpensslUtilsTest, AsnStringCmp_0400, TestSize.Level1)
+{
+    int32_t len = 0;
+    unsigned char data[] = "c";
+    ASN1_OCTET_STRING asnStr = {1, 1, data, 1};
+    auto ret = HapVerifyOpensslUtils::AsnStringCmp(&asnStr, data, len);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: Test AsnStringCmp functions
+ * @tc.desc: AsnStringCmp
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyOpensslUtilsTest, AsnStringCmp_0500, TestSize.Level1)
+{
+    int32_t len = 1;
+    unsigned char data[] = "c";
+    unsigned char buf[] = "a";
+    ASN1_OCTET_STRING asnStr = {1, 1, data, 1};
+    auto ret = HapVerifyOpensslUtils::AsnStringCmp(&asnStr, buf, len);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: Test GetPublickeys functions
+ * @tc.desc: GetPublickeys
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyOpensslUtilsTest, GetPublickeys_0100, TestSize.Level1)
+{
+    CertChain signCertChain;
+    signCertChain.emplace_back(nullptr);
+    std::vector<std::string> SignatureVec;
+    auto ret = HapVerifyOpensslUtils::GetPublickeys(signCertChain, SignatureVec);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: Test GetSignatures functions
+ * @tc.desc: GetSignatures
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyOpensslUtilsTest, GetSignatures_0100, TestSize.Level1)
+{
+    CertChain signCertChain;
+    signCertChain.emplace_back(nullptr);
+    std::vector<std::string> SignatureVec;
+    auto ret = HapVerifyOpensslUtils::GetSignatures(signCertChain, SignatureVec);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: Test GetDerCert functions
+ * @tc.desc: GetDerCert
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyOpensslUtilsTest, GetDerCert_0100, TestSize.Level1)
+{
+    std::vector<std::string> SignatureVec;
+    auto ret = HapVerifyOpensslUtils::GetDerCert(nullptr, SignatureVec);
+    EXPECT_FALSE(ret);
+}
 }
