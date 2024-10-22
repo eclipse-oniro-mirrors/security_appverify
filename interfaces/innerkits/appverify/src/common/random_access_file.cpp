@@ -63,6 +63,31 @@ bool RandomAccessFile::Init(const std::string& filePath)
     return true;
 }
 
+bool RandomAccessFile::InitWithFd(const int32_t fileFd)
+{
+    if (fileFd <= FILE_OPEN_FAIL_ERROR_NUM) {
+        HAPVERIFY_LOG_ERROR("invalid fd");
+        return false;
+    }
+    fd = dup(fileFd);
+    if (fd <= FILE_OPEN_FAIL_ERROR_NUM) {
+        HAPVERIFY_LOG_ERROR("dup failed: %{public}d", errno);
+        return false;
+    }
+
+    if (memoryPageSize <= 0) {
+        HAPVERIFY_LOG_ERROR("getting pagesize failed: %{public}d", memoryPageSize);
+        return false;
+    }
+
+    fileLength = lseek(fd, 0, SEEK_END);
+    if (fileLength < 0) {
+        HAPVERIFY_LOG_ERROR("getting fileLength failed: %{public}lld", fileLength);
+        return false;
+    }
+    return true;
+}
+
 long long RandomAccessFile::GetLength() const
 {
     return fileLength;
