@@ -30,6 +30,7 @@ namespace Verify {
 class HapVerifyV2 {
 public:
     int32_t Verify(const std::string& filePath, HapVerifyResult& hapVerifyV1Result);
+    int32_t Verify(const int32_t fileFd, HapVerifyResult& hapVerifyV1Result);
     int32_t ParseHapProfile(const std::string& filePath, HapVerifyResult& hapVerifyV1Result);
     int32_t ParseHapSignatureInfo(const std::string& filePath, SignatureInfo &hapSignInfo);
 

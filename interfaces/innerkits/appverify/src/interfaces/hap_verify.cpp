@@ -17,6 +17,7 @@
 
 #include <mutex>
 
+#include "common/hap_verify_log.h"
 #include "init/device_type_manager.h"
 #include "init/hap_crl_manager.h"
 #include "init/trusted_root_ca.h"
@@ -102,6 +103,31 @@ int32_t ParseHapSignatureInfo(const std::string& filePath, SignatureInfo &hapSig
 {
     HapVerifyV2 hapVerifyV2;
     return hapVerifyV2.ParseHapSignatureInfo(filePath, hapSignInfo);
+}
+
+int32_t ParseBundleNameAndAppIdentifier(const int32_t fileFd, std::string &bundleName,
+    std::string &appIdentifier)
+{
+    HAPVERIFY_LOG_INFO("start -n %{public}s", bundleName.c_str());
+    if (fileFd <= -1) {
+        HAPVERIFY_LOG_ERROR("fd invalid");
+        return OPEN_FILE_ERROR;
+    }
+    if (!g_isInit && !HapVerifyInit()) {
+        HAPVERIFY_LOG_ERROR("init failed");
+        return VERIFY_SOURCE_INIT_FAIL;
+    }
+    HapVerifyV2 hapVerifyV2;
+    HapVerifyResult hapVerifyResult;
+    int32_t res = hapVerifyV2.Verify(fileFd, hapVerifyResult);
+    if (res != VERIFY_SUCCESS) {
+        HAPVERIFY_LOG_ERROR("verify failed");
+        return res;
+    }
+    ProvisionInfo info = hapVerifyResult.GetProvisionInfo();
+    bundleName = info.bundleInfo.bundleName;
+    appIdentifier = info.bundleInfo.appIdentifier;
+    return VERIFY_SUCCESS;
 }
 
 } // namespace Verify

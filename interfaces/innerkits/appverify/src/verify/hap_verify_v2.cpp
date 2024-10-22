@@ -59,6 +59,18 @@ int32_t HapVerifyV2::Verify(const std::string& filePath, HapVerifyResult& hapVer
     return resultCode;
 }
 
+int32_t HapVerifyV2::Verify(const int32_t fileFd, HapVerifyResult& hapVerifyV1Result)
+{
+    HAPVERIFY_LOG_INFO("Start Verify with fd");
+    RandomAccessFile hapFile;
+    if (!hapFile.InitWithFd(fileFd)) {
+        HAPVERIFY_LOG_ERROR("init with fd failed");
+        return OPEN_FILE_ERROR;
+    }
+
+    return Verify(hapFile, hapVerifyV1Result);
+}
+
 bool HapVerifyV2::CheckFilePath(const std::string& filePath, std::string& standardFilePath)
 {
     char path[PATH_MAX + 1] = { 0x00 };
