@@ -17,7 +17,6 @@ if (os_level == "standard") {
   config("libhapverify_config") {
     visibility = [ ":*" ]
     include_dirs = [ "include" ]
-    configs = [ "//build/config/compiler:exceptions" ]
   }
 
   ohos_shared_library("libhapverify") {
@@ -61,7 +60,6 @@ if (os_level == "standard") {
     cflags_cc = [
       "-DHILOG_ENABLE",
       "-fvisibility=hidden",
-      "-fexceptions",
     ]
 
     deps = []
@@ -100,6 +98,8 @@ if (os_level == "standard") {
     if (is_emulator) {
       defines += [ "X86_EMULATOR_MODE" ]
     }
+
+    use_exceptions = true
   }
 } else {
   group("libhapverify") {
