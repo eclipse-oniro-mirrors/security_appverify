@@ -34,6 +34,7 @@ public:
     DLL_EXPORT RandomAccessFile();
     DLL_EXPORT ~RandomAccessFile();
     DLL_EXPORT bool Init(const std::string& filePath);
+    DLL_EXPORT bool InitWithFd(const int32_t fileFd);
     DLL_EXPORT long long GetLength() const;
     DLL_EXPORT long long ReadFileFullyFromOffset(HapByteBuffer& buffer, long long offset);
     DLL_EXPORT long long ReadFileFullyFromOffset(char buf[], long long offset, int32_t bufCapacity);
