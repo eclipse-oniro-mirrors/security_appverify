@@ -77,9 +77,6 @@ bool HapVerifyV2::CheckFilePath(const std::string& filePath, std::string& standa
     } catch(const std::regex_error& e) {
         HAPVERIFY_LOG_ERROR("regex match error");
         return false;
-    } catch(...) {
-        HAPVERIFY_LOG_ERROR("unexpected error");
-        return false;
     }
     return true;
 }
