@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -442,5 +442,31 @@ HWTEST_F(HapCertVerifyOpensslUtilsTest, PrivateFuncInvalidInputTest001, TestSize
     ASSERT_FALSE(HapCertVerifyOpensslUtils::CheckSignTimeInValidPeriod(nullptr, nullptr, nullptr));
     ASSERT_FALSE(HapCertVerifyOpensslUtils::CheckAsn1TimeIsValid(nullptr));
     ASSERT_FALSE(HapCertVerifyOpensslUtils::CheckAsn1TypeIsValid(nullptr));
+}
+
+/**
+ * @tc.name: GetPublickeyBase64Test001
+ * @tc.desc: GetPublickeyBase64Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapCertVerifyOpensslUtilsTest, GetPublickeyBase64Test001, TestSize.Level1)
+{
+    const X509* cert = nullptr;
+    std::string publicKey = "";
+    bool ret = HapCertVerifyOpensslUtils::GetPublickeyBase64(cert, publicKey);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: GetOrganizationFromPemCertTest001
+ * @tc.desc: GetOrganizationFromPemCertTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapCertVerifyOpensslUtilsTest, GetOrganizationFromPemCertTest001, TestSize.Level1)
+{
+    std::string certStr = "";
+    std::string organization = "";
+    bool ret = HapCertVerifyOpensslUtils::GetOrganizationFromPemCert(certStr, organization);
+    EXPECT_FALSE(ret);
 }
 }

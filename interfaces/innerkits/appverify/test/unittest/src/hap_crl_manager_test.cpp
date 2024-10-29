@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,10 +18,12 @@
 #include <fstream>
 #include <gtest/gtest.h>
 
+#define private public
 #include "init/hap_crl_manager.h"
 #include "util/hap_cert_verify_openssl_utils.h"
 
 #include "hap_cert_verify_openssl_utils_test.h"
+#undef private
 
 using namespace testing::ext;
 using namespace OHOS::Security::Verify;
@@ -143,5 +145,63 @@ HWTEST_F(HapCrlManagerTest, WriteAndReadCrlsFileTest001, TestSize.Level1)
     } else {
         ASSERT_TRUE(CopyFile(HAP_CRL_TEST_BACKUP_FILE_PATH, HapCrlManager::HAP_CRL_FILE_PATH) == COPY_SUC);
     }
+}
+
+/**
+ * @tc.name: InitTest001
+ * @tc.desc: InitTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapCrlManagerTest, InitTest001, TestSize.Level1)
+{
+    HapCrlManager& hapCrlManager = HapCrlManager::GetInstance();
+    hapCrlManager.Init();
+    hapCrlManager.Init();
+    EXPECT_TRUE(hapCrlManager.isInit);
+}
+
+/**
+ * @tc.name: ParseCrlsTest001
+ * @tc.desc: ParseCrlsTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapCrlManagerTest, ParseCrlsTest001, TestSize.Level1)
+{
+    HapByteBuffer crlBuffer;
+    HapCrlManager& hapCrlManager = HapCrlManager::GetInstance();
+    bool ret = hapCrlManager.ParseCrls(crlBuffer);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: ParseCrlsTest002
+ * @tc.desc: ParseCrlsTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapCrlManagerTest, ParseCrlsTest002, TestSize.Level1)
+{
+    HapByteBuffer crlBuffer;
+    uint32_t numOfCrl = 1;
+    crlBuffer.SetCapacity(4);
+    crlBuffer.PutInt32(0, numOfCrl);
+
+    HapCrlManager& hapCrlManager = HapCrlManager::GetInstance();
+    bool ret = hapCrlManager.ParseCrls(crlBuffer);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: CrlCheckTest001
+ * @tc.desc: CrlCheckTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapCrlManagerTest, CrlCheckTest001, TestSize.Level1)
+{
+    HapCrlManager& hapCrlManager = HapCrlManager::GetInstance();
+    X509* cert = nullptr;
+    X509_CRL* targetCrl = nullptr;
+    Pkcs7Context pkcs7Context;
+    bool ret = hapCrlManager.CrlCheck(cert, targetCrl, pkcs7Context);
+    EXPECT_FALSE(ret);
 }
 }

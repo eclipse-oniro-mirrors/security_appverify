@@ -17,7 +17,12 @@
 
 #include <gtest/gtest.h>
 
+#define private public
 #include "init/trusted_ticket_manager.h"
+#undef private
+
+#include "test_common.h"
+#include "test_const.h"
 
 using namespace testing::ext;
 using namespace OHOS::Security::Verify;
@@ -170,5 +175,59 @@ HWTEST_F(TrustedTicketTest, IsTrustedSourceTest002, TestSize.Level1)
      */
     std::string certSubject9 = "C=CN, O=Other, OU=MemberCenter, CN=MemberShip ticket Release V9a";
     ASSERT_TRUE(trustedticketsource.IsTrustedSource(certSubject9, certIssuer, 3).matchState == DO_NOT_MATCH);
+}
+
+/**
+ * @tc.name: Init_0100
+ * @tc.desc: Test Init function;
+ * @tc.type: FUNC
+ */
+HWTEST_F(TrustedTicketTest, Init_0100, Function | MediumTest | Level1)
+{
+    TrustedTicketManager& trustedTicketManager = TrustedTicketManager::GetInstance();
+    trustedTicketManager.isInit = true;
+    ASSERT_TRUE(trustedTicketManager.Init());
+    trustedTicketManager.Recovery();
+}
+
+/**
+ * @tc.name: GetTicketTrustedSources_0100
+ * @tc.desc: Test GetTicketTrustedSources function;
+ * @tc.type: FUNC
+ */
+HWTEST_F(TrustedTicketTest, GetTicketTrustedSources_0100, Function | MediumTest | Level1)
+{
+    TrustedTicketManager& trustedTicketManager = TrustedTicketManager::GetInstance();
+    ASSERT_TRUE(RenameJsonFile(TICKET_TRUSTED_SOURCE_FILE_PATH, TICKET_TRUSTED_SOURCE_BACK_UP_FILE_PATH));
+    ASSERT_FALSE(trustedTicketManager.Init());
+    ASSERT_TRUE(RenameJsonFile(TICKET_TRUSTED_SOURCE_BACK_UP_FILE_PATH, TICKET_TRUSTED_SOURCE_FILE_PATH));
+}
+
+/**
+ * @tc.name: GetTicketTrustedSources_0200
+ * @tc.desc: Test GetTicketTrustedSources function;
+ * @tc.type: FUNC
+ */
+HWTEST_F(TrustedTicketTest, GetTicketTrustedSources_0200, Function | MediumTest | Level1)
+{
+    TrustedTicketManager& trustedTicketManager = TrustedTicketManager::GetInstance();
+    ASSERT_TRUE(RenameJsonFile(TICKET_TRUSTED_SOURCE_FILE_PATH, TICKET_TRUSTED_SOURCE_BACK_UP_FILE_PATH));
+    ASSERT_TRUE(CreatTestJsonFile(TICKET_TRUSTED_SOURCE_FILE_PATH, VERSION_ERROR_TEST_JSON_STRING));
+    ASSERT_FALSE(trustedTicketManager.Init());
+    ASSERT_TRUE(RenameJsonFile(TICKET_TRUSTED_SOURCE_BACK_UP_FILE_PATH, TICKET_TRUSTED_SOURCE_FILE_PATH));
+}
+
+/**
+ * @tc.name: GetTicketTrustedSources_0300
+ * @tc.desc: Test GetTicketTrustedSources function;
+ * @tc.type: FUNC
+ */
+HWTEST_F(TrustedTicketTest, GetTicketTrustedSources_0300, Function | MediumTest | Level1)
+{
+    TrustedTicketManager& trustedTicketManager = TrustedTicketManager::GetInstance();
+    ASSERT_TRUE(RenameJsonFile(TICKET_TRUSTED_SOURCE_FILE_PATH, TICKET_TRUSTED_SOURCE_BACK_UP_FILE_PATH));
+    ASSERT_TRUE(CreatTestJsonFile(TICKET_TRUSTED_SOURCE_FILE_PATH, TRUSTED_APP_SOURCE_ERROR_TEST_JSON_STRING));
+    ASSERT_FALSE(trustedTicketManager.Init());
+    ASSERT_TRUE(RenameJsonFile(TICKET_TRUSTED_SOURCE_BACK_UP_FILE_PATH, TICKET_TRUSTED_SOURCE_FILE_PATH));
 }
 }

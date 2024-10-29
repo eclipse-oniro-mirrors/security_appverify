@@ -309,6 +309,23 @@ const std::string BASE64_CRL =
     "HAYDVQQDDBVIdWF3ZWkgQ0JHIFJvb3QgQ0EgRzIXDTIwMDMyNjE2NDkwNVoXDTMwMDMyNTAxMzgzM1qgLzAtMB8GA1UdIwQYMBaAFKOO"
     "WvVavHGMKmolcn5IkuKS3CAAMAoGA1UdFAQDAgEAMAoGCCqGSM49BAMDA2kAMGYCMQCuQOz7IvwENw/Mf1ytoXT5AHiknrrOaw/dqTuZ"
     "RR0wcxP5IJqI1I3Bg5WNbUmTomMCMQDIs23wc9iLgvuDOmMQia4srWunydbbslpFNfV3SIIhtyWDIPVch7RTf/s92HqnrVw=";
+
+const std::string APP_TRUSTED_SOURCE_FILE_PATH = "/system/etc/security/trusted_apps_sources.json";
+
+const std::string APP_TRUSTED_SOURCE_BACK_UP_FILE_PATH = "/system/etc/security/trusted_apps_sources_backup.json";
+
+const std::string TICKET_TRUSTED_SOURCE_FILE_PATH = "/system/etc/security/trusted_tickets_sources.json";
+
+const std::string TICKET_TRUSTED_SOURCE_BACK_UP_FILE_PATH = "/system/etc/security/trusted_tickets_sources_backup.json";
+
+const std::string VERSION_ERROR_TEST_JSON_STRING = R"({
+    "version": {}
+})";
+
+const std::string TRUSTED_APP_SOURCE_ERROR_TEST_JSON_STRING = R"({
+    "version": {},
+    "trust-app-source": []
+})";
 }  // Verify
 }  // Security
 }  // OHOS
