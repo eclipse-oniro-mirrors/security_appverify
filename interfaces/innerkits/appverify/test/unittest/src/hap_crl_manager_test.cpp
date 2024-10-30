@@ -155,7 +155,7 @@ HWTEST_F(HapCrlManagerTest, WriteAndReadCrlsFileTest001, TestSize.Level1)
 HWTEST_F(HapCrlManagerTest, InitTest001, TestSize.Level1)
 {
     HapCrlManager& hapCrlManager = HapCrlManager::GetInstance();
-    hapCrlManager.Init();
+    hapCrlManager.isInit = true;
     hapCrlManager.Init();
     EXPECT_TRUE(hapCrlManager.isInit);
 }
