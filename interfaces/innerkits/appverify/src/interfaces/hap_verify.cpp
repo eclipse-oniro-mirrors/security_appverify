@@ -108,6 +108,7 @@ int32_t ParseHapSignatureInfo(const std::string& filePath, SignatureInfo &hapSig
 int32_t ParseBundleNameAndAppIdentifier(const int32_t fileFd, std::string &bundleName,
     std::string &appIdentifier)
 {
+    HAPVERIFY_LOG_INFO("start -n %{public}s", bundleName.c_str());
     if (fileFd <= -1) {
         HAPVERIFY_LOG_ERROR("fd invalid");
         return OPEN_FILE_ERROR;

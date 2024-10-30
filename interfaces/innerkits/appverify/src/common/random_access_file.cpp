@@ -85,6 +85,7 @@ bool RandomAccessFile::InitWithFd(const int32_t fileFd)
         HAPVERIFY_LOG_ERROR("getting fileLength failed: %{public}lld", fileLength);
         return false;
     }
+    readFile = true;
     return true;
 }
 
@@ -130,6 +131,9 @@ long long RandomAccessFile::DoMMap(int32_t bufCapacity, long long offset, MmapIn
 
 long long RandomAccessFile::ReadFileFullyFromOffset(char buf[], long long offset, int32_t bufCapacity)
 {
+    if (readFile) {
+        return ReadFileFullyFromOffsetV2(buf, offset, bufCapacity);
+    }
     if (buf == nullptr) {
         return DEST_BUFFER_IS_NULL;
     }
@@ -151,6 +155,9 @@ long long RandomAccessFile::ReadFileFullyFromOffset(char buf[], long long offset
 
 long long RandomAccessFile::ReadFileFullyFromOffset(HapByteBuffer& buffer, long long offset)
 {
+    if (readFile) {
+        return ReadFileFullyFromOffsetV2(buffer, offset);
+    }
     if (!buffer.HasRemaining()) {
         return DEST_BUFFER_IS_NULL;
     }
@@ -170,6 +177,9 @@ long long RandomAccessFile::ReadFileFullyFromOffset(HapByteBuffer& buffer, long 
 bool RandomAccessFile::ReadFileFromOffsetAndDigestUpdate(const DigestParameter& digestParam,
     int32_t chunkSize, long long offset)
 {
+    if (readFile) {
+        return ReadFileFromOffsetAndDigestUpdateV2(digestParam, chunkSize, offset);
+    }
     MmapInfo mmapInfo;
     long long ret = DoMMap(chunkSize, offset, mmapInfo);
     if (ret < 0) {
@@ -180,6 +190,73 @@ bool RandomAccessFile::ReadFileFromOffsetAndDigestUpdate(const DigestParameter& 
     unsigned char* content = reinterpret_cast<unsigned char*>(mmapInfo.mapAddr + mmapInfo.readMoreLen);
     bool res = HapVerifyOpensslUtils::DigestUpdate(digestParam, content, chunkSize);
     munmap(mmapInfo.mapAddr, mmapInfo.mmapSize);
+    return res;
+}
+
+long long RandomAccessFile::ReadFileFullyFromOffsetV2(char buf[], long long offset, int32_t bufCapacity)
+{
+    if (buf == nullptr) {
+        HAPVERIFY_LOG_ERROR("buf is null");
+        return DEST_BUFFER_IS_NULL;
+    }
+
+    long long bytesRead = pread(fd, buf, bufCapacity, offset);
+    if (bytesRead < 0) {
+        HAPVERIFY_LOG_ERROR("pread failed: %{public}d", errno);
+        return bytesRead;
+    }
+
+    return bytesRead;
+}
+
+long long RandomAccessFile::ReadFileFullyFromOffsetV2(HapByteBuffer& buffer, long long offset)
+{
+    if (!buffer.HasRemaining()) {
+        HAPVERIFY_LOG_ERROR("buffer has no remaining space");
+        return DEST_BUFFER_IS_NULL;
+    }
+
+    int32_t bufCapacity = buffer.GetCapacity();
+    if (bufCapacity <= 0) {
+        HAPVERIFY_LOG_ERROR("Invalid buffer capacity");
+        return DEST_BUFFER_IS_NULL;
+    }
+    char* buf = new char[bufCapacity];
+
+    long long bytesRead = pread(fd, buf, bufCapacity, offset);
+    if (bytesRead < 0) {
+        HAPVERIFY_LOG_ERROR("pread failed: %{public}lld", bytesRead);
+        delete[] buf;
+        return bytesRead;
+    }
+
+    buffer.PutData(0, buf, bytesRead);
+    delete[] buf;
+    return bytesRead;
+}
+
+bool RandomAccessFile::ReadFileFromOffsetAndDigestUpdateV2(const DigestParameter& digestParam,
+    int32_t chunkSize, long long offset)
+{
+    if (chunkSize <= 0) {
+        HAPVERIFY_LOG_ERROR("Invalid chunkSize");
+        return false;
+    }
+    unsigned char* buffer = new unsigned char[chunkSize];
+    if (buffer == nullptr) {
+        HAPVERIFY_LOG_ERROR("Failed to allocate memory for buffer");
+        return false;
+    }
+
+    long long bytesRead = pread(fd, buffer, chunkSize, offset);
+    if (bytesRead < 0) {
+        HAPVERIFY_LOG_ERROR("pread failed: %{public}lld", bytesRead);
+        delete[] buffer;
+        return false;
+    }
+
+    bool res = HapVerifyOpensslUtils::DigestUpdate(digestParam, buffer, bytesRead);
+    delete[] buffer;
     return res;
 }
 } // namespace Verify
