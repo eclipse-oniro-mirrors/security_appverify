@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,4 +20,8 @@
 #include "test_const.h"
 
 int32_t WriteAndReadCrlsFileTest001(void);
+int32_t InitTest001(void);
+int32_t ParseCrlsTest001(void);
+int32_t ParseCrlsTest002(void);
+int32_t CrlCheckTest001(void);
 #endif // HAP_CRL_MANAGER_TEST_H

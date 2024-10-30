@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -41,4 +41,6 @@ int32_t VerifyCrlTest001(void);
 int32_t CompareX509CertTest001(void);
 int32_t WriteX509CrlToStreamTest001(void);
 int32_t PrivateFuncInvalidInputTest001(void);
+int32_t GetPublickeyBase64Test001(void);
+int32_t GetOrganizationFromPemCertTest001(void);
 #endif // HAP_CERT_VERIFY_OPENSSL_UTILS_TEST_H

@@ -20,10 +20,10 @@
 #include <gtest/gtest.h>
 
 #include "init/trusted_source_manager.h"
+#include "interfaces/hap_verify.h"
 #include "provision/provision_info.h"
-#include "verify/hap_verify_v2.h"
-
 #include "test_hap_file_data.h"
+#include "verify/hap_verify_v2.h"
 
 using namespace testing::ext;
 using namespace OHOS::Security::Verify;
@@ -259,5 +259,110 @@ HWTEST_F(HapVerifyV2Test, GetDigestAndAlgorithmTest001, TestSize.Level1)
     Pkcs7Context digest;
     digest.content.SetCapacity(TEST_FILE_BLOCK_LENGTH);
     ASSERT_FALSE(v2.GetDigestAndAlgorithm(digest));
+}
+
+/**
+ * @tc.name: Test GetDigestAndAlgorithm function
+ * @tc.desc: The static function will return result of GetDigestAndAlgorithm;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyV2Test, GetDigestAndAlgorithmTest002, TestSize.Level1)
+{
+    HapVerifyV2 hapVerifyV2;
+    Pkcs7Context digest;
+    digest.content.SetCapacity(TEST_FILE_BLOCK_LENGTH);
+    digest.digestAlgorithm = DEBUG;
+    ASSERT_FALSE(hapVerifyV2.GetDigestAndAlgorithm(digest));
+}
+
+/**
+ * @tc.name: Test GetDigestAndAlgorithm function
+ * @tc.desc: The static function will return result of GetDigestAndAlgorithm;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyV2Test, GetDigestAndAlgorithmTest003, TestSize.Level1)
+{
+    HapVerifyV2 hapVerifyV2;
+    Pkcs7Context digest;
+    digest.content.SetCapacity(TEST_FILE_BLOCK_LENGTH);
+    digest.digestAlgorithm = RELEASE;
+    ASSERT_FALSE(hapVerifyV2.GetDigestAndAlgorithm(digest));
+}
+
+/**
+ * @tc.name: Test ParseHapSignatureInfo function
+ * @tc.desc: The static function will return result of ParseHapSignatureInfo;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyV2Test, ParseHapSignatureInfoTest001, TestSize.Level1)
+{
+    std::string filePath = HAP_FILE_ECC_SIGN_BASE64;
+    SignatureInfo signatureInfo;
+    std::string standardFilePath;
+    ASSERT_EQ(ParseHapSignatureInfo(filePath, signatureInfo), FILE_PATH_INVALID);
+}
+
+/**
+ * @tc.name: Test ParseHapSignatureInfo function
+ * @tc.desc: The static function will return result of ParseHapSignatureInfo;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyV2Test, ParseHapSignatureInfoTest002, TestSize.Level1)
+{
+    std::string filePath = "invalid/file/path";
+    SignatureInfo signatureInfo;
+    ASSERT_EQ(ParseHapSignatureInfo(filePath, signatureInfo), FILE_PATH_INVALID);
+}
+
+/**
+ * @tc.name: Test ParseHapSignatureInfo function
+ * @tc.desc: The static function will return result of ParseHapSignatureInfo;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyV2Test, ParseHapSignatureInfoTest003, TestSize.Level1)
+{
+    std::string filePath = "valid/path/to/file/without/signature";
+    SignatureInfo signatureInfo;
+    ASSERT_EQ(ParseHapSignatureInfo(filePath, signatureInfo), FILE_PATH_INVALID);
+}
+
+/**
+ * @tc.name: Test ParseHapProfile function
+ * @tc.desc: The static function will return result of ParseHapProfile;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyV2Test, ParseHapProfileTest001, TestSize.Level1)
+{
+    std::string filePath = HAP_FILE_ECC_SIGN_BASE64;
+    HapVerifyResult hapVerifyResult;
+    std::string standardFilePath;
+    ASSERT_EQ(ParseHapProfile(filePath, hapVerifyResult), FILE_PATH_INVALID);
+}
+
+/**
+ * @tc.name: Test ParseHapProfile function
+ * @tc.desc: The static function will return result of ParseHapProfile;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyV2Test, ParseHapProfileTest002, TestSize.Level1)
+{
+    std::string filePath = HAP_FILE_ECC_SIGN_BASE64;
+    std::string standardFilePath;
+    HapVerifyResult hapVerifyResult;
+    ASSERT_EQ(ParseHapProfile(filePath, hapVerifyResult), FILE_PATH_INVALID);
+}
+
+/**
+ * @tc.name: Test ParseHapProfile function
+ * @tc.desc: The static function will return result of ParseHapProfile;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyV2Test, ParseHapProfileTest003, TestSize.Level1)
+{
+    std::string filePath = HAP_FILE_ECC_SIGN_BASE64;
+    HapVerifyResult hapVerifyResult;
+    SignatureInfo hapSignInfo;
+    hapSignInfo.hapSigningBlockOffset = DEBUG;
+    ASSERT_EQ(ParseHapProfile(filePath, hapVerifyResult), FILE_PATH_INVALID);
 }
 }

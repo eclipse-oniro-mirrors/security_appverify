@@ -179,6 +179,17 @@ HWTEST_F(HapSigningBlockUtilsTest, FindHapSignatureTest001, TestSize.Level1)
     hapFile2.write(reinterpret_cast<char*>(&errorEocdCommentLen), sizeof(errorEocdCommentLen));
     hapFile2.close();
     ASSERT_FALSE(hapSignBlockUtils.FindHapSignature(hapTestFile, hapSignInfo));
+    /*
+     * @tc.steps: step5. make eocdCommentLen error, and test FindHapSignature function
+     * @tc.expected: step5. the return will be false.
+     */
+    std::ofstream hapFile3;
+    hapFile3.open(pathFile.c_str(), std::ios::binary | std::ios::out);
+    ASSERT_TRUE(hapFile3.is_open());
+    hapFile3.write(reinterpret_cast<char*>(&errorEocdCommentLen), sizeof(errorEocdCommentLen));
+    hapFile3.close();
+    signInfo.hapCentralDirOffset = 1;
+    ASSERT_FALSE(hapSignBlockUtils.FindHapSignature(hapTestFile, hapSignInfo));
 }
 
 /**
@@ -204,6 +215,13 @@ HWTEST_F(HapSigningBlockUtilsTest, VerifyHapIntegrityTest001, TestSize.Level1)
     hapTestFile.Init(pathFile);
     HapSigningBlockUtils hapSignBlockUtils;
     ASSERT_FALSE(hapSignBlockUtils.VerifyHapIntegrity(digestInfo, hapTestFile, signInfo));
+
+    Pkcs7Context digestInfo1;
+    SignatureInfo signInfo1;
+    signInfo1.hapSigningBlockOffset = -1;
+    RandomAccessFile hapTestFile1;
+    hapTestFile.Init(pathFile);
+    ASSERT_FALSE(hapSignBlockUtils.VerifyHapIntegrity(digestInfo1, hapTestFile1, signInfo));
 }
 
 /**
@@ -288,6 +306,20 @@ HWTEST_F(HapSigningBlockUtilsTest, ClassifyHapSubSigningBlock001, TestSize.Level
     hapSignBlockUtils.ClassifyHapSubSigningBlock(signInfo, subBlock, type);
     ASSERT_FALSE(signInfo.optionBlocks.empty());
     ASSERT_TRUE(signInfo.optionBlocks[0].optionalType == PROPERTY_BLOB);
+    /*
+     * @tc.steps: step2. run function with input of property block
+     * @tc.expected: step2. the return will be false.
+     */
+    SignatureInfo signInfo1;
+    HapByteBuffer subBlock1;
+    uint32_t type1 = HAP_SIGN_BLOB;
+    signInfo1.hapSignatureBlock.SetCapacity(1);
+    ASSERT_FALSE(hapSignBlockUtils.ClassifyHapSubSigningBlock(signInfo1, subBlock1, type1));
+
+    SignatureInfo signInfo2;
+    HapByteBuffer subBlock2;
+    uint32_t type2 = 0;
+    ASSERT_FALSE(hapSignBlockUtils.ClassifyHapSubSigningBlock(signInfo2, subBlock2, type2));
 }
 
 /**
@@ -347,5 +379,24 @@ HWTEST_F(HapSigningBlockUtilsTest, GetSumOfChunkDigestLenTest001, TestSize.Level
     ret = HapSigningBlockUtils::GetSumOfChunkDigestLen(contents,
         TEST_ZIP_BLOCKS_NUM_NEED_DIGEST, INT_MAX, chunkCount, sumOfChunkDigestLen);
     ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: Test GetOptionalBlockIndex function
+ * @tc.desc: Test GetOptionalBlockIndex with some error inputs
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapSigningBlockUtilsTest, GetOptionalBlockIndexTest001, TestSize.Level1)
+{
+    /*
+     * @tc.steps: step1. input some error input to test GetOptionalBlockIndex
+     * @tc.expected: step1. the return will be false.
+     */
+    OptionalBlock optionBlock;
+    optionBlock.optionalType = 0;
+    std::vector<OptionalBlock> optionBlocks = { optionBlock };
+    int32_t type = 1;
+    int index = 0;
+    ASSERT_FALSE(HapSigningBlockUtils::GetOptionalBlockIndex(optionBlocks, type, index));
 }
 }
