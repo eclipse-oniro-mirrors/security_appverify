@@ -34,6 +34,7 @@ public:
     DLL_EXPORT RandomAccessFile();
     DLL_EXPORT ~RandomAccessFile();
     DLL_EXPORT bool Init(const std::string& filePath);
+    DLL_EXPORT bool InitWithFd(const int32_t fileFd);
     DLL_EXPORT long long GetLength() const;
     DLL_EXPORT long long ReadFileFullyFromOffset(HapByteBuffer& buffer, long long offset);
     DLL_EXPORT long long ReadFileFullyFromOffset(char buf[], long long offset, int32_t bufCapacity);
@@ -42,10 +43,14 @@ public:
 private:
     long long DoMMap(int32_t bufCapacity, long long offset, MmapInfo& mmapInfo);
     bool CheckLittleEndian();
+    long long ReadFileFullyFromOffsetV2(char buf[], long long offset, int32_t bufCapacity);
+    long long ReadFileFullyFromOffsetV2(HapByteBuffer& buffer, long long offset);
+    bool ReadFileFromOffsetAndDigestUpdateV2(const DigestParameter& digestParam, int32_t chunkSize, long long offset);
     static const int32_t FILE_OPEN_FAIL_ERROR_NUM;
     static int32_t memoryPageSize;
     int32_t fd = 0;
     long long fileLength;
+    bool readFile = false;
 };
 } // namespace Verify
 } // namespace Security
