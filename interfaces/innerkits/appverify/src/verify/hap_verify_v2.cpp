@@ -41,7 +41,7 @@ const std::string HapVerifyV2::HAP_APP_PATTERN = "[^]*.hap$";
 const std::string HapVerifyV2::HQF_APP_PATTERN = "[^]*.hqf$";
 const std::string HapVerifyV2::HSP_APP_PATTERN = "[^]*.hsp$";
 
-int32_t HapVerifyV2::Verify(const std::string& filePath, HapVerifyResult& hapVerifyV1Result)
+int32_t HapVerifyV2::Verify(const std::string& filePath, HapVerifyResult& hapVerifyV1Result, bool readFile)
 {
     HAPVERIFY_LOG_DEBUG("Start Verify");
     std::string standardFilePath;
@@ -50,7 +50,7 @@ int32_t HapVerifyV2::Verify(const std::string& filePath, HapVerifyResult& hapVer
     }
 
     RandomAccessFile hapFile;
-    if (!hapFile.Init(standardFilePath)) {
+    if (!hapFile.Init(standardFilePath, readFile)) {
         HAPVERIFY_LOG_ERROR("open standard file failed");
         return OPEN_FILE_ERROR;
     }

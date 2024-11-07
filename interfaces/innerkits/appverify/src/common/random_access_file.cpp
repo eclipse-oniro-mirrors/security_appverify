@@ -43,7 +43,7 @@ RandomAccessFile::~RandomAccessFile()
     }
 }
 
-bool RandomAccessFile::Init(const std::string& filePath)
+bool RandomAccessFile::Init(const std::string& filePath, bool readFile)
 {
     fd = open(filePath.c_str(), O_RDONLY);
     if (fd == FILE_OPEN_FAIL_ERROR_NUM) {
@@ -60,6 +60,7 @@ bool RandomAccessFile::Init(const std::string& filePath)
         HAPVERIFY_LOG_ERROR("getting fileLength failed: %{public}lld", fileLength);
         return false;
     }
+    readFile_ = readFile;
     return true;
 }
 
@@ -85,7 +86,7 @@ bool RandomAccessFile::InitWithFd(const int32_t fileFd)
         HAPVERIFY_LOG_ERROR("getting fileLength failed: %{public}lld", fileLength);
         return false;
     }
-    readFile = true;
+    readFile_ = true;
     return true;
 }
 
@@ -131,7 +132,7 @@ long long RandomAccessFile::DoMMap(int32_t bufCapacity, long long offset, MmapIn
 
 long long RandomAccessFile::ReadFileFullyFromOffset(char buf[], long long offset, int32_t bufCapacity)
 {
-    if (readFile) {
+    if (readFile_) {
         return ReadFileFullyFromOffsetV2(buf, offset, bufCapacity);
     }
     if (buf == nullptr) {
@@ -155,7 +156,7 @@ long long RandomAccessFile::ReadFileFullyFromOffset(char buf[], long long offset
 
 long long RandomAccessFile::ReadFileFullyFromOffset(HapByteBuffer& buffer, long long offset)
 {
-    if (readFile) {
+    if (readFile_) {
         return ReadFileFullyFromOffsetV2(buffer, offset);
     }
     if (!buffer.HasRemaining()) {
@@ -177,7 +178,7 @@ long long RandomAccessFile::ReadFileFullyFromOffset(HapByteBuffer& buffer, long 
 bool RandomAccessFile::ReadFileFromOffsetAndDigestUpdate(const DigestParameter& digestParam,
     int32_t chunkSize, long long offset)
 {
-    if (readFile) {
+    if (readFile_) {
         return ReadFileFromOffsetAndDigestUpdateV2(digestParam, chunkSize, offset);
     }
     MmapInfo mmapInfo;
@@ -221,7 +222,11 @@ long long RandomAccessFile::ReadFileFullyFromOffsetV2(HapByteBuffer& buffer, lon
         HAPVERIFY_LOG_ERROR("Invalid buffer capacity");
         return DEST_BUFFER_IS_NULL;
     }
-    char* buf = new char[bufCapacity];
+    char* buf = new (std::nothrow) char[bufCapacity];
+    if (buf == nullptr) {
+        HAPVERIFY_LOG_ERROR("Failed to allocate memory for buffer");
+        return DEST_BUFFER_IS_NULL;
+    }
 
     long long bytesRead = pread(fd, buf, bufCapacity, offset);
     if (bytesRead < 0) {
@@ -242,7 +247,7 @@ bool RandomAccessFile::ReadFileFromOffsetAndDigestUpdateV2(const DigestParameter
         HAPVERIFY_LOG_ERROR("Invalid chunkSize");
         return false;
     }
-    unsigned char* buffer = new unsigned char[chunkSize];
+    unsigned char* buffer = new (std::nothrow) unsigned char[chunkSize];
     if (buffer == nullptr) {
         HAPVERIFY_LOG_ERROR("Failed to allocate memory for buffer");
         return false;
