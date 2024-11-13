@@ -33,7 +33,7 @@ class RandomAccessFile {
 public:
     DLL_EXPORT RandomAccessFile();
     DLL_EXPORT ~RandomAccessFile();
-    DLL_EXPORT bool Init(const std::string& filePath);
+    DLL_EXPORT bool Init(const std::string& filePath, bool readFile = false);
     DLL_EXPORT bool InitWithFd(const int32_t fileFd);
     DLL_EXPORT long long GetLength() const;
     DLL_EXPORT long long ReadFileFullyFromOffset(HapByteBuffer& buffer, long long offset);
@@ -50,7 +50,7 @@ private:
     static int32_t memoryPageSize;
     int32_t fd = 0;
     long long fileLength;
-    bool readFile = false;
+    bool readFile_ = false;
 };
 } // namespace Verify
 } // namespace Security
