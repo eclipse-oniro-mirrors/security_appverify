@@ -49,12 +49,12 @@ ohos_unittest("verify_test") {
   configs = [ ":verify_test_config" ]
   deps = [
     "//base/security/appverify/interfaces/innerkits/appverify:libhapverify",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "cJSON:cjson",
     "c_utils:utils",
+    "googletest:gtest_main",
     "openssl:libcrypto_shared",
   ]
 
