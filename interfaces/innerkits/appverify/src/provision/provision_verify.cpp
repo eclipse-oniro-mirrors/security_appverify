@@ -252,7 +252,7 @@ void from_json(const cJSON* obj, ProvisionInfo& out)
     cJSON* jsonValue = cJSON_GetObjectItemCaseSensitive(obj, KEY_APP_SERVICES_CAPABILITIES.c_str());
     if (jsonValue != NULL) {
         char* dumpString = cJSON_Print(jsonValue);
-        if (dumpString != NULL) {
+        if (dumpString != nullptr) {
             out.appServiceCapabilities = dumpString;
         }
         cJSON_free(dumpString);
