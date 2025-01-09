@@ -112,10 +112,10 @@ public:
 
     void TearDown();
 
-    static const int32_t testZipBlocksNumNeedDigest;
+    static const int32_t TEST_ZIP_BLOCKS_NUM_NEED_DIGEST;
 };
 
-const int32_t HapSigningBlockUtilsTest::testZipBlocksNumNeedDigest = 3;
+const int32_t HapSigningBlockUtilsTest::TEST_ZIP_BLOCKS_NUM_NEED_DIGEST = 3;
 
 void HapSigningBlockUtilsTest::SetUpTestCase(void)
 {
@@ -365,19 +365,19 @@ HWTEST_F(HapSigningBlockUtilsTest, GetSumOfChunkDigestLenTest001, TestSize.Level
      */
     int32_t chunkCount = 0;
     int32_t sumOfChunkDigestLen = 0;
-    DataSource* contents[testZipBlocksNumNeedDigest] = { nullptr, nullptr, nullptr };
+    DataSource* contents[TEST_ZIP_BLOCKS_NUM_NEED_DIGEST] = { nullptr, nullptr, nullptr };
     bool ret = HapSigningBlockUtils::GetSumOfChunkDigestLen(contents, 0, 0, chunkCount, sumOfChunkDigestLen);
     ASSERT_FALSE(ret);
     ret = HapSigningBlockUtils::GetSumOfChunkDigestLen(contents,
-        testZipBlocksNumNeedDigest, 0, chunkCount, sumOfChunkDigestLen);
+        TEST_ZIP_BLOCKS_NUM_NEED_DIGEST, 0, chunkCount, sumOfChunkDigestLen);
     ASSERT_FALSE(ret);
     HapByteBuffer testBuffer(TEST_ZIP_EOCD_SIZE);
     HapByteBufferDataSource testSource(testBuffer);
-    for (int32_t i = 0; i < testZipBlocksNumNeedDigest; i++) {
+    for (int32_t i = 0; i < TEST_ZIP_BLOCKS_NUM_NEED_DIGEST; i++) {
         contents[i] = &testSource;
     }
     ret = HapSigningBlockUtils::GetSumOfChunkDigestLen(contents,
-        testZipBlocksNumNeedDigest, INT_MAX, chunkCount, sumOfChunkDigestLen);
+        TEST_ZIP_BLOCKS_NUM_NEED_DIGEST, INT_MAX, chunkCount, sumOfChunkDigestLen);
     ASSERT_FALSE(ret);
 }
 
