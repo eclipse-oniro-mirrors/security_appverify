@@ -81,49 +81,49 @@ const int32_t VERSION_CODE_TWO = 2;
 
 void GetStringIfExist(const cJSON* obj, const std::string& key, std::string& out)
 {
-    if (obj == NULL || !cJSON_IsObject(obj)) {
+    if (obj == nullptr || !cJSON_IsObject(obj)) {
         return;
     }
     cJSON* jsonValue = cJSON_GetObjectItemCaseSensitive(obj, key.c_str());
-    if (jsonValue != NULL && cJSON_IsString(jsonValue)) {
+    if (jsonValue != nullptr && cJSON_IsString(jsonValue)) {
         out = jsonValue->valuestring;
     }
 }
 
 void GetInt32IfExist(const cJSON* obj, const std::string& key, int32_t& out)
 {
-    if (obj == NULL || !cJSON_IsObject(obj)) {
+    if (obj == nullptr || !cJSON_IsObject(obj)) {
         return;
     }
     cJSON* jsonValue = cJSON_GetObjectItemCaseSensitive(obj, key.c_str());
-    if (jsonValue != NULL && cJSON_IsNumber(jsonValue)) {
+    if (jsonValue != nullptr && cJSON_IsNumber(jsonValue)) {
         out = jsonValue->valueint;
     }
 }
 
 void GetInt64IfExist(const cJSON* obj, const std::string& key, int64_t& out)
 {
-    if (obj == NULL || !cJSON_IsObject(obj)) {
+    if (obj == nullptr || !cJSON_IsObject(obj)) {
         return;
     }
     cJSON* jsonValue = cJSON_GetObjectItemCaseSensitive(obj, key.c_str());
-    if (jsonValue != NULL && cJSON_IsNumber(jsonValue)) {
+    if (jsonValue != nullptr && cJSON_IsNumber(jsonValue)) {
         out = cJSON_GetNumberValue(jsonValue);
     }
 }
 
 void GetStringArrayIfExist(const cJSON* obj, const std::string& key, std::vector<std::string>& out)
 {
-    if (obj == NULL || !cJSON_IsObject(obj)) {
+    if (obj == nullptr || !cJSON_IsObject(obj)) {
         return;
     }
     cJSON* jsonArray = cJSON_GetObjectItemCaseSensitive(obj, key.c_str());
-    if (jsonArray == NULL || !cJSON_IsArray(jsonArray)) {
+    if (jsonArray == nullptr || !cJSON_IsArray(jsonArray)) {
         return;
     }
-    cJSON* item = NULL;
+    cJSON* item = nullptr;
     cJSON_ArrayForEach(item, jsonArray) {
-        if (item != NULL && cJSON_IsString(item)) {
+        if (item != nullptr && cJSON_IsString(item)) {
             out.emplace_back(item->valuestring);
         }
     }
@@ -131,7 +131,7 @@ void GetStringArrayIfExist(const cJSON* obj, const std::string& key, std::vector
 
 void GetJsonObjectIfExist(const cJSON* obj, const std::string& key, cJSON** out)
 {
-    if (obj == NULL || !cJSON_IsObject(obj)) {
+    if (obj == nullptr || !cJSON_IsObject(obj)) {
         return;
     }
     *out = cJSON_GetObjectItemCaseSensitive(obj, key.c_str());
@@ -174,7 +174,7 @@ void ParseAppDistType(const cJSON* obj, ProvisionInfo& out)
 
 void ParseBundleInfo(const cJSON* obj, ProvisionInfo& out)
 {
-    cJSON* bundleInfo = NULL;
+    cJSON* bundleInfo = nullptr;
     GetJsonObjectIfExist(obj, KEY_BUNDLE_INFO, &bundleInfo);
     GetStringIfExist(bundleInfo, KEY_DEVELOPER_ID, out.bundleInfo.developerId);
     GetStringIfExist(bundleInfo, KEY_DEVELOPMENT_CERTIFICATE, out.bundleInfo.developmentCertificate);
@@ -188,14 +188,14 @@ void ParseBundleInfo(const cJSON* obj, ProvisionInfo& out)
 
 void ParseAcls(const cJSON* obj, ProvisionInfo& out)
 {
-    cJSON* acls = NULL;
+    cJSON* acls = nullptr;
     GetJsonObjectIfExist(obj, KEY_ACLS, &acls);
     GetStringArrayIfExist(acls, KEY_ALLOWED_ACLS, out.acls.allowedAcls);
 }
 
 void ParsePermissions(const cJSON* obj, ProvisionInfo& out)
 {
-    cJSON* permissions = NULL;
+    cJSON* permissions = nullptr;
     GetJsonObjectIfExist(obj, KEY_PERMISSIONS, &permissions);
     GetStringArrayIfExist(permissions, KEY_RESTRICTED_PERMISSIONS, out.permissions.restrictedPermissions);
     GetStringArrayIfExist(permissions, KEY_RESTRICTED_CAPABILITIES, out.permissions.restrictedCapabilities);
@@ -203,7 +203,7 @@ void ParsePermissions(const cJSON* obj, ProvisionInfo& out)
 
 void ParseDebugInfo(const cJSON* obj, ProvisionInfo& out)
 {
-    cJSON* debugInfo = NULL;
+    cJSON* debugInfo = nullptr;
     GetJsonObjectIfExist(obj, KEY_DEBUG_INFO, &debugInfo);
     GetStringIfExist(debugInfo, KEY_DEVICE_ID_TYPE, out.debugInfo.deviceIdType);
     GetStringArrayIfExist(debugInfo, KEY_DEVICE_IDS, out.debugInfo.deviceIds);
@@ -211,7 +211,7 @@ void ParseDebugInfo(const cJSON* obj, ProvisionInfo& out)
 
 void ParseValidity(const cJSON* obj, Validity& out)
 {
-    cJSON* validity = NULL;
+    cJSON* validity = nullptr;
     GetJsonObjectIfExist(obj, VALUE_VALIDITY, &validity);
     GetInt64IfExist(validity, VALUE_NOT_BEFORE, out.notBefore);
     GetInt64IfExist(validity, VALUE_NOT_AFTER, out.notAfter);
@@ -219,7 +219,7 @@ void ParseValidity(const cJSON* obj, Validity& out)
 
 void ParseMetadata(const cJSON* obj, ProvisionInfo& out)
 {
-    cJSON* baseAppInfo = NULL;
+    cJSON* baseAppInfo = nullptr;
     GetJsonObjectIfExist(obj, KEY_BASEAPP_INFO, &baseAppInfo);
     Metadata metadata;
     metadata.name = KEY_PACKAGE_NAME;
@@ -232,7 +232,7 @@ void ParseMetadata(const cJSON* obj, ProvisionInfo& out)
 
 void from_json(const cJSON* obj, ProvisionInfo& out)
 {
-    if (obj == NULL || !cJSON_IsObject(obj)) {
+    if (obj == nullptr || !cJSON_IsObject(obj)) {
         return;
     }
     GetInt32IfExist(obj, KEY_VERSION_CODE, out.versionCode);
@@ -250,7 +250,7 @@ void from_json(const cJSON* obj, ProvisionInfo& out)
     ParseMetadata(obj, out);
     
     cJSON* jsonValue = cJSON_GetObjectItemCaseSensitive(obj, KEY_APP_SERVICES_CAPABILITIES.c_str());
-    if (jsonValue != NULL) {
+    if (jsonValue != nullptr) {
         char* dumpString = cJSON_Print(jsonValue);
         if (dumpString != nullptr) {
             out.appServiceCapabilities = dumpString;
