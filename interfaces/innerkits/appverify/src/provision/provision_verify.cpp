@@ -274,7 +274,7 @@ void from_json(const cJSON* obj, ProvisionInfo& out)
 AppProvisionVerifyResult ParseProvision(const std::string& appProvision, ProvisionInfo& info)
 {
     cJSON* obj = cJSON_Parse(appProvision.c_str());
-    if (obj == NULL || !cJSON_IsObject(obj)) {
+    if (obj == nullptr || !cJSON_IsObject(obj)) {
         cJSON_Delete(obj);
         return PROVISION_INVALID;
     }
@@ -389,7 +389,7 @@ AppProvisionVerifyResult ParseAndVerify(const std::string& appProvision, Provisi
 AppProvisionVerifyResult ParseProfile(const std::string& appProvision, ProvisionInfo& info)
 {
     cJSON* jsonObj = cJSON_Parse(appProvision.c_str());
-    if (jsonObj == NULL || !cJSON_IsObject(jsonObj)) {
+    if (jsonObj == nullptr || !cJSON_IsObject(jsonObj)) {
         cJSON_Delete(jsonObj);
         return PROVISION_INVALID;
     }
