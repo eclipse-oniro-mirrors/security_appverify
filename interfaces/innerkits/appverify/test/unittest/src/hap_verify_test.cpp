@@ -260,4 +260,18 @@ HWTEST_F(HapVerifyTest, HapVerify003, TestSize.Level0)
     ASSERT_EQ(profile.versionName, TEST_VERSION_NAME);
     ASSERT_EQ(profile.distributionType, AppDistType::OS_INTEGRATION);
 }
+
+/**
+ * @tc.name: HapVerifyTest.HapVerify004
+ * @tc.desc: The static function will return verify result of signed file;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyTest, HapVerify004, TestSize.Level0)
+{
+    std::string filePath = "temp_test_file.hap";
+    int32_t filefd = -1;
+    std::string bundleName;
+    std::string appIdentifier;
+    ASSERT_TRUE(ParseBundleNameAndAppIdentifier(filefd, bundleName, appIdentifier) == OPEN_FILE_ERROR);
+}
 }
