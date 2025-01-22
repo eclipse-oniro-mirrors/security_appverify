@@ -93,10 +93,10 @@ int32_t HapVerify(const std::string& filePath, HapVerifyResult& hapVerifyResult,
     return hapVerifyV2.Verify(filePath, hapVerifyResult, readFile);
 }
 
-int32_t ParseHapProfile(const std::string& filePath, HapVerifyResult& hapVerifyV1Result)
+int32_t ParseHapProfile(const std::string& filePath, HapVerifyResult& hapVerifyV1Result, bool readFile)
 {
     HapVerifyV2 hapVerifyV2;
-    return hapVerifyV2.ParseHapProfile(filePath, hapVerifyV1Result);
+    return hapVerifyV2.ParseHapProfile(filePath, hapVerifyV1Result, readFile);
 }
 
 int32_t ParseHapSignatureInfo(const std::string& filePath, SignatureInfo &hapSignInfo)
