@@ -100,6 +100,7 @@ struct ProvisionInfo {
     std::unique_ptr<unsigned char[]> profileBlock;
     std::string appServiceCapabilities;
     std::string organization;
+    bool isOpenHarmony = false;
 };
 } // namespace Verify
 } // namespace Security
