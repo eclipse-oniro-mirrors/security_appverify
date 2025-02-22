@@ -72,6 +72,7 @@ ProvisionInfo &ProvisionInfo::operator=(const ProvisionInfo &info)
     }
     this->appServiceCapabilities = info.appServiceCapabilities;
     this->organization = info.organization;
+    this->isOpenHarmony = info.isOpenHarmony;
     return *this;
 }
 } // namespace Verify

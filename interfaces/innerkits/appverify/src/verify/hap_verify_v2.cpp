@@ -40,6 +40,7 @@ const int32_t HapVerifyV2::DIGEST_OFFSET_IN_CONTENT = 20;
 const std::string HapVerifyV2::HAP_APP_PATTERN = "[^]*.hap$";
 const std::string HapVerifyV2::HQF_APP_PATTERN = "[^]*.hqf$";
 const std::string HapVerifyV2::HSP_APP_PATTERN = "[^]*.hsp$";
+const std::string OPENHARMONY_CERT = "C=CN, O=OpenHarmony, OU=OpenHarmony Team, CN=OpenHarmony Application Root CA";
 
 int32_t HapVerifyV2::Verify(const std::string& filePath, HapVerifyResult& hapVerifyV1Result, bool readFile)
 {
@@ -232,6 +233,7 @@ bool HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context,
     }
     SetOrganization(provisionInfo);
     SetProfileBlockData(pkcs7Context, hapProfileBlock, provisionInfo);
+    provisionInfo.isOpenHarmony = OPENHARMONY_CERT == pkcs7Context.rootCa;
 
     hapVerifyV1Result.SetProvisionInfo(provisionInfo);
     profileNeadWriteCrl = profileContext.needWriteCrl;
