@@ -434,7 +434,7 @@ bool HapVerifyV2::GetDigestAndAlgorithm(Pkcs7Context& digest)
     return true;
 }
 
-int32_t HapVerifyV2::ParseHapProfile(const std::string& filePath, HapVerifyResult& hapVerifyV1Result)
+int32_t HapVerifyV2::ParseHapProfile(const std::string& filePath, HapVerifyResult& hapVerifyV1Result, bool readFile)
 {
     HAPVERIFY_LOG_INFO("start to ParseHapProfile");
     std::string standardFilePath;
@@ -443,7 +443,7 @@ int32_t HapVerifyV2::ParseHapProfile(const std::string& filePath, HapVerifyResul
     }
 
     RandomAccessFile hapFile;
-    if (!hapFile.Init(standardFilePath)) {
+    if (!hapFile.Init(standardFilePath, readFile)) {
         HAPVERIFY_LOG_ERROR("open standard file failed");
         return OPEN_FILE_ERROR;
     }
