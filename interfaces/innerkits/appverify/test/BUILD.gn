@@ -77,7 +77,42 @@ ohos_unittest("verify_test") {
       "//base/security/appverify/test/resource/appverify/ohos_test.xml"
 }
 
+config("app_verify_config") {
+  include_dirs =
+      [ "//base/security/appverify/interfaces/innerkits/appverify/include" ]
+}
+
+ohos_unittest("app_verify_test") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  use_exceptions = true
+  module_out_path = module_output_path
+
+  sources = [ "unittest/src/app_verify_test.cpp" ]
+  configs = [ ":app_verify_config" ]
+
+  ldflags = [ "-Wl,--export-dynamic" ]
+
+  external_deps = [
+    "appverify:libhapverify",
+    "cJSON:cjson",
+    "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+    "openssl:libcrypto_shared",
+    "samgr:samgr_proxy",
+  ]
+}
+
 group("unittest") {
   testonly = true
-  deps = [ ":verify_test" ]
+  deps = [
+    ":app_verify_test",
+    ":verify_test",
+  ]
 }

@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#define private public
+
 #include "hap_verify_v2_test.h"
 
 #include <string>

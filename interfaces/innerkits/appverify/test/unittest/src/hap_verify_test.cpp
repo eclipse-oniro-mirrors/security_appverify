@@ -15,8 +15,10 @@
 
 #include "hap_verify_test.h"
 
+#include <fcntl.h>
 #include <fstream>
 #include <string>
+#include <unistd.h>
 
 #include <gtest/gtest.h>
 
@@ -266,12 +268,40 @@ HWTEST_F(HapVerifyTest, HapVerify003, TestSize.Level0)
  * @tc.desc: The static function will return verify result of signed file;
  * @tc.type: FUNC
  */
-HWTEST_F(HapVerifyTest, HapVerify004, TestSize.Level0)
+HWTEST_F(HapVerifyTest, HapVerify004, TestSize.Level1)
 {
     std::string filePath = "temp_test_file.hap";
     int32_t filefd = -1;
     std::string bundleName;
     std::string appIdentifier;
     ASSERT_TRUE(ParseBundleNameAndAppIdentifier(filefd, bundleName, appIdentifier) == OPEN_FILE_ERROR);
+}
+
+/**
+ * @tc.name: HapVerifyTest.HapVerify005
+ * @tc.desc: The static function will return verify result of signed file;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyTest, HapVerify005, TestSize.Level1)
+{
+    std::string filePath = "temp_test_file.hap";
+    std::string bundleName;
+    std::string appIdentifier;
+    ASSERT_FALSE(ParseBundleNameAndAppIdentifier(1, bundleName, appIdentifier) == VERIFY_SOURCE_INIT_FAIL);
+}
+
+/**
+ * @tc.name: HapVerifyTest.HapVerify005
+ * @tc.desc: The static function will return verify result of signed file;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyTest, HapVerify006, TestSize.Level1)
+{
+    std::string filePath = "/data/update/ticket/verify_test.p7b";
+    int fd = open(filePath.c_str(), O_RDONLY);
+    std::string bundleName;
+    std::string appIdentifier;
+    EXPECT_FALSE(ParseBundleNameAndAppIdentifier(fd, bundleName, appIdentifier) == VERIFY_SOURCE_INIT_FAIL);
+    close(fd);
 }
 }

@@ -18,4 +18,7 @@
 #include <cstdint>
 
 int32_t ReadFileFullyFromOffsetTest001(void);
+int32_t InitWithFd001(void);
+int32_t InitWithFd002(void);
+int32_t InitWithFd003(void);
 #endif // RANDOM_ACCESS_FILE_TEST_H
