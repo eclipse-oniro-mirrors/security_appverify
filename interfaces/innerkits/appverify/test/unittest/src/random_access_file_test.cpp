@@ -13,9 +13,11 @@
  * limitations under the License.
  */
 
-#include "random_access_file_test.h"
+#define private public
 
+#include <fcntl.h>
 #include <string>
+#include <unistd.h>
 
 #include <gtest/gtest.h>
 
@@ -118,5 +120,29 @@ HWTEST_F(RandomAccessFileTest, ReadFileFullyFromOffsetTest001, TestSize.Level1)
     ret = hapTestFile2.ReadFileFullyFromOffset(buffer.get(), -1, TEST_RANDOMREAD_LENGTH);
     ASSERT_TRUE(ret == READ_OFFSET_OUT_OF_RANGE);
     buffer.reset(nullptr);
+}
+
+/**
+ * @tc.name: Test InitWithFd function
+ * @tc.desc: The static function will return each reading result;
+ * @tc.type: FUNC
+ */
+HWTEST_F(RandomAccessFileTest, InitWithFd001, TestSize.Level1)
+{
+    RandomAccessFile randomAccessFile;
+    const int32_t fileFd = -1;
+    EXPECT_FALSE(randomAccessFile.InitWithFd(fileFd));
+}
+
+/**
+ * @tc.name: Test InitWithFd function
+ * @tc.desc: The static function will return each reading result;
+ * @tc.type: FUNC
+ */
+HWTEST_F(RandomAccessFileTest, InitWithFd002, TestSize.Level1)
+{
+    RandomAccessFile randomAccessFile;
+    const int32_t fileFd = 0;
+    EXPECT_FALSE(randomAccessFile.InitWithFd(fileFd));
 }
 }
