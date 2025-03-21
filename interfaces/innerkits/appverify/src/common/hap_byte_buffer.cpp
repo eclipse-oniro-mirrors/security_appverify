@@ -106,7 +106,7 @@ bool HapByteBuffer::CheckInputForGettingData(int32_t index, int32_t dataLen)
 bool HapByteBuffer::GetInt64(long long& value)
 {
     if (!GetInt64(0, value)) {
-        HAPVERIFY_LOG_ERROR("GetInt64 failed");
+        HAPVERIFY_LOG_ERROR("Get failed");
         return false;
     }
     position += sizeof(long long);
