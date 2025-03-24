@@ -58,7 +58,7 @@ void HapVerifyOpensslUtilsTest::TearDown()
  * @tc.desc: use invalid input to verify pkcs7, The function will return false;
  * @tc.type: FUNC
  */
-HWTEST_F(HapVerifyOpensslUtilsTest, VerifyPkcs7_001, TestSize.Level1)
+HWTEST_F(HapVerifyOpensslUtilsTest, VerifyPkcs7_001, TestSize.Level2)
 {
     /*
      * @tc.steps: step1. use a null input to run OpensslVerifyPkcs7

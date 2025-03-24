@@ -293,7 +293,7 @@ HWTEST_F(HapSigningBlockUtilsTest, GetCentralDirectoryOffsetTest001, TestSize.Le
  * @tc.desc: test function of classify optional block
  * @tc.type: FUNC
  */
-HWTEST_F(HapSigningBlockUtilsTest, ClassifyHapSubSigningBlock001, TestSize.Level1)
+HWTEST_F(HapSigningBlockUtilsTest, ClassifyHapSubSigningBlock001, TestSize.Level2)
 {
     /*
      * @tc.steps: step1. run function with input of property block
