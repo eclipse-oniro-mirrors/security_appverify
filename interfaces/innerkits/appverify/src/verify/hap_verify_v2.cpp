@@ -113,10 +113,11 @@ int32_t HapVerifyV2::Verify(RandomAccessFile& hapFile, HapVerifyResult& hapVerif
         return NO_PROFILE_BLOCK_FAIL;
     }
     bool profileNeedWriteCrl = false;
-    if (!VerifyAppSourceAndParseProfile(pkcs7Context, hapSignInfo.optionBlocks[profileIndex].optionalBlockValue,
-        hapVerifyV1Result, profileNeedWriteCrl)) {
+    int32_t ret = VerifyAppSourceAndParseProfile(pkcs7Context,
+        hapSignInfo.optionBlocks[profileIndex].optionalBlockValue, hapVerifyV1Result, profileNeedWriteCrl);
+    if (ret != VERIFY_SUCCESS) {
         HAPVERIFY_LOG_ERROR("APP source is not trusted");
-        return APP_SOURCE_NOT_TRUSTED;
+        return ret;
     }
     if (!GetDigestAndAlgorithm(pkcs7Context)) {
         HAPVERIFY_LOG_ERROR("Get digest failed");
@@ -161,13 +162,13 @@ bool HapVerifyV2::VerifyAppPkcs7(Pkcs7Context& pkcs7Context, const HapByteBuffer
     return true;
 }
 
-bool HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context,
+int32_t HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context,
     const HapByteBuffer& hapProfileBlock, HapVerifyResult& hapVerifyV1Result, bool& profileNeadWriteCrl)
 {
     std::string certSubject;
     if (!HapCertVerifyOpensslUtils::GetSubjectFromX509(pkcs7Context.certChains[0][0], certSubject)) {
         HAPVERIFY_LOG_ERROR("Get info of sign cert failed");
-        return false;
+        return APP_SOURCE_NOT_TRUSTED;
     }
     HAPVERIFY_LOG_DEBUG("App signature subject: %{private}s, issuer: %{public}s",
         certSubject.c_str(), pkcs7Context.certIssuer.c_str());
@@ -180,19 +181,19 @@ bool HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context,
         pkcs7Context.matchResult.rootCa != pkcs7Context.rootCa) {
         HAPVERIFY_LOG_ERROR("MatchRootCa failed, target rootCa: %{public}s, rootCa in pkcs7: %{public}s",
             pkcs7Context.matchResult.rootCa.c_str(), pkcs7Context.rootCa.c_str());
-        return false;
+        return APP_SOURCE_NOT_TRUSTED;
     }
 
     Pkcs7Context profileContext;
     std::string profile;
     if (!HapProfileVerifyUtils::ParseProfile(profileContext, pkcs7Context, hapProfileBlock, profile)) {
         HAPVERIFY_LOG_ERROR("Parse profile pkcs7 failed");
-        return false;
+        return APP_SOURCE_NOT_TRUSTED;
     }
 
     if (!VerifyProfileSignature(pkcs7Context, profileContext)) {
         HAPVERIFY_LOG_ERROR("VerifyProfileSignature failed");
-        return false;
+        return APP_SOURCE_NOT_TRUSTED;
     }
     /*
      * If app source is not trusted, verify profile.
@@ -204,32 +205,39 @@ bool HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context,
     if (pkcs7Context.matchResult.matchState == DO_NOT_MATCH) {
         if (!HapProfileVerifyUtils::VerifyProfile(profileContext)) {
             HAPVERIFY_LOG_ERROR("profile verify failed");
-            return false;
+            return APP_SOURCE_NOT_TRUSTED;
         }
         if (profileContext.matchResult.rootCa != pkcs7Context.rootCa) {
             HAPVERIFY_LOG_ERROR("MatchProfileRootCa failed, target rootCa: %{public}s, rootCa in profile: %{public}s",
                 profileContext.matchResult.rootCa.c_str(), pkcs7Context.rootCa.c_str());
-            return false;
+            return APP_SOURCE_NOT_TRUSTED;
         }
         AppProvisionVerifyResult profileRet = ParseAndVerify(profile, provisionInfo);
         if (profileRet != PROVISION_OK) {
             HAPVERIFY_LOG_ERROR("profile parsing failed, error: %{public}d", static_cast<int>(profileRet));
-            return false;
+            if (profileRet == PROVISION_DEVICE_UNAUTHORIZED) {
+                return DEVICE_UNAUTHORIZED;
+            }
+            return APP_SOURCE_NOT_TRUSTED;
         }
         if (!VerifyProfileInfo(pkcs7Context, profileContext, provisionInfo)) {
             HAPVERIFY_LOG_ERROR("VerifyProfileInfo failed");
-            return false;
+            return APP_SOURCE_NOT_TRUSTED;
         }
         isCallParseAndVerify = true;
     }
 
-    if (!ParseAndVerifyProfileIfNeed(profile, provisionInfo, isCallParseAndVerify)) {
-        return false;
+    AppProvisionVerifyResult profileRet = ParseAndVerifyProfileIfNeed(profile, provisionInfo, isCallParseAndVerify);
+    if (profileRet != PROVISION_OK) {
+        if (profileRet == PROVISION_DEVICE_UNAUTHORIZED) {
+            return DEVICE_UNAUTHORIZED;
+        }
+        return APP_SOURCE_NOT_TRUSTED;
     }
 
     if (!GenerateAppId(provisionInfo) || !GenerateFingerprint(provisionInfo)) {
         HAPVERIFY_LOG_ERROR("Generate appId or generate fingerprint failed");
-        return false;
+        return APP_SOURCE_NOT_TRUSTED;
     }
     SetOrganization(provisionInfo);
     SetProfileBlockData(pkcs7Context, hapProfileBlock, provisionInfo);
@@ -237,7 +245,7 @@ bool HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context,
 
     hapVerifyV1Result.SetProvisionInfo(provisionInfo);
     profileNeadWriteCrl = profileContext.needWriteCrl;
-    return true;
+    return VERIFY_SUCCESS;
 }
 
 bool HapVerifyV2::VerifyProfileSignature(const Pkcs7Context& pkcs7Context, Pkcs7Context& profileContext)
@@ -382,18 +390,18 @@ void HapVerifyV2::WriteCrlIfNeed(const Pkcs7Context& pkcs7Context, const bool& p
     hapCrlManager.WriteCrlsToFile();
 }
 
-bool HapVerifyV2::ParseAndVerifyProfileIfNeed(const std::string& profile,
+AppProvisionVerifyResult HapVerifyV2::ParseAndVerifyProfileIfNeed(const std::string& profile,
     ProvisionInfo& provisionInfo, bool isCallParseAndVerify)
 {
     if (isCallParseAndVerify) {
-        return isCallParseAndVerify;
+        return PROVISION_OK;
     }
     AppProvisionVerifyResult profileRet = ParseAndVerify(profile, provisionInfo);
     if (profileRet != PROVISION_OK) {
         HAPVERIFY_LOG_ERROR("profile parse failed, error: %{public}d", static_cast<int>(profileRet));
-        return false;
+        return profileRet;
     }
-    return true;
+    return PROVISION_OK;
 }
 
 bool HapVerifyV2::GetDigestAndAlgorithm(Pkcs7Context& digest)
