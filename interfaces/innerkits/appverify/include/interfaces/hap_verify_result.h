@@ -47,6 +47,7 @@ enum HapVerifyResultCode {
     NO_PROFILE_BLOCK_FAIL = -12,
     VERIFY_SIGNATURE_FAIL = -13,
     VERIFY_SOURCE_INIT_FAIL = -14,
+    DEVICE_UNAUTHORIZED = -15,
 };
 
 enum GetOptionalBlockResultCode {

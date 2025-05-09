@@ -38,15 +38,15 @@ private:
     int32_t Verify(RandomAccessFile& hapFile, HapVerifyResult& hapVerifyV1Result);
     bool VerifyAppPkc7AndParseProfile(Pkcs7Context& pkcs7Context, HapByteBuffer& hapProfileBlock,
         HapVerifyResult& hapVerifyV1Result);
-    bool VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context, const HapByteBuffer& hapProfileBlock,
+    int32_t VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context, const HapByteBuffer& hapProfileBlock,
         HapVerifyResult& hapVerifyV1Result, bool& profileNeadWriteCrl);
     bool VerifyAppPkcs7(Pkcs7Context& pkcs7Context, const HapByteBuffer& hapSignatureBlock);
     bool VerifyAppSource(Pkcs7Context& pkcs7Context, Pkcs7Context& profileContext);
     DLL_EXPORT bool GetDigestAndAlgorithm(Pkcs7Context& digest);
     DLL_EXPORT bool CheckFilePath(const std::string& filePath, std::string& standardFilePath);
     void WriteCrlIfNeed(const Pkcs7Context& pkcs7Context, const bool& profileNeedWriteCrl);
-    DLL_EXPORT bool ParseAndVerifyProfileIfNeed(const std::string& profile, ProvisionInfo& provisionInfo,
-        bool isCallParseAndVerify);
+    DLL_EXPORT AppProvisionVerifyResult ParseAndVerifyProfileIfNeed(const std::string& profile,
+        ProvisionInfo& provisionInfo, bool isCallParseAndVerify);
     bool IsAppDistributedTypeAllowInstall(const AppDistType& type, const ProvisionInfo& provisionInfo) const;
     DLL_EXPORT bool VerifyProfileInfo(const Pkcs7Context& pkcs7Context, const Pkcs7Context& profileContext,
         ProvisionInfo& provisionInfo);

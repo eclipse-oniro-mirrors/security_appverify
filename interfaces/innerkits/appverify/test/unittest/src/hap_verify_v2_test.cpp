@@ -238,12 +238,12 @@ HWTEST_F(HapVerifyV2Test, ParseAndVerifyProfileIfNeedTest001, TestSize.Level1)
     HapVerifyV2 v2;
     std::string profile;
     ProvisionInfo provisionInfo;
-    ASSERT_FALSE(v2.ParseAndVerifyProfileIfNeed(profile, provisionInfo, false));
+    ASSERT_FALSE(v2.ParseAndVerifyProfileIfNeed(profile, provisionInfo, false) == PROVISION_OK);
     /*
      * @tc.steps: step1. input no need parse and verify profile.
      * @tc.expected: step1. the return will be true.
      */
-    ASSERT_TRUE(v2.ParseAndVerifyProfileIfNeed(profile, provisionInfo, true));
+    ASSERT_TRUE(v2.ParseAndVerifyProfileIfNeed(profile, provisionInfo, true) == PROVISION_OK);
 }
 
 /**
