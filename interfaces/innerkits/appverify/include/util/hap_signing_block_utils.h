@@ -76,6 +76,8 @@ private:
     static const int32_t ZIP_BLOCKS_NUM_NEED_DIGEST;
     static const char ZIP_FIRST_LEVEL_CHUNK_PREFIX;
     static const char ZIP_SECOND_LEVEL_CHUNK_PREFIX;
+    static const int32_t ZIP_UPDATE_DIGEST_THREADS_NUM;
+    static const long long SMALL_FILE_SIZE;
     /* the specifications of hap sign block */
     static constexpr long long MAX_HAP_SIGN_BLOCK_SIZE = 1024 * 1024 * 1024LL; // 1024MB
     static constexpr int32_t MAX_BLOCK_COUNT = 10;
@@ -99,7 +101,13 @@ private:
         const std::vector<OptionalBlock>& optionalBlocks, const HapByteBuffer& chunkDigest,
         HapByteBuffer& finalDigest);
     static bool ComputeDigestsForEachChunk(const DigestParameter& digestParam, DataSource* contents[],
-        int32_t len, HapByteBuffer& result);
+        int32_t len, HapByteBuffer& result, int32_t& offset);
+    static bool ComputeDigestsForDataSource(const DigestParameter& digestParam, DataSource* content,
+        HapByteBuffer& result, int32_t& offset);
+    static bool ComputeDigestsForContentsZip(int32_t nId, RandomAccessFile& hapFile,
+        int32_t chunkNum, long long fileSize, HapByteBuffer& digestsBuffer);
+    static bool VerifySignInfo(const DigestParameter& digestParam, int32_t nId,
+        const std::vector<OptionalBlock>& optionalBlocks, const HapByteBuffer& chunkDigest, Pkcs7Context& digestInfo);
     static int32_t GetChunkCount(long long inputSize, long long chunkSize);
     static bool InitDigestPrefix(const DigestParameter& digestParam,
         unsigned char (&chunkContentPrefix)[ZIP_CHUNK_DIGEST_PRIFIX_LEN], int32_t chunkLen);
