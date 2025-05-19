@@ -100,13 +100,13 @@ private:
     DLL_EXPORT static bool ComputeDigestsWithOptionalBlock(const DigestParameter& digestParam,
         const std::vector<OptionalBlock>& optionalBlocks, const HapByteBuffer& chunkDigest,
         HapByteBuffer& finalDigest);
-    static bool ComputeDigestsForEachChunk(const DigestParameter& digestParam, DataSource* contents[],
-        int32_t len, HapByteBuffer& result, int32_t& offset);
+    static bool ComputeDigestsForDataSourceArray(const DigestParameter& digestParam, DataSource* contents[],
+        int32_t len, HapByteBuffer& result, const int32_t offset);
     static bool ComputeDigestsForDataSource(const DigestParameter& digestParam, DataSource* content,
         HapByteBuffer& result, int32_t& offset);
     static bool ComputeDigestsForContentsZip(int32_t nId, RandomAccessFile& hapFile,
         int32_t chunkNum, long long fileSize, HapByteBuffer& digestsBuffer);
-    static bool VerifySignInfo(const DigestParameter& digestParam, int32_t nId,
+    static bool VerifyDigest(const DigestParameter& digestParam, const int32_t nId,
         const std::vector<OptionalBlock>& optionalBlocks, const HapByteBuffer& chunkDigest, Pkcs7Context& digestInfo);
     static int32_t GetChunkCount(long long inputSize, long long chunkSize);
     static bool InitDigestPrefix(const DigestParameter& digestParam,

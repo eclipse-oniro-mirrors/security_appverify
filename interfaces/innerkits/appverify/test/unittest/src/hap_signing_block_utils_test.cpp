@@ -19,6 +19,7 @@
 #include <map>
 
 #include <gtest/gtest.h>
+#include <securec.h>
 
 #include "common/hap_byte_buffer_data_source.h"
 #include "common/random_access_file.h"
@@ -30,27 +31,31 @@ using namespace OHOS::Security::Verify;
 namespace OHOS {
 namespace Security {
 namespace Verify {
-void CreateHapSubSignBlockHead(HapSubSignBlockHead& signBlob, HapSubSignBlockHead& profileBlob,
-    HapSubSignBlockHead& propertyBlob)
+void CreateHapSubSignBlockHead(HapSubSignBlockHead& signBlob, HapSubSignBlockHead& profileBlob, 
+    HapSubSignBlockHead& propertyBlob, const int32_t fileSize)
 {
     signBlob.type = HAP_SIGN_BLOB;
-    signBlob.length = TEST_FILE_BLOCK_LENGTH;
+    signBlob.length = fileSize;
     signBlob.offset = sizeof(HapSubSignBlockHead) * TEST_FILE_BLOCK_COUNT;
     profileBlob.type = PROFILE_BLOB;
-    profileBlob.length = TEST_FILE_BLOCK_LENGTH;
+    profileBlob.length = fileSize;
     profileBlob.offset = signBlob.offset + signBlob.length;
     propertyBlob.type = PROPERTY_BLOB;
-    propertyBlob.length = TEST_FILE_BLOCK_LENGTH;
+    propertyBlob.length = fileSize;
     propertyBlob.offset = profileBlob.offset + profileBlob.length;
 }
 
-long long CreatTestZipFile(const std::string& pathFile, SignatureInfo& signInfo)
+long long CreatTestZipFile(const std::string& pathFile, SignatureInfo& signInfo, const int32_t fileSize)
 {
     std::ofstream hapFile(pathFile.c_str(), std::ios::binary | std::ios::out | std::ios::trunc);
     if (!hapFile.is_open()) {
         return 0;
     }
-    char block[TEST_FILE_BLOCK_LENGTH] = {0};
+
+    char block[fileSize];
+    if(memset_s(block, fileSize, 0, fileSize) != 0) {
+        return 0;
+    }
     /* input contents of ZIP entries */
     hapFile.seekp(0, std::ios_base::beg);
     hapFile.write(block, sizeof(block));
@@ -58,7 +63,7 @@ long long CreatTestZipFile(const std::string& pathFile, SignatureInfo& signInfo)
     HapSubSignBlockHead signBlob;
     HapSubSignBlockHead profileBlob;
     HapSubSignBlockHead propertyBlob;
-    CreateHapSubSignBlockHead(signBlob, profileBlob, propertyBlob);
+    CreateHapSubSignBlockHead(signBlob, profileBlob, propertyBlob, fileSize);
     hapFile.write(reinterpret_cast<char*>(&signBlob), sizeof(signBlob));
     hapFile.write(reinterpret_cast<char*>(&profileBlob), sizeof(profileBlob));
     hapFile.write(reinterpret_cast<char*>(&propertyBlob), sizeof(propertyBlob));
@@ -84,14 +89,14 @@ long long CreatTestZipFile(const std::string& pathFile, SignatureInfo& signInfo)
     hapFile.write(reinterpret_cast<char*>(&magic), sizeof(magic));
     uint32_t centralDirLen = sizeof(block);
     hapFile.write(reinterpret_cast<char*>(&centralDirLen), sizeof(centralDirLen));
-    uint32_t centralDirOffset = TEST_FILE_BLOCK_LENGTH + signBlockSize;
+    uint32_t centralDirOffset = fileSize + signBlockSize;
     hapFile.write(reinterpret_cast<char*>(&centralDirOffset), sizeof(centralDirOffset));
     short eocdCommentLen = 0;
     hapFile.write(reinterpret_cast<char*>(&eocdCommentLen), sizeof(eocdCommentLen));
     hapFile.close();
     signInfo.hapCentralDirOffset = centralDirOffset;
     signInfo.hapEocdOffset = centralDirOffset + centralDirLen;
-    signInfo.hapSignatureBlock.SetCapacity(TEST_FILE_BLOCK_LENGTH);
+    signInfo.hapSignatureBlock.SetCapacity(fileSize);
     signInfo.hapSignatureBlock.PutData(0, block, sizeof(block));
     long long sumLen = signInfo.hapEocdOffset + sizeof(zidEocdSign) + sizeof(centralDirLen) +
         sizeof(centralDirOffset) + sizeof(magic) + sizeof(eocdCommentLen);
@@ -145,7 +150,7 @@ HWTEST_F(HapSigningBlockUtilsTest, FindHapSignatureTest001, TestSize.Level1)
      */
     std::string pathFile = "./test_hapverify.hap";
     SignatureInfo signInfo;
-    int32_t sumLen = CreatTestZipFile(pathFile, signInfo);
+    int32_t sumLen = CreatTestZipFile(pathFile, signInfo, TEST_FILE_BLOCK_LENGTH);
     /*
      * @tc.steps: step2. test FindHapSignature function
      * @tc.expected: step2. the return will be true.
@@ -204,7 +209,7 @@ HWTEST_F(HapSigningBlockUtilsTest, VerifyHapIntegrityTest001, TestSize.Level1)
      */
     std::string pathFile = "./test_hapverify.hap";
     SignatureInfo signInfo;
-    CreatTestZipFile(pathFile, signInfo);
+    CreatTestZipFile(pathFile, signInfo, TEST_FILE_BLOCK_LENGTH);
     /*
      * @tc.steps: step2. create an error digest to test VerifyHapIntegrity function
      * @tc.expected: step2. the return will be false.
@@ -222,6 +227,19 @@ HWTEST_F(HapSigningBlockUtilsTest, VerifyHapIntegrityTest001, TestSize.Level1)
     RandomAccessFile hapTestFile1;
     hapTestFile.Init(pathFile);
     ASSERT_FALSE(hapSignBlockUtils.VerifyHapIntegrity(digestInfo1, hapTestFile1, signInfo));
+
+    /*
+     * @tc.steps: step3. create a larger file and an error digest to test VerifyHapIntegrity
+     * @tc.expected: step3. the return will be false.
+     */
+    std::string pathFile2 = "./test_hapverify2.hap";
+    SignatureInfo signInfo2;
+    CreatTestZipFile(pathFile2, signInfo2, TEST_LARGE_FILE_BLOCK_LENGTH);
+    Pkcs7Context digestInfo2;
+    digestInfo2.content.SetCapacity(TEST_LARGE_FILE_BLOCK_LENGTH);
+    RandomAccessFile hapTestFile2;
+    hapTestFile2.Init(pathFile2);
+    ASSERT_FALSE(hapSignBlockUtils.VerifyHapIntegrity(digestInfo2, hapTestFile2, signInfo2));
 }
 
 /**

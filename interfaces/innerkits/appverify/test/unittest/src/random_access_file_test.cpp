@@ -72,7 +72,7 @@ HWTEST_F(RandomAccessFileTest, ReadFileFullyFromOffsetTest001, TestSize.Level1)
      */
     std::string filePath = "./test_hapverify.zip";
     SignatureInfo si0;
-    int32_t sumLen = CreatTestZipFile(filePath, si0);
+    int32_t sumLen = CreatTestZipFile(filePath, si0, TEST_FILE_BLOCK_LENGTH);
     RandomAccessFile hapTestFile1;
     bool initRet = hapTestFile1.Init(filePath);
     ASSERT_TRUE(initRet);
@@ -101,7 +101,7 @@ HWTEST_F(RandomAccessFileTest, ReadFileFullyFromOffsetTest001, TestSize.Level1)
      */
     std::string testFile = "./test_hapverify.txt";
     SignatureInfo si;
-    sumLen = CreatTestZipFile(testFile, si);
+    sumLen = CreatTestZipFile(testFile, si, TEST_FILE_BLOCK_LENGTH);
     RandomAccessFile hapTestFile2;
     initRet = hapTestFile2.Init(testFile);
     ASSERT_TRUE(initRet);
