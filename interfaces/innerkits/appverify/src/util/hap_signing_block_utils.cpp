@@ -546,7 +546,12 @@ bool HapSigningBlockUtils::ComputeDigestsForContentsZip(int32_t nId, RandomAcces
         threads.emplace_back([&, i, chunkNumToUpdate, contentsZipSize]() {
             long long fileBeginPosition = CHUNK_SIZE * chunkNumToUpdate * i;
             long long fileEndPosition = std::min(CHUNK_SIZE * chunkNumToUpdate * (i + 1), contentsZipSize);
-            HapFileDataSource hapDataChunk(hapFile, fileBeginPosition, fileEndPosition - fileBeginPosition, 0);
+            long long fileSize = fileEndPosition - fileEndPosition;
+            if(fileSize < 0) {
+                results[i] = true;
+                return;
+            }
+            HapFileDataSource hapDataChunk(hapFile, fileBeginPosition, fileSize, 0);
             DigestParameter digestParam = GetDigestParameter(nId);
             int32_t digestOffset = offset + chunkNumToUpdate * digestParam.digestOutputSizeBytes * i;
             results[i] = ComputeDigestsForDataSource(digestParam, &hapDataChunk, digestsBuffer, digestOffset);
