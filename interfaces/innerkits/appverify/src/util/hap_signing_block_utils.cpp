@@ -546,7 +546,7 @@ bool HapSigningBlockUtils::ComputeDigestsForContentsZip(int32_t nId, RandomAcces
         threads.emplace_back([&, i, chunkNumToUpdate, contentsZipSize]() {
             long long fileBeginPosition = CHUNK_SIZE * chunkNumToUpdate * i;
             long long fileEndPosition = std::min(CHUNK_SIZE * chunkNumToUpdate * (i + 1), contentsZipSize);
-            long long fileSize = fileEndPosition - fileEndPosition;
+            long long fileSize = fileEndPosition - fileBeginPosition;
             if(fileSize < 0) {
                 results[i] = true;
                 return;
