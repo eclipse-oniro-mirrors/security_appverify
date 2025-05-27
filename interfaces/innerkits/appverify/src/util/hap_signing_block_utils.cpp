@@ -15,7 +15,9 @@
 
 #include "util/hap_signing_block_utils.h"
 
+#include <atomic>
 #include <climits>
+#include <thread>
 #include <vector>
 
 #include "algorithm"
@@ -36,6 +38,7 @@ const long long HapSigningBlockUtils::HAP_SIG_BLOCK_MAGIC_HIGH = 449779798307046
 
 /* 1MB = 1024 * 1024 Bytes */
 const long long HapSigningBlockUtils::CHUNK_SIZE = 1048576LL;
+const long long HapSigningBlockUtils::SMALL_FILE_SIZE = CHUNK_SIZE * 2;
 
 const int32_t HapSigningBlockUtils::HAP_SIG_BLOCK_MIN_SIZE = 32;
 const int32_t HapSigningBlockUtils::ZIP_HEAD_OF_SIGNING_BLOCK_LENGTH = 32;
@@ -46,6 +49,7 @@ const int32_t HapSigningBlockUtils::ZIP_EOCD_COMMENT_LENGTH_OFFSET = 20;
 const int32_t HapSigningBlockUtils::ZIP_CD_OFFSET_IN_EOCD = 16;
 const int32_t HapSigningBlockUtils::ZIP_CD_SIZE_OFFSET_IN_EOCD = 12;
 const int32_t HapSigningBlockUtils::ZIP_BLOCKS_NUM_NEED_DIGEST = 3;
+const int32_t HapSigningBlockUtils::ZIP_UPDATE_DIGEST_THREADS_NUM = 4;
 
 const char HapSigningBlockUtils::ZIP_FIRST_LEVEL_CHUNK_PREFIX = 0x5a;
 const char HapSigningBlockUtils::ZIP_SECOND_LEVEL_CHUNK_PREFIX = 0xa5;
@@ -428,21 +432,56 @@ bool HapSigningBlockUtils::VerifyHapIntegrity(
         return false;
     }
 
+    long long contentsZipSize = signInfo.hapSigningBlockOffset;
     long long centralDirSize = signInfo.hapEocdOffset - signInfo.hapCentralDirOffset;
-    HapFileDataSource contentsZip(hapFile, 0, signInfo.hapSigningBlockOffset, 0);
+    HapFileDataSource contentsZip(hapFile, 0, contentsZipSize, 0);
     HapFileDataSource centralDir(hapFile, signInfo.hapCentralDirOffset, centralDirSize, 0);
     HapByteBufferDataSource eocd(signInfo.hapEocd);
     DataSource* content[ZIP_BLOCKS_NUM_NEED_DIGEST] = { &contentsZip, &centralDir, &eocd };
     int32_t nId = HapVerifyOpensslUtils::GetDigestAlgorithmId(digestInfo.digestAlgorithm);
     DigestParameter digestParam = GetDigestParameter(nId);
     HapByteBuffer chunkDigest;
-    if (!ComputeDigestsForEachChunk(digestParam, content, ZIP_BLOCKS_NUM_NEED_DIGEST, chunkDigest)) {
-        HAPVERIFY_LOG_ERROR("Compute Content Digests failed, alg: %{public}d", nId);
+    int32_t chunkCount = 0;
+    int32_t sumOfChunksLen = 0;
+    if (!GetSumOfChunkDigestLen(content, ZIP_BLOCKS_NUM_NEED_DIGEST, digestParam.digestOutputSizeBytes,
+        chunkCount, sumOfChunksLen)) {
+        HAPVERIFY_LOG_ERROR("GetSumOfChunkDigestLen failed");
         return false;
     }
+    chunkDigest.SetCapacity(sumOfChunksLen);
+    chunkDigest.PutByte(0, ZIP_FIRST_LEVEL_CHUNK_PREFIX);
+    chunkDigest.PutInt32(1, chunkCount);
+    if (contentsZipSize <= SMALL_FILE_SIZE) {
+        // No parallel for small size <= 2MB.
+        int32_t offset = ZIP_CHUNK_DIGEST_PRIFIX_LEN;
+        if (!ComputeDigestsForDataSourceArray(digestParam, content, ZIP_BLOCKS_NUM_NEED_DIGEST, chunkDigest, offset)) {
+            HAPVERIFY_LOG_ERROR("Compute Content Digests failed, alg: %{public}d", nId);
+            return false;
+        }
+    } else {
+        // Compute digests for contents zip in parallel.
+        int32_t contentsZipChunkCount = GetChunkCount(contentsZipSize, CHUNK_SIZE);
+        if (!ComputeDigestsForContentsZip(nId, hapFile, contentsZipChunkCount, contentsZipSize, chunkDigest)) {
+            HAPVERIFY_LOG_ERROR("ComputeDigestsForContentsZip failed, alg: %{public}d", nId);
+            return false;
+        }
+        // Compute digests for other contents.
+        int32_t offset = ZIP_CHUNK_DIGEST_PRIFIX_LEN + contentsZipChunkCount * digestParam.digestOutputSizeBytes;
+        if (!ComputeDigestsForDataSourceArray(digestParam, content + 1,
+            ZIP_BLOCKS_NUM_NEED_DIGEST - 1, chunkDigest, offset)) {
+            HAPVERIFY_LOG_ERROR("Compute Content Digests failed, alg: %{public}d", nId);
+            return false;
+        }
+    }
 
+    return VerifyDigest(digestParam, nId, signInfo.optionBlocks, chunkDigest, digestInfo);
+}
+
+bool HapSigningBlockUtils::VerifyDigest(const DigestParameter& digestParam, const int32_t nId,
+    const std::vector<OptionalBlock>& optionalBlocks, const HapByteBuffer& chunkDigest, Pkcs7Context& digestInfo)
+{
     HapByteBuffer actualDigest;
-    if (!ComputeDigestsWithOptionalBlock(digestParam, signInfo.optionBlocks, chunkDigest, actualDigest)) {
+    if (!ComputeDigestsWithOptionalBlock(digestParam, optionalBlocks, chunkDigest, actualDigest)) {
         HAPVERIFY_LOG_ERROR("Compute Final Digests failed, alg: %{public}d", nId);
         return false;
     }
@@ -497,45 +536,85 @@ bool HapSigningBlockUtils::GetSumOfChunkDigestLen(DataSource* contents[], int32_
     return true;
 }
 
-bool HapSigningBlockUtils::ComputeDigestsForEachChunk(const DigestParameter& digestParam,
-    DataSource* contents[], int32_t len, HapByteBuffer& result)
+bool HapSigningBlockUtils::ComputeDigestsForContentsZip(int32_t nId, RandomAccessFile& hapFile, int32_t chunkNum,
+    long long contentsZipSize, HapByteBuffer& digestsBuffer)
 {
-    int32_t chunkCount = 0;
-    int32_t sumOfChunksLen = 0;
-    if (!GetSumOfChunkDigestLen(contents, len, digestParam.digestOutputSizeBytes, chunkCount, sumOfChunksLen)) {
-        HAPVERIFY_LOG_ERROR("GetSumOfChunkDigestLen failed");
-        return false;
+    int32_t chunkNumToUpdate = (chunkNum + ZIP_UPDATE_DIGEST_THREADS_NUM - 1) / ZIP_UPDATE_DIGEST_THREADS_NUM;
+    std::vector<std::thread> threads;
+    std::vector<std::atomic<bool>> results(ZIP_UPDATE_DIGEST_THREADS_NUM);
+    for (int32_t i = 0; i < ZIP_UPDATE_DIGEST_THREADS_NUM; i++) {
+        results[i].store(false, std::memory_order_seq_cst);
     }
-    result.SetCapacity(sumOfChunksLen);
-    result.PutByte(0, ZIP_FIRST_LEVEL_CHUNK_PREFIX);
-    result.PutInt32(1, chunkCount);
 
-    int32_t chunkIndex = 0;
+    for (int32_t i = 0; i < ZIP_UPDATE_DIGEST_THREADS_NUM; i++) {
+        threads.emplace_back([&results, &digestsBuffer, &hapFile, i, nId, chunkNumToUpdate, contentsZipSize]() {
+            long long fileBeginPosition = CHUNK_SIZE * chunkNumToUpdate * i;
+            long long fileEndPosition = std::min(CHUNK_SIZE * chunkNumToUpdate * (i + 1), contentsZipSize);
+            long long fileSize = fileEndPosition - fileBeginPosition;
+            if (fileSize <= 0) {
+                results[i].store(true, std::memory_order_seq_cst);
+                return;
+            }
+            HapFileDataSource hapDataChunk(hapFile, fileBeginPosition, fileSize, 0);
+            DigestParameter digestParam = GetDigestParameter(nId);
+            int32_t digestOffset =
+                ZIP_CHUNK_DIGEST_PRIFIX_LEN + chunkNumToUpdate * digestParam.digestOutputSizeBytes * i;
+            results[i].store(
+                ComputeDigestsForDataSource(digestParam, &hapDataChunk, digestsBuffer, digestOffset),
+                std::memory_order_seq_cst);
+        });
+    }
+
+    for (auto& thread : threads) {
+        thread.join();
+    }
+
+    for (const auto& atomicResult : results) {
+        if (!atomicResult.load(std::memory_order_seq_cst)) {
+            HAPVERIFY_LOG_ERROR("Compute digests failed");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool HapSigningBlockUtils::ComputeDigestsForDataSource(const DigestParameter& digestParam, DataSource* content,
+    HapByteBuffer& result, int32_t& offset)
+{
     unsigned char out[EVP_MAX_MD_SIZE];
     unsigned char chunkContentPrefix[ZIP_CHUNK_DIGEST_PRIFIX_LEN] = {ZIP_SECOND_LEVEL_CHUNK_PREFIX, 0, 0, 0, 0};
-    int32_t offset = ZIP_CHUNK_DIGEST_PRIFIX_LEN;
+    while (content->HasRemaining()) {
+        int32_t chunkSize = std::min(content->Remaining(), CHUNK_SIZE);
+        if (!InitDigestPrefix(digestParam, chunkContentPrefix, chunkSize)) {
+            HAPVERIFY_LOG_ERROR("InitDigestPrefix failed");
+            return false;
+        }
+
+        if (!content->ReadDataAndDigestUpdate(digestParam, chunkSize)) {
+            HAPVERIFY_LOG_ERROR("Copy Partial Buffer failed");
+            return false;
+        }
+
+        int32_t digestLen = HapVerifyOpensslUtils::GetDigest(digestParam, out);
+        if (digestLen != digestParam.digestOutputSizeBytes) {
+            HAPVERIFY_LOG_ERROR("GetDigest failed len: %{public}d digestSizeBytes: %{public}d",
+                digestLen, digestParam.digestOutputSizeBytes);
+            return false;
+        }
+        result.PutData(offset, reinterpret_cast<char*>(out), digestParam.digestOutputSizeBytes);
+        offset += digestLen;
+    }
+    return true;
+}
+
+bool HapSigningBlockUtils::ComputeDigestsForDataSourceArray(const DigestParameter& digestParam,
+    DataSource* contents[], int32_t len, HapByteBuffer& result, int32_t offset)
+{
     for (int32_t i = 0; i < len; i++) {
-        while (contents[i]->HasRemaining()) {
-            int32_t chunkSize = std::min(contents[i]->Remaining(), CHUNK_SIZE);
-            if (!InitDigestPrefix(digestParam, chunkContentPrefix, chunkSize)) {
-                HAPVERIFY_LOG_ERROR("InitDigestPrefix failed");
-                return false;
-            }
-
-            if (!contents[i]->ReadDataAndDigestUpdate(digestParam, chunkSize)) {
-                HAPVERIFY_LOG_ERROR("Copy Partial Buffer failed, count: %{public}d", chunkIndex);
-                return false;
-            }
-
-            int32_t digestLen = HapVerifyOpensslUtils::GetDigest(digestParam, out);
-            if (digestLen != digestParam.digestOutputSizeBytes) {
-                HAPVERIFY_LOG_ERROR("GetDigest failed len: %{public}d digestSizeBytes: %{public}d",
-                    digestLen, digestParam.digestOutputSizeBytes);
-                return false;
-            }
-            result.PutData(offset, reinterpret_cast<char*>(out), digestParam.digestOutputSizeBytes);
-            offset += digestLen;
-            chunkIndex++;
+        if (!ComputeDigestsForDataSource(digestParam, contents[i], result, offset)) {
+            HAPVERIFY_LOG_ERROR("Compute digest failed");
+            return false;
         }
     }
     return true;

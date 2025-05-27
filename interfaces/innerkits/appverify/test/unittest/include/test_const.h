@@ -40,6 +40,8 @@ constexpr int32_t TEST_HAPBYTEBUFFER_POSITION = 10;
 constexpr int32_t TEST_HAPBYTEBUFFER_UINT16_LENGTH = 2;
 constexpr int32_t TEST_HAPBYTEBUFFER_INT64_LENGTH = 8;
 
+// large file size 3MB
+constexpr int32_t TEST_LARGE_FILE_BLOCK_LENGTH = 3 * 1048576;
 constexpr int32_t TEST_FILE_BLOCK_LENGTH = 50;
 constexpr int32_t TEST_FILE_BLOCK_COUNT = 3;
 

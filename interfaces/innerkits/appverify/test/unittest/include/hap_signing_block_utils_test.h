@@ -26,7 +26,7 @@
 namespace OHOS {
 namespace Security {
 namespace Verify {
-long long CreatTestZipFile(const std::string& pathFile, SignatureInfo& signInfo);
+long long CreatTestZipFile(const std::string& pathFile, SignatureInfo& signInfo, const int32_t fileSize);
 }
 }
 }
