@@ -17,7 +17,6 @@
 
 #include <atomic>
 #include <climits>
-#include <deque>
 #include <thread>
 #include <vector>
 
@@ -542,26 +541,27 @@ bool HapSigningBlockUtils::ComputeDigestsForContentsZip(int32_t nId, RandomAcces
 {
     int32_t chunkNumToUpdate = (chunkNum + ZIP_UPDATE_DIGEST_THREADS_NUM - 1) / ZIP_UPDATE_DIGEST_THREADS_NUM;
     std::vector<std::thread> threads;
-    std::vector<HapFileDataSource> dataSources;
-    std::deque<std::atomic<bool>> results;
+    std::vector<std::atomic<bool>> results(ZIP_UPDATE_DIGEST_THREADS_NUM);
+    for (int32_t i = 0; i < ZIP_UPDATE_DIGEST_THREADS_NUM; i++) {
+        results[i].store(false, std::memory_order_seq_cst);
+    }
 
     for (int32_t i = 0; i < ZIP_UPDATE_DIGEST_THREADS_NUM; i++) {
-        long long fileBeginPosition = CHUNK_SIZE * chunkNumToUpdate * i;
-        long long fileEndPosition = std::min(CHUNK_SIZE * chunkNumToUpdate * (i + 1), contentsZipSize);
-        long long fileSize = fileEndPosition - fileBeginPosition;
-        if (fileSize > 0) {
-            dataSources.emplace_back(hapFile, fileBeginPosition, fileSize, 0);
-            results.emplace_back(false);
-        }
-    }
-    for (int32_t i = 0; i < dataSources.size(); i++) {
-        threads.emplace_back([&, i]() {
+        threads.emplace_back([&results, &digestsBuffer, &hapFile, i, nId, chunkNumToUpdate, contentsZipSize]() {
+            long long fileBeginPosition = CHUNK_SIZE * chunkNumToUpdate * i;
+            long long fileEndPosition = std::min(CHUNK_SIZE * chunkNumToUpdate * (i + 1), contentsZipSize);
+            long long fileSize = fileEndPosition - fileBeginPosition;
+            if (fileSize <= 0) {
+                results[i].store(true, std::memory_order_seq_cst);
+                return;
+            }
+            HapFileDataSource hapDataChunk(hapFile, fileBeginPosition, fileSize, 0);
             DigestParameter digestParam = GetDigestParameter(nId);
             int32_t digestOffset =
                 ZIP_CHUNK_DIGEST_PRIFIX_LEN + chunkNumToUpdate * digestParam.digestOutputSizeBytes * i;
             results[i].store(
-                ComputeDigestsForDataSource(digestParam, &dataSources[i], digestsBuffer, digestOffset),
-                std::memory_order_relaxed);
+                ComputeDigestsForDataSource(digestParam, &hapDataChunk, digestsBuffer, digestOffset),
+                std::memory_order_seq_cst);
         });
     }
 
@@ -570,7 +570,7 @@ bool HapSigningBlockUtils::ComputeDigestsForContentsZip(int32_t nId, RandomAcces
     }
 
     for (const auto& atomicResult : results) {
-        if (!atomicResult.load(std::memory_order_relaxed)) {
+        if (!atomicResult.load(std::memory_order_seq_cst)) {
             HAPVERIFY_LOG_ERROR("Compute digests failed");
             return false;
         }
