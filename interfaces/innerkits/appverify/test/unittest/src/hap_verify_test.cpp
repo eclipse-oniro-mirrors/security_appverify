@@ -304,4 +304,26 @@ HWTEST_F(HapVerifyTest, HapVerify006, TestSize.Level1)
     EXPECT_FALSE(ParseBundleNameAndAppIdentifier(fd, bundleName, appIdentifier) == VERIFY_SOURCE_INIT_FAIL);
     close(fd);
 }
+
+/**
+ * @tc.name: HapVerifyTest.StringHash001
+ * @tc.desc: The static function will return hash string;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyTest, StringHash001, TestSize.Level1)
+{
+    std::string message1 = "1315398076000C152942D948D3EB835324C80534674129456FF6F951105E0E711B1A356E39269";
+    std::string message2 = message1;
+    std::string message3 = "1303837768000C152942D948D3EB835324C80534674129456FF6F951105E0E711B1A356E39269";
+
+    std::string uuid1 = GenerateUuidByKey(message1);
+    EXPECT_EQ(uuid1.size(), 36);
+    std::string uuid2 = GenerateUuidByKey(message2);
+    EXPECT_EQ(uuid2.size(), 36);
+    std::string uuid3 = GenerateUuidByKey(message3);
+    EXPECT_EQ(uuid3.size(), 36);
+
+    EXPECT_EQ(uuid1, uuid2);
+    EXPECT_NE(uuid1, uuid3);
+}
 }
