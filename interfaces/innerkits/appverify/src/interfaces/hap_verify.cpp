@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,6 +25,7 @@
 #include "init/trusted_ticket_manager.h"
 #include "provision/provision_verify.h"
 #include "verify/hap_verify_v2.h"
+#include "util/string_hash.h"
 
 namespace OHOS {
 namespace Security {
@@ -134,6 +135,10 @@ int32_t ParseBundleNameAndAppIdentifier(const int32_t fileFd, std::string &bundl
     return VERIFY_SUCCESS;
 }
 
+std::string GenerateUuidByKey(const std::string &key)
+{
+    return StringHash::GenerateUuidByKey(key);
+}
 } // namespace Verify
 } // namespace Security
 } // namespace OHOS
