@@ -139,6 +139,15 @@ std::string GenerateUuidByKey(const std::string &key)
 {
     return StringHash::GenerateUuidByKey(key);
 }
+
+int32_t VerifyProfile(const std::string& filePath, ProvisionInfo& provisionInfo)
+{
+    if (!g_isInit && !HapVerifyInit()) {
+        return VERIFY_SOURCE_INIT_FAIL;
+    }
+    HapVerifyV2 hapVerifyV2;
+    return hapVerifyV2.VerifyProfile(filePath, provisionInfo);
+}
 } // namespace Verify
 } // namespace Security
 } // namespace OHOS

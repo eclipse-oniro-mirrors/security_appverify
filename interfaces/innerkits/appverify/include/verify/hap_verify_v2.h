@@ -33,17 +33,16 @@ public:
     int32_t Verify(const int32_t fileFd, HapVerifyResult& hapVerifyV1Result);
     int32_t ParseHapProfile(const std::string& filePath, HapVerifyResult& hapVerifyV1Result, bool readFile = false);
     int32_t ParseHapSignatureInfo(const std::string& filePath, SignatureInfo &hapSignInfo);
+    int32_t VerifyProfile(const std::string& filePath, ProvisionInfo& provisionInfo);
 
 private:
     int32_t Verify(RandomAccessFile& hapFile, HapVerifyResult& hapVerifyV1Result);
-    bool VerifyAppPkc7AndParseProfile(Pkcs7Context& pkcs7Context, HapByteBuffer& hapProfileBlock,
-        HapVerifyResult& hapVerifyV1Result);
     int32_t VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context, const HapByteBuffer& hapProfileBlock,
         HapVerifyResult& hapVerifyV1Result, bool& profileNeadWriteCrl);
     bool VerifyAppPkcs7(Pkcs7Context& pkcs7Context, const HapByteBuffer& hapSignatureBlock);
-    bool VerifyAppSource(Pkcs7Context& pkcs7Context, Pkcs7Context& profileContext);
     DLL_EXPORT bool GetDigestAndAlgorithm(Pkcs7Context& digest);
     DLL_EXPORT bool CheckFilePath(const std::string& filePath, std::string& standardFilePath);
+    bool CheckP7bPath(const std::string& filePath, std::string& standardFilePath);
     void WriteCrlIfNeed(const Pkcs7Context& pkcs7Context, const bool& profileNeedWriteCrl);
     DLL_EXPORT AppProvisionVerifyResult ParseAndVerifyProfileIfNeed(const std::string& profile,
         ProvisionInfo& provisionInfo, bool isCallParseAndVerify);
@@ -57,6 +56,7 @@ private:
     void SetProfileBlockData(const Pkcs7Context& pkcs7Context, const HapByteBuffer& hapProfileBlock,
         ProvisionInfo& provisionInfo);
     void SetOrganization(ProvisionInfo& provisionInfo);
+    bool ParseProfileFromP7b(const std::string& p7bFilePath, Pkcs7Context& pkcs7Context);
 
 private:
     static const int32_t HEX_PRINT_LENGTH;
@@ -67,6 +67,7 @@ private:
     static const std::string HAP_APP_PATTERN;
     static const std::string HQF_APP_PATTERN;
     static const std::string HSP_APP_PATTERN;
+    static const std::string P7B_PATTERN;
 };
 } // namespace Verify
 } // namespace Security

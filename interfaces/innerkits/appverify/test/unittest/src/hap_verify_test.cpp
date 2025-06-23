@@ -326,4 +326,20 @@ HWTEST_F(HapVerifyTest, StringHash001, TestSize.Level1)
     EXPECT_EQ(uuid1, uuid2);
     EXPECT_NE(uuid1, uuid3);
 }
+
+/**
+ * @tc.name: HapVerifyTest.VerifyProfile001
+ * @tc.desc: The static function will return verify result of p7b file;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyTest, VerifyProfile001, TestSize.Level1)
+{
+    ProvisionInfo provisionInfo;
+    int32_t ret = VerifyProfile("/data/test.p7b", provisionInfo);
+    EXPECT_NE(ret, VERIFY_SUCCESS);
+    ret = VerifyProfile("/data/update/ticket/verify_test.p7b", provisionInfo);
+    EXPECT_EQ(ret, VERIFY_SUCCESS);
+    ret = VerifyProfile("/data/update/ticket/verify_err.p7b", provisionInfo);
+    EXPECT_NE(ret, VERIFY_SUCCESS);
+}
 }
