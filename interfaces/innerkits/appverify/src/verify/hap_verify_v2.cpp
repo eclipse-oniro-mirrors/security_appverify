@@ -17,7 +17,10 @@
 
 #include <climits>
 #include <cstdlib>
+#include <fcntl.h>
 #include <regex>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "securec.h"
 
@@ -40,6 +43,7 @@ const int32_t HapVerifyV2::DIGEST_OFFSET_IN_CONTENT = 20;
 const std::string HapVerifyV2::HAP_APP_PATTERN = "[^]*.hap$";
 const std::string HapVerifyV2::HQF_APP_PATTERN = "[^]*.hqf$";
 const std::string HapVerifyV2::HSP_APP_PATTERN = "[^]*.hsp$";
+const std::string HapVerifyV2::P7B_PATTERN = "[^]*\\.p7b$";
 const std::string OPENHARMONY_CERT = "C=CN, O=OpenHarmony, OU=OpenHarmony Team, CN=OpenHarmony Application Root CA";
 
 int32_t HapVerifyV2::Verify(const std::string& filePath, HapVerifyResult& hapVerifyV1Result, bool readFile)
@@ -85,6 +89,26 @@ bool HapVerifyV2::CheckFilePath(const std::string& filePath, std::string& standa
             !std::regex_match(standardFilePath, std::regex(HSP_APP_PATTERN)) &&
             !std::regex_match(standardFilePath, std::regex(HQF_APP_PATTERN))) {
             HAPVERIFY_LOG_ERROR("file is not hap, hsp or hqf package");
+            return false;
+        }
+    } catch(const std::regex_error& e) {
+        HAPVERIFY_LOG_ERROR("regex match error");
+        return false;
+    }
+    return true;
+}
+
+bool HapVerifyV2::CheckP7bPath(const std::string& filePath, std::string& standardFilePath)
+{
+    char path[PATH_MAX + 1] = { 0x00 };
+    if (filePath.size() > PATH_MAX || realpath(filePath.c_str(), path) == nullptr) {
+        HAPVERIFY_LOG_ERROR("filePath is not a standard path");
+        return false;
+    }
+    standardFilePath = std::string(path);
+    try {
+        if (!std::regex_match(standardFilePath, std::regex(P7B_PATTERN))) {
+            HAPVERIFY_LOG_ERROR("file is not p7b");
             return false;
         }
     } catch(const std::regex_error& e) {
@@ -529,6 +553,63 @@ void HapVerifyV2::SetOrganization(ProvisionInfo& provisionInfo)
         return;
     }
     provisionInfo.organization = organization;
+}
+
+int32_t HapVerifyV2::VerifyProfile(const std::string& filePath, ProvisionInfo& provisionInfo)
+{
+    HAPVERIFY_LOG_INFO("start to VerifyProfile");
+    std::string standardFilePath;
+    if (!CheckP7bPath(filePath, standardFilePath)) {
+        return FILE_PATH_INVALID;
+    }
+    Pkcs7Context pkcs7Context;
+    if (!ParseProfileFromP7b(filePath, pkcs7Context)) {
+        return PROFILE_PARSE_FAIL;
+    }
+    std::string profile = std::string(pkcs7Context.content.GetBufferPtr(), pkcs7Context.content.GetCapacity());
+    if (!HapProfileVerifyUtils::VerifyProfile(pkcs7Context)) {
+        HAPVERIFY_LOG_ERROR("profile verify failed");
+        return APP_SOURCE_NOT_TRUSTED;
+    }
+    AppProvisionVerifyResult profileRet = ParseAndVerify(profile, provisionInfo);
+    if (profileRet != PROVISION_OK) {
+        HAPVERIFY_LOG_ERROR("profile parsing failed, error: %{public}d", static_cast<int>(profileRet));
+        if (profileRet == PROVISION_DEVICE_UNAUTHORIZED) {
+            return DEVICE_UNAUTHORIZED;
+        }
+        return APP_SOURCE_NOT_TRUSTED;
+    }
+    return VERIFY_SUCCESS;
+}
+
+bool HapVerifyV2::ParseProfileFromP7b(const std::string& p7bFilePath, Pkcs7Context& pkcs7Context)
+{
+    int32_t fd = open(p7bFilePath.c_str(), O_RDONLY);
+    if (fd < 0) {
+        HAPVERIFY_LOG_ERROR("open p7b file failed, path: %{public}s", p7bFilePath.c_str());
+        return false;
+    }
+    struct stat st;
+    if (fstat(fd, &st) < 0 || st.st_size <= 0) {
+        HAPVERIFY_LOG_ERROR("fstat p7b file failed, path: %{public}s", p7bFilePath.c_str());
+        close(fd);
+        return false;
+    }
+    std::vector<unsigned char> buffer(st.st_size);
+    ssize_t readSize = pread(fd, buffer.data(), st.st_size, 0);
+    if (readSize < 0 || static_cast<size_t>(readSize) != buffer.size()) {
+        HAPVERIFY_LOG_ERROR("pread p7b file failed, path: %{public}s, error: %{public}d", p7bFilePath.c_str(), errno);
+        close(fd);
+        return false;
+    }
+    close(fd);
+    const unsigned char* p7bData = buffer.data();
+    uint32_t p7bLen = static_cast<uint32_t>(buffer.size());
+    if (!HapVerifyOpensslUtils::ParsePkcs7Package(p7bData, p7bLen, pkcs7Context)) {
+        HAPVERIFY_LOG_ERROR("parse p7b failed, path: %{public}s", p7bFilePath.c_str());
+        return false;
+    }
+    return true;
 }
 } // namespace Verify
 } // namespace Security
