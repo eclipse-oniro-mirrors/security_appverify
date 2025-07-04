@@ -27,8 +27,10 @@
           "c_utils",
           "hilog",
           "init",
+          "ipc",
           "openssl",
-          "os_account"
+          "os_account",
+          "samgr"
         ],
         "third_party": [
           "bounds_checking_function",
