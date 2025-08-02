@@ -666,7 +666,7 @@ bool HapSigningBlockUtils::InitDigestPrefix(const DigestParameter& digestParam,
 
 bool HapSigningBlockUtils::HapVerifyParallelizationSupported()
 {
-    return system::GetParameter("const.appverify.hap_verify_parallel", "false") == "true";
+    return OHOS::system::GetBoolParameter("const.appverify.hap_verify_parallel", false);
 }
 } // namespace Verify
 } // namespace Security
