@@ -17,7 +17,6 @@
 
 #include <atomic>
 #include <climits>
-#include <parameter.h>
 #include <parameters.h>
 #include <thread>
 #include <vector>
