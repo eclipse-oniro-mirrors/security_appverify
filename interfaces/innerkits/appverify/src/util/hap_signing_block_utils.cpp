@@ -17,6 +17,7 @@
 
 #include <atomic>
 #include <climits>
+#include <parameters.h>
 #include <thread>
 #include <vector>
 
@@ -451,7 +452,7 @@ bool HapSigningBlockUtils::VerifyHapIntegrity(
     chunkDigest.SetCapacity(sumOfChunksLen);
     chunkDigest.PutByte(0, ZIP_FIRST_LEVEL_CHUNK_PREFIX);
     chunkDigest.PutInt32(1, chunkCount);
-    if (contentsZipSize <= SMALL_FILE_SIZE) {
+    if (!HapVerifyParallelizationSupported() || contentsZipSize <= SMALL_FILE_SIZE) {
         // No parallel for small size <= 2MB.
         int32_t offset = ZIP_CHUNK_DIGEST_PRIFIX_LEN;
         if (!ComputeDigestsForDataSourceArray(digestParam, content, ZIP_BLOCKS_NUM_NEED_DIGEST, chunkDigest, offset)) {
@@ -661,6 +662,11 @@ bool HapSigningBlockUtils::InitDigestPrefix(const DigestParameter& digestParam,
         return false;
     }
     return true;
+}
+
+bool HapSigningBlockUtils::HapVerifyParallelizationSupported()
+{
+    return OHOS::system::GetBoolParameter("const.appverify.hap_verify_parallel", false);
 }
 } // namespace Verify
 } // namespace Security

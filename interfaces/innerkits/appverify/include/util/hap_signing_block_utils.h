@@ -117,6 +117,7 @@ private:
     static bool ParseSignBlockHead(HapSignBlockHead& hapSignBlockHead, HapByteBuffer& hapBlockHead);
     static bool ParseSubSignBlockHead(HapSubSignBlockHead& subSignBlockHead, HapByteBuffer& hapBlockHead);
     static bool CheckSignBlockHead(const HapSignBlockHead& hapSignBlockHead);
+    static bool HapVerifyParallelizationSupported();
 };
 } // namespace Verify
 } // namespace Security
