@@ -31,7 +31,7 @@ using namespace OHOS::Security::Verify;
 namespace OHOS {
 namespace Security {
 namespace Verify {
-void CreateHapSubSignBlockHead(HapSubSignBlockHead& signBlob, HapSubSignBlockHead& profileBlob, 
+void CreateHapSubSignBlockHead(HapSubSignBlockHead& signBlob, HapSubSignBlockHead& profileBlob,
     HapSubSignBlockHead& propertyBlob, const int32_t fileSize)
 {
     signBlob.type = HAP_SIGN_BLOB;
@@ -53,7 +53,7 @@ long long CreatTestZipFile(const std::string& pathFile, SignatureInfo& signInfo,
     }
 
     char block[fileSize];
-    if(memset_s(block, fileSize, 0, fileSize) != 0) {
+    if (memset_s(block, fileSize, 0, fileSize) != 0) {
         return 0;
     }
     /* input contents of ZIP entries */
