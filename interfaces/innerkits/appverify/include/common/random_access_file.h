@@ -46,6 +46,7 @@ private:
     long long ReadFileFullyFromOffsetV2(char buf[], long long offset, int32_t bufCapacity);
     long long ReadFileFullyFromOffsetV2(HapByteBuffer& buffer, long long offset);
     bool ReadFileFromOffsetAndDigestUpdateV2(const DigestParameter& digestParam, int32_t chunkSize, long long offset);
+    static bool HapVerifyParallelizationSupported();
     static const int32_t FILE_OPEN_FAIL_ERROR_NUM;
     static int32_t memoryPageSize;
     int32_t fd = 0;
