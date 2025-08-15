@@ -17,6 +17,7 @@
 
 #include <cerrno>
 #include <fcntl.h>
+#include <parameters.h>
 #include <string>
 #include <sys/mman.h>
 #include <unistd.h>
@@ -178,7 +179,7 @@ long long RandomAccessFile::ReadFileFullyFromOffset(HapByteBuffer& buffer, long 
 bool RandomAccessFile::ReadFileFromOffsetAndDigestUpdate(const DigestParameter& digestParam,
     int32_t chunkSize, long long offset)
 {
-    if (readFile_) {
+    if (readFile_ || HapVerifyParallelizationSupported()) {
         return ReadFileFromOffsetAndDigestUpdateV2(digestParam, chunkSize, offset);
     }
     MmapInfo mmapInfo;
@@ -263,6 +264,11 @@ bool RandomAccessFile::ReadFileFromOffsetAndDigestUpdateV2(const DigestParameter
     bool res = HapVerifyOpensslUtils::DigestUpdate(digestParam, buffer, bytesRead);
     delete[] buffer;
     return res;
+}
+
+bool RandomAccessFile::HapVerifyParallelizationSupported()
+{
+    return OHOS::system::GetBoolParameter("const.appverify.hap_verify_parallel", false);
 }
 } // namespace Verify
 } // namespace Security
