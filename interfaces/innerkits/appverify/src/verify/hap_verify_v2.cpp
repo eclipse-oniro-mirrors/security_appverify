@@ -44,6 +44,7 @@ const std::string HapVerifyV2::HAP_APP_PATTERN = "[^]*.hap$";
 const std::string HapVerifyV2::HQF_APP_PATTERN = "[^]*.hqf$";
 const std::string HapVerifyV2::HSP_APP_PATTERN = "[^]*.hsp$";
 const std::string HapVerifyV2::P7B_PATTERN = "[^]*\\.p7b$";
+const std::string HapVerifyV2::APP_PATTERN = "[^]*.app$";
 const std::string OPENHARMONY_CERT = "C=CN, O=OpenHarmony, OU=OpenHarmony Team, CN=OpenHarmony Application Root CA";
 
 int32_t HapVerifyV2::Verify(const std::string& filePath, HapVerifyResult& hapVerifyV1Result, bool readFile)
@@ -87,8 +88,9 @@ bool HapVerifyV2::CheckFilePath(const std::string& filePath, std::string& standa
     try {
         if (!std::regex_match(standardFilePath, std::regex(HAP_APP_PATTERN)) &&
             !std::regex_match(standardFilePath, std::regex(HSP_APP_PATTERN)) &&
-            !std::regex_match(standardFilePath, std::regex(HQF_APP_PATTERN))) {
-            HAPVERIFY_LOG_ERROR("file is not hap, hsp or hqf package");
+            !std::regex_match(standardFilePath, std::regex(HQF_APP_PATTERN)) &&
+            !std::regex_match(standardFilePath, std::regex(APP_PATTERN))) {
+            HAPVERIFY_LOG_ERROR("file is not hap, hsp, hqf or app package");
             return false;
         }
     } catch(const std::regex_error& e) {
