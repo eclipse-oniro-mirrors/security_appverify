@@ -82,7 +82,7 @@ HWTEST_F(HapVerifyTest, HapVerify001, TestSize.Level0)
      * @tc.expected: step1. the return will be FILE_PATH_INVALID.
      */
     HapVerifyResult hapVerifyResult;
-    std::string errorFile = "./signed_test.app";
+    std::string errorFile = "./signed_test.ha";
     int32_t resultCode = HapVerify(errorFile, hapVerifyResult);
     HapVerifyResultCode targetResult = FILE_PATH_INVALID;
     ASSERT_TRUE(resultCode == targetResult);

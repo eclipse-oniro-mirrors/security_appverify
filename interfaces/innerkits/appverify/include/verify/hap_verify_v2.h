@@ -68,6 +68,7 @@ private:
     static const std::string HQF_APP_PATTERN;
     static const std::string HSP_APP_PATTERN;
     static const std::string P7B_PATTERN;
+    static const std::string APP_PATTERN;
 };
 } // namespace Verify
 } // namespace Security
