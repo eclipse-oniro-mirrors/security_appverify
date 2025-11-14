@@ -24,6 +24,42 @@ namespace Verify {
 const int32_t HapByteBuffer::MAX_PRINT_LENGTH = 200;
 const int32_t HapByteBuffer::HEX_PRINT_LENGTH = 3;
 
+static void LogTwoBuffersHex(const char* buffer, const char* otherBuffer, int32_t length, bool errorLevel)
+{
+    if (buffer == nullptr || otherBuffer == nullptr || length <= 0) {
+        HAPVERIFY_LOG_ERROR("LogTwoBuffersHex invalid input");
+        return;
+    }
+    constexpr int32_t kHexPrintLen = 3; // "%02X" (+ null) -> 3
+    std::string selfHex;
+    std::string otherHex;
+    selfHex.reserve(static_cast<size_t>(length) * kHexPrintLen + 1);
+    otherHex.reserve(static_cast<size_t>(length) * kHexPrintLen + 1);
+    for (int32_t j = 0; j < length; j++) {
+        char byteStr[kHexPrintLen + 1] = {0}; // "FF" -> 2 chars (+1 for '\0')
+        if (sprintf_s(byteStr, sizeof(byteStr), "%02X", static_cast<unsigned char>(buffer[j])) < 0) {
+            continue;
+        }
+        selfHex.append(byteStr);
+        selfHex.push_back(' ');
+    }
+    for (int32_t j = 0; j < length; j++) {
+        char byteStr[kHexPrintLen + 1] = {0};
+        if (sprintf_s(byteStr, sizeof(byteStr), "%02X", static_cast<unsigned char>(otherBuffer[j])) < 0) {
+            continue;
+        }
+        otherHex.append(byteStr);
+        otherHex.push_back(' ');
+    }
+    if (errorLevel) {
+        HAPVERIFY_LOG_ERROR("self buffer(hex, len=%{public}d): %{public}s", length, selfHex.c_str());
+        HAPVERIFY_LOG_ERROR("other buffer(hex, len=%{public}d): %{public}s", length, otherHex.c_str());
+    } else {
+        HAPVERIFY_LOG_DEBUG("self buffer(hex, len=%{public}d): %{public}s", length, selfHex.c_str());
+        HAPVERIFY_LOG_DEBUG("other buffer(hex, len=%{public}d): %{public}s", length, otherHex.c_str());
+    }
+}
+
 HapByteBuffer::HapByteBuffer() : buffer(nullptr), position(0), limit(0), capacity(0)
 {
 }
@@ -299,9 +335,11 @@ bool HapByteBuffer::IsEqual(const HapByteBuffer& other)
         if (buffer[i] != otherBuffer[i]) {
             HAPVERIFY_LOG_ERROR("diff value[%{public}d]: %{public}x %{public}x",
                 i, buffer[i], otherBuffer[i]);
+            LogTwoBuffersHex(buffer.get(), otherBuffer, capacity, true);
             return false;
         }
     }
+    LogTwoBuffersHex(buffer.get(), otherBuffer, capacity, false);
     return true;
 }
 
