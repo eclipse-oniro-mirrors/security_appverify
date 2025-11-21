@@ -76,6 +76,7 @@ public:
     DLL_EXPORT std::vector<std::string> GetSignature() const;
     void SetPublicKey(const std::vector<std::string>& inputPubkeys);
     void SetSignature(const std::vector<std::string>& inputSignatures);
+    DLL_EXPORT std::string GetDeveloperCert();
 
 private:
     DLL_EXPORT int32_t GetBlockFromOptionalBlocks(int32_t blockType, std::string& block) const;
