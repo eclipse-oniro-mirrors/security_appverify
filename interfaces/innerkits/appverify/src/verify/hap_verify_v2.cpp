@@ -199,6 +199,8 @@ int32_t HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context,
     HAPVERIFY_LOG_DEBUG("App signature subject: %{private}s, issuer: %{public}s",
         certSubject.c_str(), pkcs7Context.certIssuer.c_str());
 
+    ProvisionInfo provisionInfo;
+    provisionInfo.developerCert = certSubject;
     TrustedSourceManager& trustedSourceManager = TrustedSourceManager::GetInstance();
     pkcs7Context.matchResult = trustedSourceManager.IsTrustedSource(certSubject, pkcs7Context.certIssuer,
         HAP_SIGN_BLOB, pkcs7Context.certChains[0].size());
@@ -227,7 +229,7 @@ int32_t HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context,
      * If profile is release, do not allow installation of this app.
      */
     bool isCallParseAndVerify = false;
-    ProvisionInfo provisionInfo;
+    
     if (pkcs7Context.matchResult.matchState == DO_NOT_MATCH) {
         if (!HapProfileVerifyUtils::VerifyProfile(profileContext)) {
             HAPVERIFY_LOG_ERROR("profile verify failed");

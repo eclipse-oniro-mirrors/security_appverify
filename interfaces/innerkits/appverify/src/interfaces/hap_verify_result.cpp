@@ -16,6 +16,7 @@
 #include "interfaces/hap_verify_result.h"
 
 #include "util/hap_signing_block_utils.h"
+#include "common/hap_verify_log.h"
 
 namespace OHOS {
 namespace Security {
@@ -100,6 +101,13 @@ void HapVerifyResult::SetProvisionInfo(const ProvisionInfo &info)
 ProvisionInfo HapVerifyResult::GetProvisionInfo() const
 {
     return provisionInfo;
+}
+
+std::string HapVerifyResult::GetDeveloperCert()
+{
+    HAPVERIFY_LOG_INFO("App signature subject: %{private}s",
+        provisionInfo.developerCert.c_str());
+    return provisionInfo.developerCert;
 }
 } // namespace Verify
 } // namespace Security
