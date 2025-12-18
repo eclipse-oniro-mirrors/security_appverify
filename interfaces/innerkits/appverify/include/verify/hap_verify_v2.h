@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,17 +29,19 @@ namespace Security {
 namespace Verify {
 class HapVerifyV2 {
 public:
-    int32_t Verify(const std::string& filePath, HapVerifyResult& hapVerifyV1Result, bool readFile = false);
+    int32_t Verify(const std::string& filePath, HapVerifyResult& hapVerifyV1Result,
+        bool readFile = false, const std::string& localCertDir = "");
     int32_t Verify(const int32_t fileFd, HapVerifyResult& hapVerifyV1Result);
     int32_t ParseHapProfile(const std::string& filePath, HapVerifyResult& hapVerifyV1Result, bool readFile = false);
     int32_t ParseHapSignatureInfo(const std::string& filePath, SignatureInfo &hapSignInfo);
     int32_t VerifyProfile(const std::string& filePath, ProvisionInfo& provisionInfo);
 
 private:
-    int32_t Verify(RandomAccessFile& hapFile, HapVerifyResult& hapVerifyV1Result);
+    int32_t Verify(RandomAccessFile& hapFile, const std::string& localCertDir,
+        HapVerifyResult& hapVerifyV1Result);
     int32_t VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context, const HapByteBuffer& hapProfileBlock,
-        HapVerifyResult& hapVerifyV1Result, bool& profileNeadWriteCrl);
-    bool VerifyAppPkcs7(Pkcs7Context& pkcs7Context, const HapByteBuffer& hapSignatureBlock);
+        const std::string& localCertDir, HapVerifyResult& hapVerifyV1Result, bool& profileNeadWriteCrl);
+    int32_t VerifyAppPkcs7(Pkcs7Context& pkcs7Context, const HapByteBuffer& hapSignatureBlock);
     DLL_EXPORT bool GetDigestAndAlgorithm(Pkcs7Context& digest);
     DLL_EXPORT bool CheckFilePath(const std::string& filePath, std::string& standardFilePath);
     bool CheckP7bPath(const std::string& filePath, std::string& standardFilePath);
@@ -47,8 +49,8 @@ private:
     DLL_EXPORT AppProvisionVerifyResult ParseAndVerifyProfileIfNeed(const std::string& profile,
         ProvisionInfo& provisionInfo, bool isCallParseAndVerify);
     bool IsAppDistributedTypeAllowInstall(const AppDistType& type, const ProvisionInfo& provisionInfo) const;
-    DLL_EXPORT bool VerifyProfileInfo(const Pkcs7Context& pkcs7Context, const Pkcs7Context& profileContext,
-        ProvisionInfo& provisionInfo);
+    DLL_EXPORT int32_t VerifyProfileInfo(const Pkcs7Context& pkcs7Context, const Pkcs7Context& profileContext,
+        const std::string& localCertDir, ProvisionInfo& provisionInfo);
     bool CheckProfileSignatureIsRight(const MatchingStates& matchState, const ProvisionType& type);
     DLL_EXPORT bool GenerateAppId(ProvisionInfo& provisionInfo);
     DLL_EXPORT bool GenerateFingerprint(ProvisionInfo& provisionInfo);

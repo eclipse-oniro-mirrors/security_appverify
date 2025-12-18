@@ -167,7 +167,7 @@ bool VerifyTicketSignature(HapByteBuffer& ticketBlock, Pkcs7Context& pkcs7Contex
     }
     ticket = std::string(pkcs7Context.content.GetBufferPtr(), pkcs7Context.content.GetCapacity());
 
-    if (!HapVerifyOpensslUtils::GetCertChains(pkcs7Context.p7, pkcs7Context)) {
+    if (HapVerifyOpensslUtils::GetCertChains(pkcs7Context.p7, pkcs7Context) != VERIFY_SUCCESS) {
         HAPVERIFY_LOG_ERROR("GetCertChains from ticket pkcs7 failed");
         return false;
     }

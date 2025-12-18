@@ -51,7 +51,7 @@ class HapVerifyOpensslUtils {
 public:
     DLL_EXPORT static bool ParsePkcs7Package(const unsigned char packageData[],
         uint32_t packageLen, Pkcs7Context& pkcs7Context);
-    DLL_EXPORT static bool GetCertChains(PKCS7* p7, Pkcs7Context& pkcs7Context);
+    DLL_EXPORT static int32_t GetCertChains(PKCS7* p7, Pkcs7Context& pkcs7Context);
     DLL_EXPORT static bool VerifyPkcs7(Pkcs7Context& pkcs7Context);
     DLL_EXPORT static bool GetPublickeys(const CertChain& signCertChain, std::vector<std::string>& SignatureVec);
     DLL_EXPORT static bool GetSignatures(const CertChain& signCertChain, std::vector<std::string>& SignatureVec);
@@ -73,7 +73,7 @@ private:
     static bool VerifyShaWithRsaPss(const PKCS7_SIGNER_INFO* signInfo, BIO* p7Bio, EVP_PKEY* pkey, bool isPss);
     DLL_EXPORT static bool VerifyShaWithRsaPss(const PKCS7_SIGNER_INFO* signInfo, EVP_PKEY* pkey, bool isPss,
         const unsigned char digest[], uint32_t digestLen);
-    static bool VerifyCertChain(CertChain& certsChain, PKCS7* p7, PKCS7_SIGNER_INFO* signInfo,
+    static int32_t VerifyCertChain(CertChain& certsChain, PKCS7* p7, PKCS7_SIGNER_INFO* signInfo,
         Pkcs7Context& pkcs7Context, CertSign& certVisitSign);
     static bool IsEnablePss(const PKCS7_SIGNER_INFO* signInfo);
     static bool GetContentInfo(const PKCS7* p7ContentInfo, HapByteBuffer& content);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,6 +31,7 @@
 #include "util/hap_profile_verify_utils.h"
 #include "util/hap_signing_block_utils.h"
 #include "util/signature_info.h"
+#include "verify/enterprise_resign_mgr.h"
 
 namespace OHOS {
 namespace Security {
@@ -47,7 +48,8 @@ const std::string HapVerifyV2::P7B_PATTERN = "[^]*\\.p7b$";
 const std::string HapVerifyV2::APP_PATTERN = "[^]*.app$";
 const std::string OPENHARMONY_CERT = "C=CN, O=OpenHarmony, OU=OpenHarmony Team, CN=OpenHarmony Application Root CA";
 
-int32_t HapVerifyV2::Verify(const std::string& filePath, HapVerifyResult& hapVerifyV1Result, bool readFile)
+int32_t HapVerifyV2::Verify(const std::string& filePath, HapVerifyResult& hapVerifyV1Result,
+    bool readFile, const std::string& localCertDir)
 {
     HAPVERIFY_LOG_DEBUG("Start Verify");
     std::string standardFilePath;
@@ -61,7 +63,7 @@ int32_t HapVerifyV2::Verify(const std::string& filePath, HapVerifyResult& hapVer
         return OPEN_FILE_ERROR;
     }
 
-    int32_t resultCode = Verify(hapFile, hapVerifyV1Result);
+    int32_t resultCode = Verify(hapFile, localCertDir, hapVerifyV1Result);
     return resultCode;
 }
 
@@ -74,7 +76,7 @@ int32_t HapVerifyV2::Verify(const int32_t fileFd, HapVerifyResult& hapVerifyV1Re
         return OPEN_FILE_ERROR;
     }
 
-    return Verify(hapFile, hapVerifyV1Result);
+    return Verify(hapFile, "", hapVerifyV1Result);
 }
 
 bool HapVerifyV2::CheckFilePath(const std::string& filePath, std::string& standardFilePath)
@@ -120,7 +122,8 @@ bool HapVerifyV2::CheckP7bPath(const std::string& filePath, std::string& standar
     return true;
 }
 
-int32_t HapVerifyV2::Verify(RandomAccessFile& hapFile, HapVerifyResult& hapVerifyV1Result)
+int32_t HapVerifyV2::Verify(RandomAccessFile& hapFile, const std::string& localCertDir,
+    HapVerifyResult& hapVerifyV1Result)
 {
     SignatureInfo hapSignInfo;
     if (!HapSigningBlockUtils::FindHapSignature(hapFile, hapSignInfo)) {
@@ -131,8 +134,9 @@ int32_t HapVerifyV2::Verify(RandomAccessFile& hapFile, HapVerifyResult& hapVerif
     hapVerifyV1Result.SetPkcs7ProfileBlock(hapSignInfo.hapSignatureBlock);
     hapVerifyV1Result.SetOptionalBlocks(hapSignInfo.optionBlocks);
     Pkcs7Context pkcs7Context;
-    if (!VerifyAppPkcs7(pkcs7Context, hapSignInfo.hapSignatureBlock)) {
-        return VERIFY_APP_PKCS7_FAIL;
+    int32_t verifyAppPkcs7Ret = VerifyAppPkcs7(pkcs7Context, hapSignInfo.hapSignatureBlock);
+    if (verifyAppPkcs7Ret != VERIFY_SUCCESS) {
+        return verifyAppPkcs7Ret;
     }
     int32_t profileIndex = 0;
     if (!HapSigningBlockUtils::GetOptionalBlockIndex(hapSignInfo.optionBlocks, PROFILE_BLOB, profileIndex)) {
@@ -140,7 +144,8 @@ int32_t HapVerifyV2::Verify(RandomAccessFile& hapFile, HapVerifyResult& hapVerif
     }
     bool profileNeedWriteCrl = false;
     int32_t ret = VerifyAppSourceAndParseProfile(pkcs7Context,
-        hapSignInfo.optionBlocks[profileIndex].optionalBlockValue, hapVerifyV1Result, profileNeedWriteCrl);
+        hapSignInfo.optionBlocks[profileIndex].optionalBlockValue, localCertDir,
+        hapVerifyV1Result, profileNeedWriteCrl);
     if (ret != VERIFY_SUCCESS) {
         HAPVERIFY_LOG_ERROR("APP source is not trusted");
         return ret;
@@ -169,27 +174,29 @@ int32_t HapVerifyV2::Verify(RandomAccessFile& hapFile, HapVerifyResult& hapVerif
     return VERIFY_SUCCESS;
 }
 
-bool HapVerifyV2::VerifyAppPkcs7(Pkcs7Context& pkcs7Context, const HapByteBuffer& hapSignatureBlock)
+int32_t HapVerifyV2::VerifyAppPkcs7(Pkcs7Context& pkcs7Context, const HapByteBuffer& hapSignatureBlock)
 {
     const unsigned char* pkcs7Block = reinterpret_cast<const unsigned char*>(hapSignatureBlock.GetBufferPtr());
     uint32_t pkcs7Len = static_cast<unsigned int>(hapSignatureBlock.GetCapacity());
     if (!HapVerifyOpensslUtils::ParsePkcs7Package(pkcs7Block, pkcs7Len, pkcs7Context)) {
         HAPVERIFY_LOG_ERROR("parse pkcs7 failed");
-        return false;
+        return VERIFY_APP_PKCS7_FAIL;
     }
-    if (!HapVerifyOpensslUtils::GetCertChains(pkcs7Context.p7, pkcs7Context)) {
+    int32_t ret = HapVerifyOpensslUtils::GetCertChains(pkcs7Context.p7, pkcs7Context);
+    if (ret != VERIFY_SUCCESS) {
         HAPVERIFY_LOG_ERROR("GetCertChains from pkcs7 failed");
-        return false;
+        return ret;
     }
     if (!HapVerifyOpensslUtils::VerifyPkcs7(pkcs7Context)) {
         HAPVERIFY_LOG_ERROR("verify signature failed");
-        return false;
+        return VERIFY_APP_PKCS7_FAIL;
     }
-    return true;
+    return VERIFY_SUCCESS;
 }
 
-int32_t HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context,
-    const HapByteBuffer& hapProfileBlock, HapVerifyResult& hapVerifyV1Result, bool& profileNeadWriteCrl)
+int32_t HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context, const HapByteBuffer& hapProfileBlock,
+    const std::string& localCertDir,
+    HapVerifyResult& hapVerifyV1Result, bool& profileNeadWriteCrl)
 {
     std::string certSubject;
     if (!HapCertVerifyOpensslUtils::GetSubjectFromX509(pkcs7Context.certChains[0][0], certSubject)) {
@@ -248,9 +255,11 @@ int32_t HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context,
             }
             return APP_SOURCE_NOT_TRUSTED;
         }
-        if (!VerifyProfileInfo(pkcs7Context, profileContext, provisionInfo)) {
+        int32_t verifyProfileRet = VerifyProfileInfo(pkcs7Context, profileContext,
+            localCertDir, provisionInfo);
+        if (verifyProfileRet != VERIFY_SUCCESS) {
             HAPVERIFY_LOG_ERROR("VerifyProfileInfo failed");
-            return APP_SOURCE_NOT_TRUSTED;
+            return verifyProfileRet;
         }
         isCallParseAndVerify = true;
     }
@@ -349,18 +358,18 @@ void HapVerifyV2::SetProfileBlockData(const Pkcs7Context& pkcs7Context, const Ha
     }
 }
 
-bool HapVerifyV2::VerifyProfileInfo(const Pkcs7Context& pkcs7Context, const Pkcs7Context& profileContext,
-    ProvisionInfo& provisionInfo)
+int32_t HapVerifyV2::VerifyProfileInfo(const Pkcs7Context& pkcs7Context, const Pkcs7Context& profileContext,
+    const std::string& localCertDir, ProvisionInfo& provisionInfo)
 {
     if (!CheckProfileSignatureIsRight(profileContext.matchResult.matchState, provisionInfo.type)) {
-        return false;
+        return APP_SOURCE_NOT_TRUSTED;
     }
     std::string& certInProfile = provisionInfo.bundleInfo.developmentCertificate;
     if (provisionInfo.type == ProvisionType::RELEASE) {
         if (!IsAppDistributedTypeAllowInstall(provisionInfo.distributionType, provisionInfo)) {
             HAPVERIFY_LOG_ERROR("untrusted source app with release profile distributionType: %{public}d",
                 static_cast<int>(provisionInfo.distributionType));
-            return false;
+            return APP_SOURCE_NOT_TRUSTED;
         }
         certInProfile = provisionInfo.bundleInfo.distributionCertificate;
         HAPVERIFY_LOG_DEBUG("allow install app with release profile distributionType: %{public}d",
@@ -369,9 +378,15 @@ bool HapVerifyV2::VerifyProfileInfo(const Pkcs7Context& pkcs7Context, const Pkcs
     HAPVERIFY_LOG_DEBUG("provisionInfo.type: %{public}d", static_cast<int>(provisionInfo.type));
     if (!HapCertVerifyOpensslUtils::CompareX509Cert(pkcs7Context.certChains[0][0], certInProfile)) {
         HAPVERIFY_LOG_ERROR("developed cert is not same as signed cert");
-        return false;
+        int32_t ret = EnterpriseResignMgr::Verify(pkcs7Context, provisionInfo.distributionType, localCertDir);
+        if (ret == VERIFY_SUCCESS) {
+            provisionInfo.isEnterpriseResigned = true;
+            HAPVERIFY_LOG_INFO("EnterpriseResignMgr::Verify success");
+            return VERIFY_SUCCESS;
+        }
+        return ret;
     }
-    return true;
+    return VERIFY_SUCCESS;
 }
 
 bool HapVerifyV2::IsAppDistributedTypeAllowInstall(const AppDistType& type, const ProvisionInfo& provisionInfo) const
