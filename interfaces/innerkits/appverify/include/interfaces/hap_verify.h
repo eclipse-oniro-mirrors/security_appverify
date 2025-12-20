@@ -26,7 +26,8 @@ namespace Security {
 namespace Verify {
 DLL_EXPORT bool EnableDebugMode();
 DLL_EXPORT void DisableDebugMode();
-DLL_EXPORT int32_t HapVerify(const std::string& filePath, HapVerifyResult& hapVerifyResult, bool readFile = false);
+DLL_EXPORT int32_t HapVerify(const std::string& filePath, HapVerifyResult& hapVerifyResult, bool readFile = false,
+    const std::string& localCertDir = "");
 DLL_EXPORT int32_t ParseHapProfile(const std::string& filePath, HapVerifyResult& hapVerifyV1Result,
     bool readFile = false);
 DLL_EXPORT int32_t ParseHapSignatureInfo(const std::string& filePath, SignatureInfo &hapSignInfo);

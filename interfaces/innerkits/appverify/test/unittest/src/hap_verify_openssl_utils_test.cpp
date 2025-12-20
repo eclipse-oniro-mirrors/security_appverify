@@ -121,7 +121,7 @@ HWTEST_F(HapVerifyOpensslUtilsTest, GetCertChains_0100, TestSize.Level1)
 {
     Pkcs7Context pkcs7Context;
     auto ret = HapVerifyOpensslUtils::GetCertChains(nullptr, pkcs7Context);
-    EXPECT_FALSE(ret);
+    EXPECT_NE(ret, VERIFY_SUCCESS);
 }
 
 /**

@@ -47,7 +47,7 @@ bool HapProfileVerifyUtils::ParseProfile(Pkcs7Context& profilePkcs7Context, cons
 
 bool HapProfileVerifyUtils::VerifyProfile(Pkcs7Context& pkcs7Context)
 {
-    if (!HapVerifyOpensslUtils::GetCertChains(pkcs7Context.p7, pkcs7Context)) {
+    if (HapVerifyOpensslUtils::GetCertChains(pkcs7Context.p7, pkcs7Context) != VERIFY_SUCCESS) {
         HAPVERIFY_LOG_ERROR("GetCertChains from pkcs7 failed");
         return false;
     }

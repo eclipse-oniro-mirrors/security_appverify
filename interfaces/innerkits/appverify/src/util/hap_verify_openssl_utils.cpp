@@ -67,11 +67,11 @@ bool HapVerifyOpensslUtils::ParsePkcs7Package(const unsigned char packageData[],
     return true;
 }
 
-bool HapVerifyOpensslUtils::GetCertChains(PKCS7* p7, Pkcs7Context& pkcs7Context)
+int32_t HapVerifyOpensslUtils::GetCertChains(PKCS7* p7, Pkcs7Context& pkcs7Context)
 {
     if (!CheckPkcs7SignedDataIsValid(p7)) {
         HAPVERIFY_LOG_ERROR("p7 is invalid");
-        return false;
+        return VERIFY_APP_PKCS7_FAIL;
     }
 
     CertSign certVisitSign;
@@ -81,12 +81,12 @@ bool HapVerifyOpensslUtils::GetCertChains(PKCS7* p7, Pkcs7Context& pkcs7Context)
     if (signerInfoStack == nullptr) {
         HAPVERIFY_LOG_ERROR("get signerInfoStack error");
         GetOpensslErrorMessage();
-        return false;
+        return VERIFY_APP_PKCS7_FAIL;
     }
     int32_t signCount = sk_PKCS7_SIGNER_INFO_num(signerInfoStack);
     if (signCount <= 0) {
         HAPVERIFY_LOG_ERROR("can not find signinfo");
-        return false;
+        return VERIFY_APP_PKCS7_FAIL;
     }
 
     for (int32_t i = 0; i < signCount; i++) {
@@ -94,44 +94,45 @@ bool HapVerifyOpensslUtils::GetCertChains(PKCS7* p7, Pkcs7Context& pkcs7Context)
         PKCS7_SIGNER_INFO* signInfo = sk_PKCS7_SIGNER_INFO_value(signerInfoStack, i);
         if (signInfo == nullptr) {
             HAPVERIFY_LOG_ERROR("signInfo %{public}dst is nullptr", i);
-            return false;
+            return VERIFY_APP_PKCS7_FAIL;
         }
         /* GET X509 certificate */
         X509* cert = PKCS7_cert_from_signer_info(p7, signInfo);
         if (cert == nullptr) {
             HAPVERIFY_LOG_ERROR("get cert for %{public}dst signInfo failed", i);
-            return false;
+            return VERIFY_APP_PKCS7_FAIL;
         }
         CertChain certChain;
         pkcs7Context.certChains.push_back(certChain);
         pkcs7Context.certChains[i].push_back(X509_dup(cert));
         HapCertVerifyOpensslUtils::ClearCertVisitSign(certVisitSign);
         certVisitSign[cert] = true;
-        if (!VerifyCertChain(pkcs7Context.certChains[i], p7, signInfo, pkcs7Context, certVisitSign)) {
+        int32_t ret = VerifyCertChain(pkcs7Context.certChains[i], p7, signInfo, pkcs7Context, certVisitSign);
+        if (ret != VERIFY_SUCCESS) {
             HAPVERIFY_LOG_ERROR("verify %{public}dst certchain failed", i);
-            return false;
+            return ret;
         }
     }
-    return true;
+    return VERIFY_SUCCESS;
 }
 
-bool HapVerifyOpensslUtils::VerifyCertChain(CertChain& certsChain, PKCS7* p7,
+int32_t HapVerifyOpensslUtils::VerifyCertChain(CertChain& certsChain, PKCS7* p7,
     PKCS7_SIGNER_INFO* signInfo, Pkcs7Context& pkcs7Context, CertSign& certVisitSign)
 {
     if (!HapCertVerifyOpensslUtils::GetCertsChain(certsChain, certVisitSign, pkcs7Context)) {
         HAPVERIFY_LOG_ERROR("get cert chain for signInfo failed");
-        return false;
+        return VERIFY_APP_PKCS7_FAIL;
     }
     ASN1_TYPE* signTime = PKCS7_get_signed_attribute(signInfo, NID_pkcs9_signingTime);
     if (!HapCertVerifyOpensslUtils::VerifyCertChainPeriodOfValidity(certsChain, signTime)) {
         HAPVERIFY_LOG_ERROR("VerifyCertChainPeriodOfValidity for signInfo failed");
-        return false;
+        return CERTIFICATE_EXPIRED;
     }
     if (!HapCertVerifyOpensslUtils::VerifyCrl(certsChain, p7->d.sign->crl, pkcs7Context)) {
         HAPVERIFY_LOG_ERROR("VerifyCrl for signInfo failed");
-        return false;
+        return VERIFY_APP_PKCS7_FAIL;
     }
-    return true;
+    return VERIFY_SUCCESS;
 }
 
 bool HapVerifyOpensslUtils::CheckPkcs7SignedDataIsValid(const PKCS7* p7)

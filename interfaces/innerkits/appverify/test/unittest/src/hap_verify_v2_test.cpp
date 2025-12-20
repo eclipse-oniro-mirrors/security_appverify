@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -187,7 +187,7 @@ HWTEST_F(HapVerifyV2Test, VerifyProfileInfoTest001, TestSize.Level1)
 {
     /*
      * @tc.steps: step1. profile match with debug and profile type is release.
-     * @tc.expected: step1. the return will be false.
+     * @tc.expected: step1. the return will not be VERIFY_SUCCESS.
      */
     HapVerifyV2 v2;
     Pkcs7Context pkcs7Context;
@@ -195,10 +195,10 @@ HWTEST_F(HapVerifyV2Test, VerifyProfileInfoTest001, TestSize.Level1)
     ProvisionInfo provisionInfo;
     profileContext.matchResult.matchState = MATCH_WITH_PROFILE_DEBUG;
     provisionInfo.type = ProvisionType::RELEASE;
-    ASSERT_FALSE(v2.VerifyProfileInfo(pkcs7Context, profileContext, provisionInfo));
+    ASSERT_NE(v2.VerifyProfileInfo(pkcs7Context, profileContext, "", provisionInfo), VERIFY_SUCCESS);
     /*
      * @tc.steps: step2. profile debug cert is null.
-     * @tc.expected: step2. the return will be false.
+     * @tc.expected: step2. the return will not be VERIFY_SUCCESS.
      */
     provisionInfo.type = ProvisionType::DEBUG;
     CertChain test;
@@ -206,21 +206,21 @@ HWTEST_F(HapVerifyV2Test, VerifyProfileInfoTest001, TestSize.Level1)
     X509* certX509 = HapCertVerifyOpensslUtils::GetX509CertFromPemString(ECC_TEST_CERT);
     ASSERT_TRUE(certX509 != nullptr);
     pkcs7Context.certChains[0].push_back(certX509);
-    ASSERT_FALSE(v2.VerifyProfileInfo(pkcs7Context, profileContext, provisionInfo));
+    ASSERT_NE(v2.VerifyProfileInfo(pkcs7Context, profileContext, "", provisionInfo), VERIFY_SUCCESS);
     /*
      * @tc.steps: step3. app distributed type is NONE_TYPE.
-     * @tc.expected: step3. the return will be false.
+     * @tc.expected: step3. the return will not be VERIFY_SUCCESS.
      */
     profileContext.matchResult.matchState = MATCH_WITH_PROFILE;
     provisionInfo.type = ProvisionType::RELEASE;
     provisionInfo.distributionType = AppDistType::NONE_TYPE;
-    ASSERT_FALSE(v2.VerifyProfileInfo(pkcs7Context, profileContext, provisionInfo));
+    ASSERT_NE(v2.VerifyProfileInfo(pkcs7Context, profileContext, "", provisionInfo), VERIFY_SUCCESS);
     /*
      * @tc.steps: step4. profile distributed cert is null.
-     * @tc.expected: step4. the return will be false.
+     * @tc.expected: step4. the return will not be VERIFY_SUCCESS.
      */
     provisionInfo.distributionType = AppDistType::ENTERPRISE;
-    ASSERT_FALSE(v2.VerifyProfileInfo(pkcs7Context, profileContext, provisionInfo));
+    ASSERT_NE(v2.VerifyProfileInfo(pkcs7Context, profileContext, "", provisionInfo), VERIFY_SUCCESS);
     X509_free(certX509);
 }
 
