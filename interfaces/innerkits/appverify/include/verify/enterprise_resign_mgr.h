@@ -40,6 +40,7 @@ public:
 private:
     static std::vector<std::vector<X509UniquePtr>> GetCertChains(const std::string& localCertDir);
     static std::vector<std::vector<unsigned char>> LoadPemFiles(const std::string& dir);
+    static std::vector<X509UniquePtr> ParsePemToCertChain(const std::vector<unsigned char>& pem);
     static bool IsCerExtension(const std::filesystem::path& path);
     static std::vector<unsigned char> ReadFileToBuffer(const std::string& path);
     static bool IsSameCertChain(const std::vector<X509UniquePtr>& localCertChain,

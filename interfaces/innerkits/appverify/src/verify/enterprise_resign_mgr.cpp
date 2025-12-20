@@ -34,7 +34,8 @@ namespace OHOS {
 namespace Security {
 namespace Verify {
 namespace {
-constexpr const char* ENTERPRISE_RESIGN_ISSUER = "C=CN, O=Huawei, OU=Huawei CBG, CN=Huawei CBG Developer Relations CA G2";
+constexpr const char* ENTERPRISE_RESIGN_ISSUER =
+    "C=CN, O=Huawei, OU=Huawei CBG, CN=Huawei CBG Developer Relations CA G2";
 constexpr const char* ENTERPRISE_RESIGN_OID = "1.3.6.1.4.1.2011.2.376.1.9";
 constexpr const char* IS_ENTERPRISE_DEVICE = "const.edm.is_enterprise_device";
 constexpr size_t ENTERPRISE_RESIGN_CERT_CHAIN_SIZE = 3;
@@ -81,39 +82,8 @@ std::vector<std::vector<X509UniquePtr>> EnterpriseResignMgr::GetCertChains(const
         return {};
     }
     std::vector<std::vector<X509UniquePtr>> certChains;
-    for (size_t i = 0; i < pemVector.size(); ++i) {
-        const std::vector<unsigned char>& pem = pemVector[i];
-        if (pem.empty()) {
-            HAPVERIFY_LOG_WARN("pem empty");
-            continue;
-        }
-        if (pem.size() > static_cast<size_t>(INT_MAX)) {
-            HAPVERIFY_LOG_WARN("pem too large");
-            continue;
-        }
-        std::unique_ptr<BIO, decltype(&BIO_free)> bio(
-            BIO_new_mem_buf(pem.data(), static_cast<int>(pem.size())), BIO_free);
-        if (bio == nullptr) {
-            HAPVERIFY_LOG_WARN("bio is null");
-            continue;
-        }
-        std::vector<X509UniquePtr> chain;
-        ERR_clear_error();
-        while (true) {
-            X509* raw = PEM_read_bio_X509(bio.get(), nullptr, nullptr, nullptr);
-            if (raw == nullptr) {
-                const unsigned long err = ERR_peek_last_error();
-                if (err == 0 || ERR_GET_REASON(err) == PEM_R_NO_START_LINE) {
-                    ERR_clear_error();
-                    break;
-                }
-                HAPVERIFY_LOG_WARN("parse pem failed, opensslErr=%{public}lu", err);
-                ERR_clear_error();
-                chain.clear();
-                break;
-            }
-            chain.emplace_back(X509UniquePtr(raw, X509_free));
-        }
+    for (const auto& pem : pemVector) {
+        std::vector<X509UniquePtr> chain = ParsePemToCertChain(pem);
         if (chain.size() != ENTERPRISE_RESIGN_CERT_CHAIN_SIZE) {
             HAPVERIFY_LOG_WARN("invalid cert chain size:%{public}zu", chain.size());
             continue;
@@ -160,6 +130,42 @@ std::vector<std::vector<unsigned char>> EnterpriseResignMgr::LoadPemFiles(const 
         pemVector.emplace_back(std::move(pemContent));
     }
     return pemVector;
+}
+
+std::vector<X509UniquePtr> EnterpriseResignMgr::ParsePemToCertChain(const std::vector<unsigned char>& pem)
+{
+    if (pem.empty()) {
+        HAPVERIFY_LOG_WARN("pem empty");
+        return {};
+    }
+    if (pem.size() > static_cast<size_t>(INT_MAX)) {
+        HAPVERIFY_LOG_WARN("pem too large");
+        return {};
+    }
+    std::unique_ptr<BIO, decltype(&BIO_free)> bio(
+        BIO_new_mem_buf(pem.data(), static_cast<int>(pem.size())), BIO_free);
+    if (bio == nullptr) {
+        HAPVERIFY_LOG_WARN("bio is null");
+        return {};
+    }
+    std::vector<X509UniquePtr> chain;
+    ERR_clear_error();
+    while (true) {
+        X509* raw = PEM_read_bio_X509(bio.get(), nullptr, nullptr, nullptr);
+        if (raw == nullptr) {
+            const unsigned long err = ERR_peek_last_error();
+            if (err == 0 || ERR_GET_REASON(err) == PEM_R_NO_START_LINE) {
+                ERR_clear_error();
+                break;
+            }
+            HAPVERIFY_LOG_WARN("parse pem failed, opensslErr=%{public}lu", err);
+            ERR_clear_error();
+            chain.clear();
+            break;
+        }
+        chain.emplace_back(X509UniquePtr(raw, X509_free));
+    }
+    return chain;
 }
 
 bool EnterpriseResignMgr::IsCerExtension(const std::filesystem::path& path)
