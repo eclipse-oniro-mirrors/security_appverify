@@ -102,13 +102,6 @@ ProvisionInfo HapVerifyResult::GetProvisionInfo() const
 {
     return provisionInfo;
 }
-
-std::string HapVerifyResult::GetDeveloperCert()
-{
-    HAPVERIFY_LOG_INFO("App signature subject: %{private}s",
-        provisionInfo.developerCert.c_str());
-    return provisionInfo.developerCert;
-}
 } // namespace Verify
 } // namespace Security
 } // namespace OHOS
