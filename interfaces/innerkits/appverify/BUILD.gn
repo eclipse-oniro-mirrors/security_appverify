@@ -72,6 +72,7 @@ if (os_level == "standard") {
       "cJSON:cjson",
       "c_utils:utils",
       "openssl:libcrypto_shared",
+      "bounds_checking_function:libsec_shared",
     ]
 
     defines = []
