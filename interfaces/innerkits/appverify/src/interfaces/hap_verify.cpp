@@ -149,6 +149,16 @@ int32_t VerifyProfile(const std::string& filePath, ProvisionInfo& provisionInfo)
     HapVerifyV2 hapVerifyV2;
     return hapVerifyV2.VerifyProfile(filePath, provisionInfo);
 }
+
+int32_t VerifyProfileByP7bBlock(const uint32_t p7bBlockLength,
+    const unsigned char *p7bBlock, bool needParseProvision, ProvisionInfo &provisionInfo)
+{
+    if (!g_isInit && !HapVerifyInit()) {
+        return VERIFY_SOURCE_INIT_FAIL;
+    }
+    HapVerifyV2 hapVerifyV2;
+    return hapVerifyV2.VerifyProfileByP7bBlock(p7bBlockLength, p7bBlock, needParseProvision, provisionInfo);
+}
 } // namespace Verify
 } // namespace Security
 } // namespace OHOS
