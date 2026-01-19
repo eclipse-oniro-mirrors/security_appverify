@@ -630,6 +630,33 @@ bool HapVerifyV2::ParseProfileFromP7b(const std::string& p7bFilePath, Pkcs7Conte
     }
     return true;
 }
+
+int32_t HapVerifyV2::VerifyProfileByP7bBlock(const uint32_t p7bBlockLength,
+    const unsigned char *p7bBlock, bool needParseProvision, ProvisionInfo &provisionInfo)
+{
+    HAPVERIFY_LOG_INFO("start to VerifyProfile by p7b block");
+    Pkcs7Context pkcs7Context;
+    if (!HapVerifyOpensslUtils::ParsePkcs7Package(p7bBlock, p7bBlockLength, pkcs7Context)) {
+        HAPVERIFY_LOG_ERROR("parse p7b failed");
+        return PROFILE_PARSE_FAIL;
+    }
+    if (!HapProfileVerifyUtils::VerifyProfile(pkcs7Context)) {
+        HAPVERIFY_LOG_ERROR("profile verify failed");
+        return APP_SOURCE_NOT_TRUSTED;
+    }
+    if (needParseProvision) {
+        std::string profile = std::string(pkcs7Context.content.GetBufferPtr(), pkcs7Context.content.GetCapacity());
+        AppProvisionVerifyResult profileRet = ParseAndVerify(profile, provisionInfo);
+        if (profileRet != PROVISION_OK) {
+            HAPVERIFY_LOG_ERROR("profile parsing failed, error: %{public}d", static_cast<int>(profileRet));
+            if (profileRet == PROVISION_DEVICE_UNAUTHORIZED) {
+                return DEVICE_UNAUTHORIZED;
+            }
+            return APP_SOURCE_NOT_TRUSTED;
+        }
+    }
+    return VERIFY_SUCCESS;
+}
 } // namespace Verify
 } // namespace Security
 } // namespace OHOS

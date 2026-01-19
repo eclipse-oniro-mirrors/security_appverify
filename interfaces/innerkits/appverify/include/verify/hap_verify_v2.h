@@ -35,6 +35,8 @@ public:
     int32_t ParseHapProfile(const std::string& filePath, HapVerifyResult& hapVerifyV1Result, bool readFile = false);
     int32_t ParseHapSignatureInfo(const std::string& filePath, SignatureInfo &hapSignInfo);
     int32_t VerifyProfile(const std::string& filePath, ProvisionInfo& provisionInfo);
+    int32_t VerifyProfileByP7bBlock(const uint32_t p7bBlockLength,
+        const unsigned char *p7bBlock, bool needParseProvision, ProvisionInfo &provisionInfo);
 
 private:
     int32_t Verify(RandomAccessFile& hapFile, const std::string& localCertDir,

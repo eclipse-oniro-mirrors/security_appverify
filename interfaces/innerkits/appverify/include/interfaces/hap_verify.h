@@ -36,6 +36,8 @@ extern "C" DLL_EXPORT int32_t ParseBundleNameAndAppIdentifier(const int32_t file
 DLL_EXPORT void SetDevMode(DevMode devMode);
 DLL_EXPORT std::string GenerateUuidByKey(const std::string &key);
 DLL_EXPORT int32_t VerifyProfile(const std::string& filePath, ProvisionInfo& provisionInfo);
+DLL_EXPORT int32_t VerifyProfileByP7bBlock(const uint32_t p7bBlockLength,
+    const unsigned char *p7bBlock, bool needParseProvision, ProvisionInfo &provisionInfo);
 } // namespace Verify
 } // namespace Security
 } // namespace OHOS
