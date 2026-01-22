@@ -646,13 +646,10 @@ int32_t HapVerifyV2::VerifyProfileByP7bBlock(const uint32_t p7bBlockLength,
     }
     if (needParseProvision) {
         std::string profile = std::string(pkcs7Context.content.GetBufferPtr(), pkcs7Context.content.GetCapacity());
-        AppProvisionVerifyResult profileRet = ParseAndVerify(profile, provisionInfo);
+        AppProvisionVerifyResult profileRet = ParseProvision(profile, provisionInfo);
         if (profileRet != PROVISION_OK) {
-            HAPVERIFY_LOG_ERROR("profile parsing failed, error: %{public}d", static_cast<int>(profileRet));
-            if (profileRet == PROVISION_DEVICE_UNAUTHORIZED) {
-                return DEVICE_UNAUTHORIZED;
-            }
-            return APP_SOURCE_NOT_TRUSTED;
+            HAPVERIFY_LOG_ERROR("profile parsing failed, error: %{public}d", static_cast<int32_t>(profileRet));
+            return profileRet;
         }
     }
     return VERIFY_SUCCESS;

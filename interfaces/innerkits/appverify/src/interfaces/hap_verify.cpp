@@ -16,6 +16,7 @@
 #include "interfaces/hap_verify.h"
 
 #include <mutex>
+#include "parameters.h"
 
 #include "common/hap_verify_log.h"
 #include "init/device_type_manager.h"
@@ -32,6 +33,8 @@ namespace Security {
 namespace Verify {
 static std::mutex g_mtx;
 static bool g_isInit = false;
+const char* ENABLE_DEBUG_MODE_PARMA = "param.bms.test.enable_debug_mode";
+const char* TRUE = "true";
 
 bool HapVerifyInit()
 {
@@ -155,6 +158,10 @@ int32_t VerifyProfileByP7bBlock(const uint32_t p7bBlockLength,
 {
     if (!g_isInit && !HapVerifyInit()) {
         return VERIFY_SOURCE_INIT_FAIL;
+    }
+    if (OHOS::system::GetParameter(ENABLE_DEBUG_MODE_PARMA, "") == TRUE) {
+        HAPVERIFY_LOG_INFO("param enable debug mode true");
+        EnableDebugMode();
     }
     HapVerifyV2 hapVerifyV2;
     return hapVerifyV2.VerifyProfileByP7bBlock(p7bBlockLength, p7bBlock, needParseProvision, provisionInfo);

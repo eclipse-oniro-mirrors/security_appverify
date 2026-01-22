@@ -342,4 +342,60 @@ HWTEST_F(HapVerifyTest, VerifyProfile001, TestSize.Level1)
     ret = VerifyProfile("/data/update/ticket/verify_err.p7b", provisionInfo);
     EXPECT_NE(ret, VERIFY_SUCCESS);
 }
+
+/**
+ * @tc.name: HapVerifyTest.VerifyProfileByP7bBlock002
+ * @tc.desc: The static function will return verify result of p7b file;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyTest, VerifyProfileByP7bBlock002, TestSize.Level1)
+{
+    ProvisionInfo provisionInfo;
+    int32_t ret = VerifyProfileByP7bBlock(0, nullptr, false, provisionInfo);
+    EXPECT_EQ(ret, PROFILE_PARSE_FAIL);
+}
+
+/**
+ * @tc.name: HapVerifyTest.VerifyProfileByP7bBlock003
+ * @tc.desc: The static function will return verify result of p7b file;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyTest, VerifyProfileByP7bBlock003, TestSize.Level1)
+{
+    int32_t fd = open("/data/update/ticket/verify_test.p7b", O_RDONLY);
+    struct stat st;
+    fstat(fd, &st);
+    std::vector<unsigned char> buffer(st.st_size);
+    ssize_t readSize = pread(fd, buffer.data(), st.st_size, 0);
+    EXPECT_EQ(readSize, buffer.size());
+    close(fd);
+    const unsigned char* p7bData = buffer.data();
+    uint32_t p7bLen = static_cast<uint32_t>(buffer.size());
+    ProvisionInfo provisionInfo;
+    int32_t ret = VerifyProfileByP7bBlock(p7bLen, p7bData, false, provisionInfo);
+    EXPECT_EQ(ret, VERIFY_SUCCESS);
+    EXPECT_TRUE(provisionInfo.bundleInfo.bundleName.empty());
+}
+
+/**
+ * @tc.name: HapVerifyTest.VerifyProfileByP7bBlock004
+ * @tc.desc: The static function will return verify result of p7b file;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyTest, VerifyProfileByP7bBlock004, TestSize.Level1)
+{
+    int32_t fd = open("/data/update/ticket/verify_test.p7b", O_RDONLY);
+    struct stat st;
+    fstat(fd, &st);
+    std::vector<unsigned char> buffer(st.st_size);
+    ssize_t readSize = pread(fd, buffer.data(), st.st_size, 0);
+    EXPECT_EQ(readSize, buffer.size());
+    close(fd);
+    const unsigned char* p7bData = buffer.data();
+    uint32_t p7bLen = static_cast<uint32_t>(buffer.size());
+    ProvisionInfo provisionInfo;
+    int32_t ret = VerifyProfileByP7bBlock(p7bLen, p7bData, true, provisionInfo);
+    EXPECT_EQ(ret, VERIFY_SUCCESS);
+    EXPECT_FALSE(provisionInfo.bundleInfo.bundleName.empty());
+}
 }
