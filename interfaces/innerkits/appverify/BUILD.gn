@@ -31,8 +31,6 @@ if (os_level == "standard") {
       ubsan = true
     }
 
-    cflags = [ "-fstack-protector-strong" ]
-
     sources = [
       "src/common/hap_byte_buffer.cpp",
       "src/common/hap_byte_buffer_data_source.cpp",
@@ -63,7 +61,6 @@ if (os_level == "standard") {
     cflags_cc = [
       "-DHILOG_ENABLE",
       "-fvisibility=hidden",
-      "-fstack-protector-strong",
     ]
 
     deps = []
