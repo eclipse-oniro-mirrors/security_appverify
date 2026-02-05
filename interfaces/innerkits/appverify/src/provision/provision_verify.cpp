@@ -309,10 +309,10 @@ bool CheckDeviceID(const std::vector<std::string>& deviceIds, const std::string&
     if (iter == deviceIds.end()) {
         DeviceTypeManager& deviceTypeManager = DeviceTypeManager::GetInstance();
         if (!deviceTypeManager.GetDeviceTypeInfo()) {
-            HAPVERIFY_LOG_ERROR("current device is not authorized.");
+            HAPVERIFY_LOG_ERROR("current device is not authorized");
             return false;
         }
-        HAPVERIFY_LOG_INFO("current device is a debug device.");
+        HAPVERIFY_LOG_INFO("current device is a debug device");
     }
     return true;
 }
