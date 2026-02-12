@@ -378,13 +378,7 @@ int32_t HapVerifyV2::VerifyProfileInfo(const Pkcs7Context& pkcs7Context, const P
     HAPVERIFY_LOG_DEBUG("provisionInfo.type: %{public}d", static_cast<int>(provisionInfo.type));
     if (!HapCertVerifyOpensslUtils::CompareX509Cert(pkcs7Context.certChains[0][0], certInProfile)) {
         HAPVERIFY_LOG_ERROR("developed cert is not same as signed cert");
-        int32_t ret = EnterpriseResignMgr::Verify(pkcs7Context, provisionInfo.distributionType, localCertDir);
-        if (ret == VERIFY_SUCCESS) {
-            provisionInfo.isEnterpriseResigned = true;
-            HAPVERIFY_LOG_INFO("EnterpriseResignMgr::Verify success");
-            return VERIFY_SUCCESS;
-        }
-        return ret;
+        return APP_SOURCE_NOT_TRUSTED;
     }
     return VERIFY_SUCCESS;
 }
