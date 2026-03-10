@@ -51,6 +51,7 @@ if (os_level == "standard") {
       "src/util/hap_cert_verify_openssl_utils.cpp",
       "src/util/hap_profile_verify_utils.cpp",
       "src/util/hap_signing_block_utils.cpp",
+      "src/util/hap_verify_hitls_utils.cpp",
       "src/util/hap_verify_openssl_utils.cpp",
       "src/verify/enterprise_resign_mgr.cpp",
       "src/verify/hap_verify_v2.cpp",

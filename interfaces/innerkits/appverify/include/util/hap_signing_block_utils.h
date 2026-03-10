@@ -23,6 +23,7 @@
 #include "common/random_access_file.h"
 #include "interfaces/hap_verify_result.h"
 #include "util/digest_parameter.h"
+#include "util/hap_verify_hitls_utils.h"
 #include "util/pkcs7_context.h"
 #include "util/signature_info.h"
 #include "util/signature_info.h"
@@ -58,6 +59,8 @@ public:
     DLL_EXPORT static bool FindHapSignature(RandomAccessFile& hapFile, SignatureInfo& signInfo);
     DLL_EXPORT static bool GetOptionalBlockIndex(std::vector<OptionalBlock>& optionBlocks, int32_t type, int& index);
     DLL_EXPORT static bool VerifyHapIntegrity(Pkcs7Context& digestInfo, RandomAccessFile& hapFile,
+        SignatureInfo& signInfo);
+    DLL_EXPORT static bool VerifyHapIntegrityWithHitls(Pkcs7Context& digestInfo, RandomAccessFile& hapFile,
         SignatureInfo& signInfo);
 
 private:
@@ -111,6 +114,12 @@ private:
     static int32_t GetChunkCount(long long inputSize, long long chunkSize);
     static bool InitDigestPrefix(const DigestParameter& digestParam,
         unsigned char (&chunkContentPrefix)[ZIP_CHUNK_DIGEST_PRIFIX_LEN], int32_t chunkLen);
+    static bool ComputeDigestsForOneDataSourceWithHitls(DataSource& content, HitlsDigestParameter& digestParam,
+        HapByteBuffer& chunkDigest, int32_t& chunkDigestOffset);
+    static bool ComputeDigestsWithHitls(int32_t hitlsAlgId, DataSource* contents[], int32_t len,
+        HapByteBuffer& chunkDigest, int32_t chunkDigestOffset = ZIP_CHUNK_DIGEST_PRIFIX_LEN);
+    static bool ComputeDigestsForContentsZipWithHitls(int32_t hitlsAlgId, RandomAccessFile& hapFile,
+        int32_t chunkNum, long long fileSize, HapByteBuffer& digestsBuffer);
     DLL_EXPORT static DigestParameter GetDigestParameter(int32_t nId);
     DLL_EXPORT static bool GetSumOfChunkDigestLen(DataSource* contents[], int32_t len, int32_t chunkDigestLen,
         int& chunkCount, int& sumOfChunkDigestLen);

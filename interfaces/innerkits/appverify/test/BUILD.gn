@@ -27,6 +27,7 @@ config("verify_test_config") {
 
 ohos_unittest("verify_test") {
   module_out_path = module_output_path
+  defines = []
 
   sources = [
     "//base/security/appverify/interfaces/innerkits/appverify/src/init/json_parser_utils.cpp",
@@ -37,6 +38,7 @@ ohos_unittest("verify_test") {
     "unittest/src/hap_crl_manager_test.cpp",
     "unittest/src/hap_profile_verify_utils_test.cpp",
     "unittest/src/hap_signing_block_utils_test.cpp",
+    "unittest/src/hap_verify_hitls_utils_test.cpp",
     "unittest/src/hap_verify_openssl_utils_test.cpp",
     "unittest/src/hap_verify_result_test.cpp",
     "unittest/src/hap_verify_test.cpp",
@@ -62,7 +64,7 @@ ohos_unittest("verify_test") {
   ]
 
   if (is_standard_system) {
-    defines = [ "STANDARD_SYSTEM" ]
+    defines += [ "STANDARD_SYSTEM" ]
 
     external_deps += [
       "hilog:libhilog",

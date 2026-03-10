@@ -24,11 +24,16 @@
 
 #include "common/hap_verify_log.h"
 #include "securec.h"
+#include "util/hap_verify_hitls_utils.h"
 #include "util/hap_verify_openssl_utils.h"
 
 namespace OHOS {
 namespace Security {
 namespace Verify {
+namespace {
+constexpr int32_t HITLS_DUAL_CHUNK_COUNT = 2;
+}
+
 const int32_t RandomAccessFile::FILE_OPEN_FAIL_ERROR_NUM = -1;
 int32_t RandomAccessFile::memoryPageSize = sysconf(_SC_PAGESIZE);
 
@@ -269,6 +274,71 @@ bool RandomAccessFile::ReadFileFromOffsetAndDigestUpdateV2(const DigestParameter
 bool RandomAccessFile::HapVerifyParallelizationSupported()
 {
     return OHOS::system::GetBoolParameter("const.appverify.hap_verify_parallel", false);
+}
+
+bool RandomAccessFile::ReadFileFromOffsetAndHitlsDigestUpdate(HitlsDigestParameter& digestParam,
+    int32_t chunkSize, long long offset)
+{
+    if (chunkSize <= 0) {
+        HAPVERIFY_LOG_ERROR("Invalid chunkSize");
+        return false;
+    }
+    unsigned char* buffer = new (std::nothrow) unsigned char[chunkSize];
+    if (buffer == nullptr) {
+        HAPVERIFY_LOG_ERROR("Failed to allocate memory for buffer");
+        return false;
+    }
+
+    long long bytesRead = pread(fd, buffer, chunkSize, offset);
+    if (bytesRead < 0) {
+        HAPVERIFY_LOG_ERROR("pread failed: %{public}lld", bytesRead);
+        delete[] buffer;
+        return false;
+    }
+
+    // Update HITLS digest using dual-buffer mode with same data (required by CRYPT_EAL_MdMBUpdate)
+    bool res = HapVerifyHitlsUtils::DigestUpdate(digestParam,
+        buffer, buffer, static_cast<int32_t>(bytesRead));
+    delete[] buffer;
+    return res;
+}
+
+bool RandomAccessFile::ReadTwoChunksAndHitlsDigestUpdate(HitlsDigestParameter& digestParam,
+    int32_t chunkSize, long long offset)
+{
+    if (chunkSize <= 0) {
+        HAPVERIFY_LOG_ERROR("Invalid chunkSize");
+        return false;
+    }
+
+    if (chunkSize > INT_MAX / HITLS_DUAL_CHUNK_COUNT) {
+        HAPVERIFY_LOG_ERROR("chunkSize is too large: %{public}d", chunkSize);
+        return false;
+    }
+
+    int32_t totalSize = chunkSize * HITLS_DUAL_CHUNK_COUNT;
+    unsigned char* buffer = new (std::nothrow) unsigned char[totalSize];
+    if (buffer == nullptr) {
+        HAPVERIFY_LOG_ERROR("Failed to allocate memory for buffer");
+        return false;
+    }
+
+    long long bytesRead = pread(fd, buffer, totalSize, offset);
+    if (bytesRead < 0) {
+        HAPVERIFY_LOG_ERROR("pread failed: %{public}lld", bytesRead);
+        delete[] buffer;
+        return false;
+    }
+
+    if (bytesRead != totalSize) {
+        HAPVERIFY_LOG_ERROR("pread incomplete: bytesRead=%{public}lld, totalSize=%{public}d", bytesRead, totalSize);
+        delete[] buffer;
+        return false;
+    }
+
+    bool res = HapVerifyHitlsUtils::DigestUpdate(digestParam, buffer, buffer + chunkSize, chunkSize);
+    delete[] buffer;
+    return res;
 }
 } // namespace Verify
 } // namespace Security

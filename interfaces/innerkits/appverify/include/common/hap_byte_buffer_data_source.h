@@ -19,6 +19,7 @@
 #include "common/export_define.h"
 #include "common/hap_byte_buffer.h"
 #include "util/digest_parameter.h"
+#include "util/hitls_digest_parameter.h"
 
 namespace OHOS {
 namespace Security {
@@ -27,10 +28,12 @@ class HapByteBufferDataSource : public DataSource {
 public:
     DLL_EXPORT HapByteBufferDataSource(HapByteBuffer& hapBuffer);
     DLL_EXPORT ~HapByteBufferDataSource();
-    bool HasRemaining() const override;
-    long long Remaining() const override;
-    void Reset() override;
-    bool ReadDataAndDigestUpdate(const DigestParameter& digestParam, int32_t chunkSize) override;
+    DLL_EXPORT bool HasRemaining() const override;
+    DLL_EXPORT long long Remaining() const override;
+    DLL_EXPORT void Reset() override;
+    DLL_EXPORT bool ReadDataAndDigestUpdate(const DigestParameter& digestParam, int32_t chunkSize) override;
+    DLL_EXPORT bool ReadDataAndHitlsDigestUpdate(HitlsDigestParameter& digestParam, int32_t chunkSize) override;
+    DLL_EXPORT bool ReadTwoChunksAndHitlsDigestUpdate(HitlsDigestParameter& digestParam, int32_t chunkSize) override;
 
 private:
     HapByteBuffer& hapByteBuffer;

@@ -18,6 +18,7 @@
 #include "common/export_define.h"
 #include "common/hap_byte_buffer.h"
 #include "util/digest_parameter.h"
+#include "util/hap_verify_hitls_utils.h"
 
 namespace OHOS {
 namespace Security {
@@ -39,6 +40,10 @@ public:
     DLL_EXPORT long long ReadFileFullyFromOffset(HapByteBuffer& buffer, long long offset);
     DLL_EXPORT long long ReadFileFullyFromOffset(char buf[], long long offset, int32_t bufCapacity);
     bool ReadFileFromOffsetAndDigestUpdate(const DigestParameter& digestParam, int32_t chunkSize, long long offset);
+    DLL_EXPORT bool ReadFileFromOffsetAndHitlsDigestUpdate(HitlsDigestParameter& digestParam,
+        int32_t chunkSize, long long offset);
+    DLL_EXPORT bool ReadTwoChunksAndHitlsDigestUpdate(HitlsDigestParameter& digestParam,
+        int32_t chunkSize, long long offset);
 
 private:
     long long DoMMap(int32_t bufCapacity, long long offset, MmapInfo& mmapInfo);

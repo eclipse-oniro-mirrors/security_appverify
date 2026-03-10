@@ -16,20 +16,24 @@
 #define HAP_FILEDATASOURCE_H
 
 #include "common/data_source.h"
+#include "common/export_define.h"
 #include "common/random_access_file.h"
 #include "util/digest_parameter.h"
+#include "util/hap_verify_hitls_utils.h"
 
 namespace OHOS {
 namespace Security {
 namespace Verify {
 class HapFileDataSource : public DataSource {
 public:
-    HapFileDataSource(RandomAccessFile& hapFile, long long offset, long long size, long long position);
-    ~HapFileDataSource();
-    bool HasRemaining() const override;
-    long long Remaining() const override;
-    void Reset() override;
-    bool ReadDataAndDigestUpdate(const DigestParameter& digestParam, int32_t chunkSize) override;
+    DLL_EXPORT HapFileDataSource(RandomAccessFile& hapFile, long long offset, long long size, long long position);
+    DLL_EXPORT ~HapFileDataSource();
+    DLL_EXPORT bool HasRemaining() const override;
+    DLL_EXPORT long long Remaining() const override;
+    DLL_EXPORT void Reset() override;
+    DLL_EXPORT bool ReadDataAndDigestUpdate(const DigestParameter& digestParam, int32_t chunkSize) override;
+    DLL_EXPORT bool ReadDataAndHitlsDigestUpdate(HitlsDigestParameter& digestParam, int32_t chunkSize) override;
+    DLL_EXPORT bool ReadTwoChunksAndHitlsDigestUpdate(HitlsDigestParameter& digestParam, int32_t chunkSize) override;
 
 private:
     RandomAccessFile& hapFileRandomAccess;
