@@ -15,8 +15,8 @@
 #ifndef HAP_DATASOURCE_H
 #define HAP_DATASOURCE_H
 
-#include "common/hap_byte_buffer.h"
-#include "util/hap_verify_openssl_utils.h"
+#include "util/digest_parameter.h"
+#include "util/hitls_digest_parameter.h"
 
 namespace OHOS {
 namespace Security {
@@ -28,6 +28,8 @@ public:
     virtual long long Remaining() const = 0;
     virtual void Reset() = 0;
     virtual bool ReadDataAndDigestUpdate(const DigestParameter& digestParam, int32_t chunkSize) = 0;
+    virtual bool ReadDataAndHitlsDigestUpdate(HitlsDigestParameter& digestParam, int32_t chunkSize) = 0;
+    virtual bool ReadTwoChunksAndHitlsDigestUpdate(HitlsDigestParameter& digestParam, int32_t chunkSize) = 0;
 };
 } // namespace Verify
 } // namespace Security

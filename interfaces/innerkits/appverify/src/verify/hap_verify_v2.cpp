@@ -166,9 +166,12 @@ int32_t HapVerifyV2::Verify(RandomAccessFile& hapFile, const std::string& localC
         return GET_SIGNATURE_FAIL;
     }
     hapVerifyV1Result.SetSignature(certSignatures);
-    if (!HapSigningBlockUtils::VerifyHapIntegrity(pkcs7Context, hapFile, hapSignInfo)) {
-        HAPVERIFY_LOG_ERROR("Verify Integrity failed");
-        return VERIFY_INTEGRITY_FAIL;
+    if (!HapSigningBlockUtils::VerifyHapIntegrityWithHitls(pkcs7Context, hapFile, hapSignInfo)) {
+        HAPVERIFY_LOG_ERROR("Verify Integrity with Hitls failed");
+        if (!HapSigningBlockUtils::VerifyHapIntegrity(pkcs7Context, hapFile, hapSignInfo)) {
+            HAPVERIFY_LOG_ERROR("Verify Integrity with Openssl failed");
+            return VERIFY_INTEGRITY_FAIL;
+        }
     }
     WriteCrlIfNeed(pkcs7Context, profileNeedWriteCrl);
     return VERIFY_SUCCESS;

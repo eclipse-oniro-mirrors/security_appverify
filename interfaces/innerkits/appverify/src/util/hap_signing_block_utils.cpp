@@ -27,6 +27,7 @@
 #include "common/hap_verify_log.h"
 #include "openssl/evp.h"
 #include "securec.h"
+#include "util/hap_verify_hitls_utils.h"
 #include "util/hap_verify_openssl_utils.h"
 
 namespace OHOS {
@@ -428,6 +429,7 @@ bool HapSigningBlockUtils::GetOptionalBlockIndex(std::vector<OptionalBlock>& opt
 bool HapSigningBlockUtils::VerifyHapIntegrity(
     Pkcs7Context& digestInfo, RandomAccessFile& hapFile, SignatureInfo& signInfo)
 {
+    HAPVERIFY_LOG_DEBUG("Verify Integrity with Openssl Start");
     if (!SetUnsignedInt32(signInfo.hapEocd, ZIP_CD_OFFSET_IN_EOCD, signInfo.hapSigningBlockOffset)) {
         HAPVERIFY_LOG_ERROR("Set central dir offset failed");
         return false;
@@ -491,6 +493,7 @@ bool HapSigningBlockUtils::VerifyDigest(const DigestParameter& digestParam, cons
         HAPVERIFY_LOG_ERROR("digest of contents verify failed, alg %{public}d", nId);
         return false;
     }
+    HAPVERIFY_LOG_DEBUG("Verify Integrity with Openssl End");
     return true;
 }
 
@@ -667,6 +670,250 @@ bool HapSigningBlockUtils::InitDigestPrefix(const DigestParameter& digestParam,
 bool HapSigningBlockUtils::HapVerifyParallelizationSupported()
 {
     return OHOS::system::GetBoolParameter("const.appverify.hap_verify_parallel", false);
+}
+
+bool HapSigningBlockUtils::ComputeDigestsForOneDataSourceWithHitls(DataSource& content,
+    HitlsDigestParameter& digestParam, HapByteBuffer& chunkDigest, int32_t& chunkDigestOffset)
+{
+    constexpr int32_t kHitlsDigestLen = HITLS_DIGEST_SIZE_SHA256;
+    unsigned char digest1[EVP_MAX_MD_SIZE] = {0};
+    unsigned char digest2[EVP_MAX_MD_SIZE] = {0};
+    unsigned char chunkContentPrefix[ZIP_CHUNK_DIGEST_PRIFIX_LEN] = {ZIP_SECOND_LEVEL_CHUNK_PREFIX, 0, 0, 0, 0};
+
+    content.Reset();
+    while (content.HasRemaining()) {
+        int32_t chunkSize = std::min(static_cast<long long>(content.Remaining()), CHUNK_SIZE);
+        if (!HapVerifyHitlsUtils::DigestReset(digestParam)) {
+            HAPVERIFY_LOG_ERROR("HITLS DigestReset failed");
+            return false;
+        }
+
+        long long remainingAfterChunk = content.Remaining() - chunkSize;
+        bool useDualBuffer = (remainingAfterChunk >= chunkSize);
+        if (memcpy_s(chunkContentPrefix + 1, ZIP_CHUNK_DIGEST_PRIFIX_LEN - 1,
+            &chunkSize, sizeof(chunkSize)) != EOK) {
+            HAPVERIFY_LOG_ERROR("memcpy_s failed for chunk prefix");
+            return false;
+        }
+
+        if (!HapVerifyHitlsUtils::DigestUpdate(digestParam, chunkContentPrefix,
+            chunkContentPrefix, ZIP_CHUNK_DIGEST_PRIFIX_LEN)) {
+            HAPVERIFY_LOG_ERROR("HITLS DigestUpdate failed for prefix");
+            return false;
+        }
+
+        if (useDualBuffer) {
+            if (!content.ReadTwoChunksAndHitlsDigestUpdate(digestParam, chunkSize)) {
+                HAPVERIFY_LOG_ERROR("ReadTwoChunksAndHitlsDigestUpdate failed");
+                return false;
+            }
+        } else {
+            if (!content.ReadDataAndHitlsDigestUpdate(digestParam, chunkSize)) {
+                HAPVERIFY_LOG_ERROR("ReadDataAndHitlsDigestUpdate failed");
+                return false;
+            }
+        }
+
+        if (!HapVerifyHitlsUtils::GetDigest(digestParam, digest1, digest2)) {
+            HAPVERIFY_LOG_ERROR("HITLS GetDigest failed");
+            return false;
+        }
+
+        chunkDigest.PutData(chunkDigestOffset, reinterpret_cast<char*>(digest1), kHitlsDigestLen);
+        chunkDigestOffset += kHitlsDigestLen;
+        if (useDualBuffer) {
+            chunkDigest.PutData(chunkDigestOffset, reinterpret_cast<char*>(digest2), kHitlsDigestLen);
+            chunkDigestOffset += kHitlsDigestLen;
+        }
+    }
+
+    return true;
+}
+
+bool HapSigningBlockUtils::ComputeDigestsWithHitls(int32_t hitlsAlgId, DataSource* contents[], int32_t len,
+    HapByteBuffer& chunkDigest, int32_t chunkDigestOffset)
+{
+    HAPVERIFY_LOG_DEBUG("hitls: Start streaming computation, digestLen: %{public}u", HITLS_DIGEST_SIZE_SHA256);
+
+    HitlsDigestParameter digestParam;
+    if (!HapVerifyHitlsUtils::DigestInit(digestParam, hitlsAlgId)) {
+        HAPVERIFY_LOG_ERROR("HITLS DigestInit failed");
+        return false;
+    }
+
+    for (int32_t i = 0; i < len; i++) {
+        if (contents[i] == nullptr) {
+            HAPVERIFY_LOG_ERROR("contents[%{public}d] is nullptr", i);
+            HapVerifyHitlsUtils::DigestFree(digestParam);
+            return false;
+        }
+        if (!ComputeDigestsForOneDataSourceWithHitls(*contents[i], digestParam, chunkDigest, chunkDigestOffset)) {
+            HapVerifyHitlsUtils::DigestFree(digestParam);
+            return false;
+        }
+    }
+
+    HapVerifyHitlsUtils::DigestFree(digestParam);
+    HAPVERIFY_LOG_DEBUG("hitls: Streaming computation completed successfully");
+    return true;
+}
+
+bool HapSigningBlockUtils::ComputeDigestsForContentsZipWithHitls(int32_t hitlsAlgId, RandomAccessFile& hapFile,
+    int32_t chunkNum, long long contentsZipSize, HapByteBuffer& digestsBuffer)
+{
+    int32_t chunkNumToUpdate = (chunkNum + ZIP_UPDATE_DIGEST_THREADS_NUM - 1) / ZIP_UPDATE_DIGEST_THREADS_NUM;
+    std::vector<std::thread> threads;
+    std::vector<std::atomic<bool>> results(ZIP_UPDATE_DIGEST_THREADS_NUM);
+    for (int32_t i = 0; i < ZIP_UPDATE_DIGEST_THREADS_NUM; i++) {
+        results[i].store(false, std::memory_order_seq_cst);
+    }
+
+    for (int32_t i = 0; i < ZIP_UPDATE_DIGEST_THREADS_NUM; i++) {
+        threads.emplace_back([&results, &digestsBuffer, &hapFile, i, hitlsAlgId, chunkNumToUpdate, contentsZipSize]() {
+            long long fileBeginPosition = CHUNK_SIZE * chunkNumToUpdate * i;
+            long long fileEndPosition = std::min(CHUNK_SIZE * chunkNumToUpdate * (i + 1), contentsZipSize);
+            long long fileSize = fileEndPosition - fileBeginPosition;
+            if (fileSize <= 0) {
+                results[i].store(true, std::memory_order_seq_cst);
+                return;
+            }
+
+            HapFileDataSource hapDataChunk(hapFile, fileBeginPosition, fileSize, 0);
+            HitlsDigestParameter digestParam;
+            if (!HapVerifyHitlsUtils::DigestInit(digestParam, hitlsAlgId)) {
+                HAPVERIFY_LOG_ERROR("HITLS DigestInit failed in thread %{public}d", i);
+                results[i].store(false, std::memory_order_seq_cst);
+                return;
+            }
+
+            int32_t digestOffset = ZIP_CHUNK_DIGEST_PRIFIX_LEN + chunkNumToUpdate * HITLS_DIGEST_SIZE_SHA256 * i;
+            if (!ComputeDigestsForOneDataSourceWithHitls(hapDataChunk, digestParam, digestsBuffer, digestOffset)) {
+                HapVerifyHitlsUtils::DigestFree(digestParam);
+                results[i].store(false, std::memory_order_seq_cst);
+                return;
+            }
+
+            HapVerifyHitlsUtils::DigestFree(digestParam);
+            results[i].store(true, std::memory_order_seq_cst);
+        });
+    }
+
+    for (auto& thread : threads) {
+        thread.join();
+    }
+
+    for (const auto& atomicResult : results) {
+        if (!atomicResult.load(std::memory_order_seq_cst)) {
+            HAPVERIFY_LOG_ERROR("Compute digests failed in parallel mode");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool HapSigningBlockUtils::VerifyHapIntegrityWithHitls(
+    Pkcs7Context& digestInfo, RandomAccessFile& hapFile, SignatureInfo& signInfo)
+{
+    if (OHOS::system::GetBoolParameter("ohos.appverify.hitls.off", false)) {
+        HAPVERIFY_LOG_INFO("hitls is turned off, fallback to openssl");
+        return false;
+    }
+    HAPVERIFY_LOG_DEBUG("Verify Integrity with Hitls Start");
+    constexpr int32_t kHitlsDigestLen = HITLS_DIGEST_SIZE_SHA256;
+    constexpr int32_t kHitlsAlgId = CRYPT_MD_SHA256_MB;
+
+    if (!SetUnsignedInt32(signInfo.hapEocd, ZIP_CD_OFFSET_IN_EOCD, signInfo.hapSigningBlockOffset)) {
+        HAPVERIFY_LOG_ERROR("Set central dir offset failed");
+        return false;
+    }
+
+    long long contentsZipSize = signInfo.hapSigningBlockOffset;
+    long long centralDirSize = signInfo.hapEocdOffset - signInfo.hapCentralDirOffset;
+    HAPVERIFY_LOG_DEBUG("hitls: contentsZipSize=%{public}lld, centralDirSize=%{public}lld",
+        contentsZipSize, centralDirSize);
+
+    HapFileDataSource contentsZip(hapFile, 0, contentsZipSize, 0);
+    HapFileDataSource centralDir(hapFile, signInfo.hapCentralDirOffset, centralDirSize, 0);
+    HapByteBufferDataSource eocd(signInfo.hapEocd);
+    DataSource* content[ZIP_BLOCKS_NUM_NEED_DIGEST] = { &contentsZip, &centralDir, &eocd };
+
+    int32_t nId = HapVerifyOpensslUtils::GetDigestAlgorithmId(digestInfo.digestAlgorithm);
+    if (nId != NID_sha256) {
+        HAPVERIFY_LOG_ERROR("HITLS integrity verification only supports SHA256, digest NID=%{public}d", nId);
+        return false;
+    }
+
+    HAPVERIFY_LOG_DEBUG("hitls: HITLS algorithm ID=%{public}d", kHitlsAlgId);
+
+    // HITLS currently only supports SHA256
+    if (digestInfo.content.GetCapacity() != kHitlsDigestLen) {
+        HAPVERIFY_LOG_ERROR("Invalid digest length for HITLS SHA256: %{public}d", digestInfo.content.GetCapacity());
+        return false;
+    }
+
+    int32_t chunkCount = 0;
+    int32_t sumOfChunksLen = 0;
+    if (!GetSumOfChunkDigestLen(content, ZIP_BLOCKS_NUM_NEED_DIGEST, kHitlsDigestLen,
+        chunkCount, sumOfChunksLen)) {
+        HAPVERIFY_LOG_ERROR("GetSumOfChunkDigestLen failed");
+        return false;
+    }
+    HAPVERIFY_LOG_DEBUG("hitls: chunkCount=%{public}d, sumOfChunksLen=%{public}d",
+        chunkCount, sumOfChunksLen);
+
+    HapByteBuffer chunkDigest;
+    chunkDigest.SetCapacity(sumOfChunksLen);
+    chunkDigest.PutByte(0, ZIP_FIRST_LEVEL_CHUNK_PREFIX);
+    chunkDigest.PutInt32(1, chunkCount);
+
+    if (!HapVerifyParallelizationSupported() || contentsZipSize <= SMALL_FILE_SIZE) {
+        // No parallel for small size <= 2MB.
+        HAPVERIFY_LOG_DEBUG("hitls: Using single-threaded mode");
+        if (!ComputeDigestsWithHitls(kHitlsAlgId, content, ZIP_BLOCKS_NUM_NEED_DIGEST, chunkDigest)) {
+            HAPVERIFY_LOG_ERROR("hitls failed, alg: %{public}d", kHitlsAlgId);
+            return false;
+        }
+    } else {
+        // Compute digests for contents zip in parallel.
+        HAPVERIFY_LOG_DEBUG("hitls: Using multi-threaded mode for contents zip");
+        int32_t contentsZipChunkCount = GetChunkCount(contentsZipSize, CHUNK_SIZE);
+        if (!ComputeDigestsForContentsZipWithHitls(kHitlsAlgId, hapFile, contentsZipChunkCount, contentsZipSize,
+            chunkDigest)) {
+            HAPVERIFY_LOG_ERROR("ComputeDigestsForContentsZipWithHitls failed, alg: %{public}d", kHitlsAlgId);
+            return false;
+        }
+        // Compute digests for other contents(centralDir, eocd).
+        int32_t chunkDigestOffset = ZIP_CHUNK_DIGEST_PRIFIX_LEN + contentsZipChunkCount * kHitlsDigestLen;
+        if (!ComputeDigestsWithHitls(kHitlsAlgId, content + 1, ZIP_BLOCKS_NUM_NEED_DIGEST - 1,
+            chunkDigest, chunkDigestOffset)) {
+            HAPVERIFY_LOG_ERROR("Compute other digests failed, alg: %{public}d", kHitlsAlgId);
+            return false;
+        }
+    }
+    HAPVERIFY_LOG_DEBUG("hitls: Chunk digests computed successfully");
+
+    // Compute digest with optional blocks and get final digest
+    HAPVERIFY_LOG_DEBUG("hitls: Computing final digest with %{public}zu optional blocks...",
+        signInfo.optionBlocks.size());
+    HapByteBuffer actualDigest;
+    if (!HapVerifyHitlsUtils::GetFinalDigest(kHitlsAlgId, chunkDigest, signInfo.optionBlocks, actualDigest)) {
+        HAPVERIFY_LOG_ERROR("GetDigest failed, alg: %{public}d", kHitlsAlgId);
+        return false;
+    }
+    if (actualDigest.GetCapacity() != kHitlsDigestLen) {
+        HAPVERIFY_LOG_ERROR("Unexpected final digest length for HITLS SHA256: %{public}d", actualDigest.GetCapacity());
+        return false;
+    }
+    HAPVERIFY_LOG_DEBUG("hitls: Final digest computed successfully");
+
+    if (!digestInfo.content.IsEqual(actualDigest)) {
+        HAPVERIFY_LOG_ERROR("digest of contents verify failed, alg %{public}d", kHitlsAlgId);
+        return false;
+    }
+
+    HAPVERIFY_LOG_DEBUG("Verify Integrity with Hitls Success");
+    return true;
 }
 } // namespace Verify
 } // namespace Security

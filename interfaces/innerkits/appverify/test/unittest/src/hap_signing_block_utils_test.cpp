@@ -15,15 +15,19 @@
 
 #include "hap_signing_block_utils_test.h"
 
+#include <cstring>
 #include <fstream>
 #include <map>
+#include <vector>
 
 #include <gtest/gtest.h>
 #include <securec.h>
 
 #include "common/hap_byte_buffer_data_source.h"
+#include "common/hap_file_data_source.h"
 #include "common/random_access_file.h"
 #include "util/hap_signing_block_utils.h"
+#include "util/hap_verify_openssl_utils.h"
 
 using namespace testing::ext;
 using namespace OHOS::Security::Verify;
@@ -107,6 +111,75 @@ long long CreatTestZipFile(const std::string& pathFile, SignatureInfo& signInfo,
 } // namespace OHOS
 
 namespace {
+bool BuildExpectedChunkLevelDigest(const std::vector<uint8_t>& data, uint8_t (&digest)[HITLS_DIGEST_SIZE_SHA256])
+{
+    std::vector<uint8_t> payload(ZIP_CHUNK_DIGEST_PRIFIX_LEN + data.size());
+    payload[0] = 0xa5;
+    int32_t chunkSize = static_cast<int32_t>(data.size());
+    if (memcpy_s(payload.data() + 1, ZIP_CHUNK_DIGEST_PRIFIX_LEN - 1, &chunkSize, sizeof(chunkSize)) != EOK) {
+        return false;
+    }
+    if (!data.empty()) {
+        if (memcpy_s(payload.data() + ZIP_CHUNK_DIGEST_PRIFIX_LEN, data.size(), data.data(), data.size()) != EOK) {
+            return false;
+        }
+    }
+    return HapVerifyHitlsUtils::ComputeDigestsForChunk(
+        CRYPT_MD_SHA256_MB, payload.data(), static_cast<uint32_t>(payload.size()), HITLS_DIGEST_SIZE_SHA256, digest);
+}
+
+bool BuildValidHitlsDigest(RandomAccessFile& hapFile, SignatureInfo& signInfo, HapByteBuffer& digest)
+{
+    constexpr int32_t zipCdOffsetInEocd = 16;
+    constexpr char zipFirstLevelChunkPrefix = 0x5a;
+    constexpr int32_t fixedChunkCount = 3;
+
+    signInfo.hapEocd.PutInt32(zipCdOffsetInEocd, static_cast<int32_t>(signInfo.hapSigningBlockOffset));
+
+    HapByteBuffer contentsZip(static_cast<int32_t>(signInfo.hapSigningBlockOffset));
+    if (hapFile.ReadFileFullyFromOffset(contentsZip, 0) < 0) {
+        return false;
+    }
+
+    int32_t centralDirSize = static_cast<int32_t>(signInfo.hapEocdOffset - signInfo.hapCentralDirOffset);
+    HapByteBuffer centralDir(centralDirSize);
+    if (hapFile.ReadFileFullyFromOffset(centralDir, signInfo.hapCentralDirOffset) < 0) {
+        return false;
+    }
+
+    uint8_t contentsDigest[HITLS_DIGEST_SIZE_SHA256] = {0};
+    uint8_t centralDirDigest[HITLS_DIGEST_SIZE_SHA256] = {0};
+    uint8_t eocdDigest[HITLS_DIGEST_SIZE_SHA256] = {0};
+    if (!BuildExpectedChunkLevelDigest(std::vector<uint8_t>(
+        reinterpret_cast<const uint8_t*>(contentsZip.GetBufferPtr()),
+        reinterpret_cast<const uint8_t*>(contentsZip.GetBufferPtr()) + contentsZip.GetCapacity()), contentsDigest)) {
+        return false;
+    }
+    if (!BuildExpectedChunkLevelDigest(std::vector<uint8_t>(
+        reinterpret_cast<const uint8_t*>(centralDir.GetBufferPtr()),
+        reinterpret_cast<const uint8_t*>(centralDir.GetBufferPtr()) + centralDir.GetCapacity()), centralDirDigest)) {
+        return false;
+    }
+    if (!BuildExpectedChunkLevelDigest(std::vector<uint8_t>(
+        reinterpret_cast<const uint8_t*>(signInfo.hapEocd.GetBufferPtr()),
+        reinterpret_cast<const uint8_t*>(signInfo.hapEocd.GetBufferPtr()) + signInfo.hapEocd.GetCapacity()),
+        eocdDigest)) {
+        return false;
+    }
+
+    HapByteBuffer chunkDigest;
+    chunkDigest.SetCapacity(ZIP_CHUNK_DIGEST_PRIFIX_LEN + fixedChunkCount * HITLS_DIGEST_SIZE_SHA256);
+    chunkDigest.PutByte(0, zipFirstLevelChunkPrefix);
+    chunkDigest.PutInt32(1, fixedChunkCount);
+    chunkDigest.PutData(ZIP_CHUNK_DIGEST_PRIFIX_LEN, reinterpret_cast<char*>(contentsDigest), HITLS_DIGEST_SIZE_SHA256);
+    chunkDigest.PutData(ZIP_CHUNK_DIGEST_PRIFIX_LEN + HITLS_DIGEST_SIZE_SHA256,
+        reinterpret_cast<char*>(centralDirDigest), HITLS_DIGEST_SIZE_SHA256);
+    chunkDigest.PutData(ZIP_CHUNK_DIGEST_PRIFIX_LEN + HITLS_DIGEST_SIZE_SHA256 * HITLS_MB_CTX_NUM,
+        reinterpret_cast<char*>(eocdDigest), HITLS_DIGEST_SIZE_SHA256);
+
+    return HapVerifyHitlsUtils::GetFinalDigest(CRYPT_MD_SHA256_MB, chunkDigest, signInfo.optionBlocks, digest);
+}
+
 class HapSigningBlockUtilsTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -240,6 +313,74 @@ HWTEST_F(HapSigningBlockUtilsTest, VerifyHapIntegrityTest001, TestSize.Level1)
     RandomAccessFile hapTestFile2;
     hapTestFile2.Init(pathFile2);
     ASSERT_FALSE(hapSignBlockUtils.VerifyHapIntegrity(digestInfo2, hapTestFile2, signInfo2));
+}
+
+/**
+ * @tc.name: Test VerifyHapIntegrityWithHitls function
+ * @tc.desc: cover hitls integrity verification branches with invalid and valid inputs
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapSigningBlockUtilsTest, VerifyHapIntegrityWithHitlsTest001, TestSize.Level1)
+{
+    HapSigningBlockUtils hapSignBlockUtils;
+
+    SignatureInfo invalidOffsetSignInfo;
+    invalidOffsetSignInfo.hapSigningBlockOffset = -1;
+    Pkcs7Context invalidOffsetDigestInfo;
+    invalidOffsetDigestInfo.digestAlgorithm = ALGORITHM_SHA256_WITH_ECDSA;
+    invalidOffsetDigestInfo.content.SetCapacity(HITLS_DIGEST_SIZE_SHA256);
+    RandomAccessFile invalidOffsetFile;
+    ASSERT_FALSE(hapSignBlockUtils.VerifyHapIntegrityWithHitls(
+        invalidOffsetDigestInfo, invalidOffsetFile, invalidOffsetSignInfo));
+
+    SignatureInfo invalidAlgorithmSignInfo;
+    invalidAlgorithmSignInfo.hapEocd.SetCapacity(TEST_ZIP_EOCD_SIZE);
+    Pkcs7Context invalidAlgorithmDigestInfo;
+    invalidAlgorithmDigestInfo.digestAlgorithm = ALGORITHM_SHA384_WITH_ECDSA;
+    invalidAlgorithmDigestInfo.content.SetCapacity(HITLS_DIGEST_SIZE_SHA256);
+    RandomAccessFile invalidAlgorithmFile;
+    ASSERT_FALSE(hapSignBlockUtils.VerifyHapIntegrityWithHitls(
+        invalidAlgorithmDigestInfo, invalidAlgorithmFile, invalidAlgorithmSignInfo));
+
+    SignatureInfo invalidDigestLenSignInfo;
+    invalidDigestLenSignInfo.hapEocd.SetCapacity(TEST_ZIP_EOCD_SIZE);
+    Pkcs7Context invalidDigestLenDigestInfo;
+    invalidDigestLenDigestInfo.digestAlgorithm = ALGORITHM_SHA256_WITH_ECDSA;
+    invalidDigestLenDigestInfo.content.SetCapacity(TEST_FILE_BLOCK_LENGTH);
+    RandomAccessFile invalidDigestLenFile;
+    ASSERT_FALSE(hapSignBlockUtils.VerifyHapIntegrityWithHitls(
+        invalidDigestLenDigestInfo, invalidDigestLenFile, invalidDigestLenSignInfo));
+
+    SignatureInfo emptyContentSignInfo;
+    emptyContentSignInfo.hapEocd.SetCapacity(TEST_ZIP_EOCD_SIZE);
+    Pkcs7Context emptyContentDigestInfo;
+    emptyContentDigestInfo.digestAlgorithm = ALGORITHM_SHA256_WITH_ECDSA;
+    emptyContentDigestInfo.content.SetCapacity(HITLS_DIGEST_SIZE_SHA256);
+    RandomAccessFile emptyContentFile;
+    ASSERT_FALSE(hapSignBlockUtils.VerifyHapIntegrityWithHitls(
+        emptyContentDigestInfo, emptyContentFile, emptyContentSignInfo));
+
+    std::string pathFile = "./test_hapverify_hitls.hap";
+    SignatureInfo signInfo;
+    ASSERT_GT(CreatTestZipFile(pathFile, signInfo, TEST_FILE_BLOCK_LENGTH), 0);
+    RandomAccessFile hapFile;
+    ASSERT_TRUE(hapFile.Init(pathFile));
+    SignatureInfo parsedSignInfo;
+    ASSERT_TRUE(hapSignBlockUtils.FindHapSignature(hapFile, parsedSignInfo));
+
+    Pkcs7Context mismatchDigestInfo;
+    mismatchDigestInfo.digestAlgorithm = ALGORITHM_SHA256_WITH_ECDSA;
+    mismatchDigestInfo.content.SetCapacity(HITLS_DIGEST_SIZE_SHA256);
+    ASSERT_FALSE(hapSignBlockUtils.VerifyHapIntegrityWithHitls(mismatchDigestInfo, hapFile, parsedSignInfo));
+
+    SignatureInfo successSignInfo;
+    ASSERT_TRUE(hapSignBlockUtils.FindHapSignature(hapFile, successSignInfo));
+    Pkcs7Context successDigestInfo;
+    successDigestInfo.digestAlgorithm = ALGORITHM_SHA256_WITH_ECDSA;
+    if (!BuildValidHitlsDigest(hapFile, successSignInfo, successDigestInfo.content)) {
+        GTEST_SKIP() << "openhitls runtime library is unavailable";
+    }
+    ASSERT_TRUE(hapSignBlockUtils.VerifyHapIntegrityWithHitls(successDigestInfo, hapFile, successSignInfo));
 }
 
 /**
