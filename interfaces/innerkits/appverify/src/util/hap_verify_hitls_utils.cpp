@@ -16,6 +16,7 @@
 #include "util/hap_verify_hitls_utils.h"
 
 #include <chrono>
+#include <condition_variable>
 #include <dlfcn.h>
 #include <mutex>
 #include <thread>
@@ -83,24 +84,31 @@ public:
 
     bool Acquire()
     {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (!EnsureLoadedLocked()) {
-            return false;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            if (!EnsureLoadedLocked()) {
+                return false;
+            }
+            closeScheduled_ = false;
+            ++activeHolds_;
         }
-        ++activeHolds_;
+        closeCv_.notify_one();
         return true;
     }
 
     void Release()
     {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (activeHolds_ == 0) {
-            return;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            if (activeHolds_ == 0) {
+                return;
+            }
+            --activeHolds_;
+            if (activeHolds_ == 0) {
+                ScheduleDelayedCloseLocked();
+            }
         }
-        --activeHolds_;
-        if (activeHolds_ == 0) {
-            ScheduleDelayedCloseLocked();
-        }
+        closeCv_.notify_one();
     }
 
     bool IsReady()
@@ -118,6 +126,27 @@ public:
     HitlsMdMBFinalFunc mdMbFinal = nullptr;
 
 private:
+    HitlsCryptoLoader()
+    {
+        closeWorker_ = std::thread(&HitlsCryptoLoader::CloseWorkerLoop, this);
+    }
+
+    ~HitlsCryptoLoader()
+    {
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            stopWorker_ = true;
+            closeScheduled_ = false;
+        }
+        closeCv_.notify_one();
+        if (closeWorker_.joinable()) {
+            closeWorker_.join();
+        }
+    }
+
+    HitlsCryptoLoader(const HitlsCryptoLoader&) = delete;
+    HitlsCryptoLoader& operator=(const HitlsCryptoLoader&) = delete;
+
     bool EnsureLoadedLocked()
     {
         if (handle_ != nullptr) {
@@ -159,18 +188,34 @@ private:
 
     void ScheduleDelayedCloseLocked()
     {
-        const uint64_t generation = ++closeGeneration_;
-        std::thread([generation]() {
-            std::this_thread::sleep_for(HITLS_DLCLOSE_DELAY);
-            HitlsCryptoLoader& loader = HitlsCryptoLoader::GetInstance();
-            std::lock_guard<std::mutex> lock(loader.mutex_);
-            if (loader.activeHolds_ != 0 || loader.closeGeneration_ != generation || loader.handle_ == nullptr) {
-                return;
+        closeScheduled_ = true;
+        closeDeadline_ = std::chrono::steady_clock::now() + HITLS_DLCLOSE_DELAY;
+    }
+
+    void CloseWorkerLoop()
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        while (!stopWorker_) {
+            if (!closeScheduled_ || activeHolds_ != 0 || handle_ == nullptr) {
+                closeCv_.wait(lock, [this]() {
+                    return stopWorker_ || (closeScheduled_ && activeHolds_ == 0 && handle_ != nullptr);
+                });
+                continue;
             }
-            HAPVERIFY_LOG_DEBUG("Closing HITLS crypto library after delay");
-            dlclose(loader.handle_);
-            loader.ResetLocked();
-        }).detach();
+
+            if (closeCv_.wait_until(lock, closeDeadline_, [this]() {
+                return stopWorker_ || !closeScheduled_ || activeHolds_ != 0 || handle_ == nullptr;
+            })) {
+                continue;
+            }
+
+            if (activeHolds_ == 0 && closeScheduled_ && handle_ != nullptr) {
+                HAPVERIFY_LOG_DEBUG("Closing HITLS crypto library after delay");
+                dlclose(handle_);
+                ResetLocked();
+                closeScheduled_ = false;
+            }
+        }
     }
 
     void ResetLocked()
@@ -184,9 +229,13 @@ private:
     }
 
     std::mutex mutex_;
+    std::condition_variable closeCv_;
+    std::thread closeWorker_;
     void* handle_ = nullptr;
     uint32_t activeHolds_ = 0;
-    uint64_t closeGeneration_ = 0;
+    bool closeScheduled_ = false;
+    bool stopWorker_ = false;
+    std::chrono::steady_clock::time_point closeDeadline_ {};
 };
 
 } // namespace
