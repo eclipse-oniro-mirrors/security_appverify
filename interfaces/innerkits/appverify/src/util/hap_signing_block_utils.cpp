@@ -400,7 +400,9 @@ bool HapSigningBlockUtils::ClassifyHapSubSigningBlock(SignatureInfo& signInfo,
         }
         case PROFILE_BLOB:
         case PROOF_ROTATION_BLOB:
-        case PROPERTY_BLOB: {
+        case PROPERTY_BLOB:
+        case ENTERPRISE_CODE_RE_SIGN_BLOB:
+        case ENTERPRISE_RE_SIGN_BLOB: {
             OptionalBlock optionalBlock;
             optionalBlock.optionalType = static_cast<int>(type);
             optionalBlock.optionalBlockValue = subBlock;
@@ -428,6 +430,13 @@ bool HapSigningBlockUtils::GetOptionalBlockIndex(std::vector<OptionalBlock>& opt
 
 bool HapSigningBlockUtils::VerifyHapIntegrity(
     Pkcs7Context& digestInfo, RandomAccessFile& hapFile, SignatureInfo& signInfo)
+{
+    return VerifyHapIntegrity(digestInfo, hapFile, signInfo, signInfo.optionBlocks);
+}
+
+bool HapSigningBlockUtils::VerifyHapIntegrity(
+    Pkcs7Context& digestInfo, RandomAccessFile& hapFile, SignatureInfo& signInfo,
+    const std::vector<OptionalBlock>& digestBlocks)
 {
     HAPVERIFY_LOG_DEBUG("Verify Integrity with Openssl Start");
     if (!SetUnsignedInt32(signInfo.hapEocd, ZIP_CD_OFFSET_IN_EOCD, signInfo.hapSigningBlockOffset)) {
@@ -477,7 +486,7 @@ bool HapSigningBlockUtils::VerifyHapIntegrity(
         }
     }
 
-    return VerifyDigest(digestParam, nId, signInfo.optionBlocks, chunkDigest, digestInfo);
+    return VerifyDigest(digestParam, nId, digestBlocks, chunkDigest, digestInfo);
 }
 
 bool HapSigningBlockUtils::VerifyDigest(const DigestParameter& digestParam, const int32_t nId,
@@ -815,6 +824,13 @@ bool HapSigningBlockUtils::ComputeDigestsForContentsZipWithHitls(int32_t hitlsAl
 bool HapSigningBlockUtils::VerifyHapIntegrityWithHitls(
     Pkcs7Context& digestInfo, RandomAccessFile& hapFile, SignatureInfo& signInfo)
 {
+    return VerifyHapIntegrityWithHitls(digestInfo, hapFile, signInfo, signInfo.optionBlocks);
+}
+
+bool HapSigningBlockUtils::VerifyHapIntegrityWithHitls(
+    Pkcs7Context& digestInfo, RandomAccessFile& hapFile, SignatureInfo& signInfo,
+    const std::vector<OptionalBlock>& digestBlocks)
+{
     if (OHOS::system::GetBoolParameter("ohos.appverify.hitls.off", false)) {
         HAPVERIFY_LOG_INFO("hitls is turned off, fallback to openssl");
         return false;
@@ -895,9 +911,9 @@ bool HapSigningBlockUtils::VerifyHapIntegrityWithHitls(
 
     // Compute digest with optional blocks and get final digest
     HAPVERIFY_LOG_DEBUG("hitls: Computing final digest with %{public}zu optional blocks...",
-        signInfo.optionBlocks.size());
+        digestBlocks.size());
     HapByteBuffer actualDigest;
-    if (!HapVerifyHitlsUtils::GetFinalDigest(kHitlsAlgId, chunkDigest, signInfo.optionBlocks, actualDigest)) {
+    if (!HapVerifyHitlsUtils::GetFinalDigest(kHitlsAlgId, chunkDigest, digestBlocks, actualDigest)) {
         HAPVERIFY_LOG_ERROR("GetDigest failed, alg: %{public}d", kHitlsAlgId);
         return false;
     }
@@ -914,6 +930,54 @@ bool HapSigningBlockUtils::VerifyHapIntegrityWithHitls(
 
     HAPVERIFY_LOG_DEBUG("Verify Integrity with Hitls Success");
     return true;
+}
+
+std::vector<OptionalBlock> HapSigningBlockUtils::BuildDigestBlocks(const SignatureInfo& signInfo,
+    const std::vector<int32_t>& excludedOptionalTypes, bool includeSignatureBlock)
+{
+    auto isExcluded = [&excludedOptionalTypes](int32_t type) {
+        for (const auto& excludedType : excludedOptionalTypes) {
+            if (type == excludedType) {
+                return true;
+            }
+        }
+        return false;
+    };
+    auto appendBlockByType = [&signInfo, &isExcluded]
+        (std::vector<OptionalBlock>& outBlocks, int32_t targetType) {
+        if (isExcluded(targetType)) {
+            return;
+        }
+        for (const auto& optionalBlock : signInfo.optionBlocks) {
+            if (optionalBlock.optionalType == targetType) {
+                outBlocks.push_back(optionalBlock);
+            }
+        }
+    };
+
+    // The order of blocks in digestBlocks should be consistent with the order of blocks when signing, which is:
+    // PROPERTY_BLOB, PROFILE_BLOB, HAP_SIGN_BLOB, ENTERPRISE_CODE_RE_SIGN_BLOB,
+    // other optional blocks in the order they are stored in signInfo.optionBlocks
+    std::vector<OptionalBlock> digestBlocks;
+    appendBlockByType(digestBlocks, PROPERTY_BLOB);
+    appendBlockByType(digestBlocks, PROFILE_BLOB);
+    if (includeSignatureBlock && signInfo.hapSignatureBlock.GetCapacity() > 0 && !isExcluded(HAP_SIGN_BLOB)) {
+        OptionalBlock signatureBlock;
+        signatureBlock.optionalType = HAP_SIGN_BLOB;
+        signatureBlock.optionalBlockValue = signInfo.hapSignatureBlock;
+        digestBlocks.push_back(signatureBlock);
+    }
+    appendBlockByType(digestBlocks, ENTERPRISE_CODE_RE_SIGN_BLOB);
+
+    for (const auto& optionalBlock : signInfo.optionBlocks) {
+        if (optionalBlock.optionalType != PROPERTY_BLOB &&
+            optionalBlock.optionalType != PROFILE_BLOB &&
+            optionalBlock.optionalType != ENTERPRISE_CODE_RE_SIGN_BLOB &&
+            !isExcluded(optionalBlock.optionalType)) {
+            digestBlocks.push_back(optionalBlock);
+        }
+    }
+    return digestBlocks;
 }
 } // namespace Verify
 } // namespace Security

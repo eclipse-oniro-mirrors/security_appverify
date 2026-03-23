@@ -479,6 +479,60 @@ HWTEST_F(HapSigningBlockUtilsTest, ClassifyHapSubSigningBlock001, TestSize.Level
     HapByteBuffer subBlock2;
     uint32_t type2 = 0;
     ASSERT_FALSE(hapSignBlockUtils.ClassifyHapSubSigningBlock(signInfo2, subBlock2, type2));
+
+    SignatureInfo signInfo3;
+    HapByteBuffer subBlock3;
+    uint32_t type3 = ENTERPRISE_CODE_RE_SIGN_BLOB;
+    ASSERT_TRUE(hapSignBlockUtils.ClassifyHapSubSigningBlock(signInfo3, subBlock3, type3));
+    ASSERT_EQ(signInfo3.optionBlocks[0].optionalType, ENTERPRISE_CODE_RE_SIGN_BLOB);
+
+    SignatureInfo signInfo4;
+    HapByteBuffer subBlock4;
+    uint32_t type4 = ENTERPRISE_RE_SIGN_BLOB;
+    ASSERT_TRUE(hapSignBlockUtils.ClassifyHapSubSigningBlock(signInfo4, subBlock4, type4));
+    ASSERT_EQ(signInfo4.optionBlocks[0].optionalType, ENTERPRISE_RE_SIGN_BLOB);
+}
+
+/**
+ * @tc.name: BuildDigestBlocks001
+ * @tc.desc: exclude full package resign block and prepend the original signature block
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapSigningBlockUtilsTest, BuildDigestBlocks001, TestSize.Level1)
+{
+    SignatureInfo signInfo;
+    signInfo.hapSignatureBlock.SetCapacity(2);
+    signInfo.hapSignatureBlock.PutData(0, "ab", 2);
+
+    OptionalBlock propertyBlock;
+    propertyBlock.optionalType = PROPERTY_BLOB;
+    propertyBlock.optionalBlockValue.SetCapacity(2);
+    propertyBlock.optionalBlockValue.PutData(0, "ij", 2);
+
+    OptionalBlock profileBlock;
+    profileBlock.optionalType = PROFILE_BLOB;
+    profileBlock.optionalBlockValue.SetCapacity(2);
+    profileBlock.optionalBlockValue.PutData(0, "cd", 2);
+
+    OptionalBlock codeSignBlock;
+    codeSignBlock.optionalType = ENTERPRISE_CODE_RE_SIGN_BLOB;
+    codeSignBlock.optionalBlockValue.SetCapacity(2);
+    codeSignBlock.optionalBlockValue.PutData(0, "ef", 2);
+
+    OptionalBlock fullPackageBlock;
+    fullPackageBlock.optionalType = ENTERPRISE_RE_SIGN_BLOB;
+    fullPackageBlock.optionalBlockValue.SetCapacity(2);
+    fullPackageBlock.optionalBlockValue.PutData(0, "gh", 2);
+
+    signInfo.optionBlocks = {codeSignBlock, fullPackageBlock, profileBlock, propertyBlock};
+    std::vector<OptionalBlock> digestBlocks = HapSigningBlockUtils::BuildDigestBlocks(
+        signInfo, {ENTERPRISE_RE_SIGN_BLOB}, true);
+
+    ASSERT_EQ(digestBlocks.size(), 4);
+    ASSERT_EQ(digestBlocks[0].optionalType, PROPERTY_BLOB);
+    ASSERT_EQ(digestBlocks[1].optionalType, PROFILE_BLOB);
+    ASSERT_EQ(digestBlocks[2].optionalType, HAP_SIGN_BLOB);
+    ASSERT_EQ(digestBlocks[3].optionalType, ENTERPRISE_CODE_RE_SIGN_BLOB);
 }
 
 /**
