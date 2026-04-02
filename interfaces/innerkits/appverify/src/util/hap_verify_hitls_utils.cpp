@@ -28,7 +28,10 @@ namespace OHOS {
 namespace Security {
 namespace Verify {
 namespace {
-constexpr char HITLS_CRYPTO_SO_PATH[] = "/system/lib64/ndk/libopenhitls_crypto.z.so";
+constexpr const char* HITLS_CRYPTO_SO_PATHS[] = {
+    "/system/lib64/chipset-sdk/libopenhitls_crypto.z.so",
+    "/system/lib/chipset-sdk/libopenhitls_crypto.z.so",
+};
 constexpr int32_t CRYPT_SUCCESS = 0;
 constexpr auto HITLS_DLCLOSE_DELAY = std::chrono::minutes(3);
 
@@ -153,9 +156,19 @@ private:
             return true;
         }
 
-        handle_ = dlopen(HITLS_CRYPTO_SO_PATH, RTLD_NOW | RTLD_LOCAL);
+        const char* dlopenError = nullptr;
+        for (const auto& path : HITLS_CRYPTO_SO_PATHS) {
+            handle_ = dlopen(path, RTLD_NOW | RTLD_LOCAL);
+            if (handle_ != nullptr) {
+                HAPVERIFY_LOG_DEBUG("dlopen success for %{public}s", path);
+                break;
+            }
+            dlopenError = dlerror();
+            HAPVERIFY_LOG_WARN("dlopen failed for %{public}s: %{public}s", path, dlopenError);
+        }
         if (handle_ == nullptr) {
-            HAPVERIFY_LOG_ERROR("dlopen failed for %{public}s: %{public}s", HITLS_CRYPTO_SO_PATH, dlerror());
+            HAPVERIFY_LOG_ERROR("failed to load openhitls from fallback paths: %{public}s",
+                dlopenError == nullptr ? "unknown error" : dlopenError);
             return false;
         }
 
