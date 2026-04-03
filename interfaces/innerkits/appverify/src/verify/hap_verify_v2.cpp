@@ -144,8 +144,7 @@ int32_t HapVerifyV2::Verify(RandomAccessFile& hapFile, const std::string& localC
     }
     bool profileNeedWriteCrl = false;
     int32_t ret = VerifyAppSourceAndParseProfile(pkcs7Context,
-        hapSignInfo.optionBlocks[profileIndex].optionalBlockValue, localCertDir,
-        hapVerifyV1Result, profileNeedWriteCrl);
+        hapSignInfo.optionBlocks[profileIndex].optionalBlockValue, hapVerifyV1Result, profileNeedWriteCrl);
     if (ret != VERIFY_SUCCESS) {
         HAPVERIFY_LOG_ERROR("APP source is not trusted");
         return ret;
@@ -166,12 +165,26 @@ int32_t HapVerifyV2::Verify(RandomAccessFile& hapFile, const std::string& localC
         return GET_SIGNATURE_FAIL;
     }
     hapVerifyV1Result.SetSignature(certSignatures);
-    if (!HapSigningBlockUtils::VerifyHapIntegrityWithHitls(pkcs7Context, hapFile, hapSignInfo)) {
+    std::vector<OptionalBlock> originDigestBlocks = HapSigningBlockUtils::BuildDigestBlocks(
+        hapSignInfo, { ENTERPRISE_CODE_RE_SIGN_BLOB, ENTERPRISE_RE_SIGN_BLOB });
+    if (!HapSigningBlockUtils::VerifyHapIntegrityWithHitls(pkcs7Context, hapFile, hapSignInfo, originDigestBlocks)) {
         HAPVERIFY_LOG_ERROR("Verify Integrity with Hitls failed");
-        if (!HapSigningBlockUtils::VerifyHapIntegrity(pkcs7Context, hapFile, hapSignInfo)) {
+        if (!HapSigningBlockUtils::VerifyHapIntegrity(pkcs7Context, hapFile, hapSignInfo, originDigestBlocks)) {
             HAPVERIFY_LOG_ERROR("Verify Integrity with Openssl failed");
             return VERIFY_INTEGRITY_FAIL;
         }
+    }
+    bool isEnterpriseResigned = false;
+    int32_t verifyResignRet = VerifyEnterpriseResignBlocks(hapFile, hapSignInfo,
+        hapVerifyV1Result.GetProvisionInfo().distributionType, localCertDir, isEnterpriseResigned);
+    if (verifyResignRet != VERIFY_SUCCESS) {
+        HAPVERIFY_LOG_ERROR("Verify optional resign blocks failed");
+        return verifyResignRet;
+    }
+    if (isEnterpriseResigned) {
+        ProvisionInfo provisionInfo = hapVerifyV1Result.GetProvisionInfo();
+        provisionInfo.isEnterpriseResigned = true;
+        hapVerifyV1Result.SetProvisionInfo(provisionInfo);
     }
     WriteCrlIfNeed(pkcs7Context, profileNeedWriteCrl);
     return VERIFY_SUCCESS;
@@ -198,7 +211,6 @@ int32_t HapVerifyV2::VerifyAppPkcs7(Pkcs7Context& pkcs7Context, const HapByteBuf
 }
 
 int32_t HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context, const HapByteBuffer& hapProfileBlock,
-    const std::string& localCertDir,
     HapVerifyResult& hapVerifyV1Result, bool& profileNeadWriteCrl)
 {
     std::string certSubject;
@@ -258,8 +270,7 @@ int32_t HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context, 
             }
             return APP_SOURCE_NOT_TRUSTED;
         }
-        int32_t verifyProfileRet = VerifyProfileInfo(pkcs7Context, profileContext,
-            localCertDir, provisionInfo);
+        int32_t verifyProfileRet = VerifyProfileInfo(pkcs7Context, profileContext, provisionInfo);
         if (verifyProfileRet != VERIFY_SUCCESS) {
             HAPVERIFY_LOG_ERROR("VerifyProfileInfo failed");
             return verifyProfileRet;
@@ -362,7 +373,7 @@ void HapVerifyV2::SetProfileBlockData(const Pkcs7Context& pkcs7Context, const Ha
 }
 
 int32_t HapVerifyV2::VerifyProfileInfo(const Pkcs7Context& pkcs7Context, const Pkcs7Context& profileContext,
-    const std::string& localCertDir, ProvisionInfo& provisionInfo)
+    ProvisionInfo& provisionInfo)
 {
     if (!CheckProfileSignatureIsRight(profileContext.matchResult.matchState, provisionInfo.type)) {
         return APP_SOURCE_NOT_TRUSTED;
@@ -626,6 +637,70 @@ bool HapVerifyV2::ParseProfileFromP7b(const std::string& p7bFilePath, Pkcs7Conte
         return false;
     }
     return true;
+}
+
+int32_t HapVerifyV2::VerifyEnterpriseResignBlocks(RandomAccessFile& hapFile, const SignatureInfo& hapSignInfo,
+    const AppDistType appDistType, const std::string& localCertDir, bool& isEnterpriseResigned)
+{
+    isEnterpriseResigned = false;
+    bool hasFullPackageSignBlock = HasOptionalBlock(hapSignInfo.optionBlocks, ENTERPRISE_RE_SIGN_BLOB);
+    if (!hasFullPackageSignBlock) {
+        return VERIFY_SUCCESS;
+    }
+
+    int32_t fullPackageSignIndex = -1;
+    for (size_t i = 0; i < hapSignInfo.optionBlocks.size(); ++i) {
+        if (hapSignInfo.optionBlocks[i].optionalType == ENTERPRISE_RE_SIGN_BLOB) {
+            fullPackageSignIndex = static_cast<int32_t>(i);
+        }
+    }
+    if (fullPackageSignIndex < 0) {
+        HAPVERIFY_LOG_ERROR("get resign block index failed");
+        return VERIFY_ENTERPRISE_RESIGN_FAIL;
+    }
+
+    Pkcs7Context fullPackageSignContext;
+    int32_t ret = VerifyAppPkcs7(fullPackageSignContext,
+        hapSignInfo.optionBlocks[fullPackageSignIndex].optionalBlockValue);
+    if (ret != VERIFY_SUCCESS) {
+        HAPVERIFY_LOG_ERROR("verify full package resign pkcs7 failed");
+        return ret;
+    }
+    if (!GetDigestAndAlgorithm(fullPackageSignContext)) {
+        HAPVERIFY_LOG_ERROR("get full package resign digest failed");
+        return GET_DIGEST_FAIL;
+    }
+    ret = EnterpriseResignMgr::Verify(fullPackageSignContext, appDistType, localCertDir);
+    if (ret != VERIFY_SUCCESS) {
+        HAPVERIFY_LOG_ERROR("verify enterprise resign cert failed");
+        return ret;
+    }
+
+    std::vector<OptionalBlock> digestBlocks = HapSigningBlockUtils::BuildDigestBlocks(
+        hapSignInfo, { ENTERPRISE_RE_SIGN_BLOB }, true);
+    SignatureInfo signInfoForResign = hapSignInfo;
+    if (!HapSigningBlockUtils::VerifyHapIntegrityWithHitls(fullPackageSignContext, hapFile,
+        signInfoForResign, digestBlocks)) {
+        HAPVERIFY_LOG_ERROR("verify resign integrity with hitls failed");
+        if (!HapSigningBlockUtils::VerifyHapIntegrity(fullPackageSignContext, hapFile,
+            signInfoForResign, digestBlocks)) {
+            HAPVERIFY_LOG_ERROR("verify resign integrity with openssl failed");
+            return VERIFY_INTEGRITY_FAIL;
+        }
+    }
+    isEnterpriseResigned = true;
+    HAPVERIFY_LOG_INFO("app is enterprise resigned");
+    return VERIFY_SUCCESS;
+}
+
+bool HapVerifyV2::HasOptionalBlock(const std::vector<OptionalBlock>& optionBlocks, int32_t type) const
+{
+    for (const auto& optionBlock : optionBlocks) {
+        if (optionBlock.optionalType == type) {
+            return true;
+        }
+    }
+    return false;
 }
 
 int32_t HapVerifyV2::VerifyProfileByP7bBlock(const uint32_t p7bBlockLength,

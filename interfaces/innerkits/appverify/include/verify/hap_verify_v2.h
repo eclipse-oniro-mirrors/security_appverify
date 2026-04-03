@@ -21,6 +21,7 @@
 #include "common/random_access_file.h"
 #include "interfaces/hap_verify_result.h"
 #include "provision/provision_verify.h"
+#include "provision/provision_info.h"
 #include "util/hap_verify_openssl_utils.h"
 #include "util/signature_info.h"
 
@@ -42,7 +43,7 @@ private:
     int32_t Verify(RandomAccessFile& hapFile, const std::string& localCertDir,
         HapVerifyResult& hapVerifyV1Result);
     int32_t VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context, const HapByteBuffer& hapProfileBlock,
-        const std::string& localCertDir, HapVerifyResult& hapVerifyV1Result, bool& profileNeadWriteCrl);
+        HapVerifyResult& hapVerifyV1Result, bool& profileNeadWriteCrl);
     int32_t VerifyAppPkcs7(Pkcs7Context& pkcs7Context, const HapByteBuffer& hapSignatureBlock);
     DLL_EXPORT bool GetDigestAndAlgorithm(Pkcs7Context& digest);
     DLL_EXPORT bool CheckFilePath(const std::string& filePath, std::string& standardFilePath);
@@ -52,7 +53,7 @@ private:
         ProvisionInfo& provisionInfo, bool isCallParseAndVerify);
     bool IsAppDistributedTypeAllowInstall(const AppDistType& type, const ProvisionInfo& provisionInfo) const;
     DLL_EXPORT int32_t VerifyProfileInfo(const Pkcs7Context& pkcs7Context, const Pkcs7Context& profileContext,
-        const std::string& localCertDir, ProvisionInfo& provisionInfo);
+        ProvisionInfo& provisionInfo);
     bool CheckProfileSignatureIsRight(const MatchingStates& matchState, const ProvisionType& type);
     DLL_EXPORT bool GenerateAppId(ProvisionInfo& provisionInfo);
     DLL_EXPORT bool GenerateFingerprint(ProvisionInfo& provisionInfo);
@@ -61,6 +62,9 @@ private:
         ProvisionInfo& provisionInfo);
     void SetOrganization(ProvisionInfo& provisionInfo);
     bool ParseProfileFromP7b(const std::string& p7bFilePath, Pkcs7Context& pkcs7Context);
+    int32_t VerifyEnterpriseResignBlocks(RandomAccessFile& hapFile, const SignatureInfo& hapSignInfo,
+        const AppDistType appDistType, const std::string& localCertDir, bool& isEnterpriseResigned);
+    bool HasOptionalBlock(const std::vector<OptionalBlock>& optionBlocks, int32_t type) const;
 
 private:
     static const int32_t HEX_PRINT_LENGTH;

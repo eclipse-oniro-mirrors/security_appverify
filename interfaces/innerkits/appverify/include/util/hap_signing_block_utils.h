@@ -38,6 +38,8 @@ enum HapBlobType {
     PROOF_ROTATION_BLOB = 0x20000001,
     PROFILE_BLOB = 0x20000002,
     PROPERTY_BLOB = 0x20000003,
+    ENTERPRISE_RE_SIGN_BLOB = 0x20000004,
+    ENTERPRISE_CODE_RE_SIGN_BLOB = 0x20000005,
 };
 
 struct HapSignBlockHead {
@@ -62,6 +64,12 @@ public:
         SignatureInfo& signInfo);
     DLL_EXPORT static bool VerifyHapIntegrityWithHitls(Pkcs7Context& digestInfo, RandomAccessFile& hapFile,
         SignatureInfo& signInfo);
+    DLL_EXPORT static bool VerifyHapIntegrity(Pkcs7Context& digestInfo, RandomAccessFile& hapFile,
+        SignatureInfo& signInfo, const std::vector<OptionalBlock>& digestBlocks);
+    DLL_EXPORT static bool VerifyHapIntegrityWithHitls(Pkcs7Context& digestInfo, RandomAccessFile& hapFile,
+        SignatureInfo& signInfo, const std::vector<OptionalBlock>& digestBlocks);
+    DLL_EXPORT static std::vector<OptionalBlock> BuildDigestBlocks(const SignatureInfo& signInfo,
+        const std::vector<int32_t>& excludedOptionalTypes = {}, bool includeSignatureBlock = false);
 
 private:
     DLL_EXPORT static const long long HAP_SIG_BLOCK_MAGIC_HIGH_OLD;
