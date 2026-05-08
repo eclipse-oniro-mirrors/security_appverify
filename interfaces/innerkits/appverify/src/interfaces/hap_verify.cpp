@@ -144,6 +144,27 @@ std::string GenerateUuidByKey(const std::string &key)
     return StringHash::GenerateUuidByKey(key);
 }
 
+std::string AppDistTypeToString(AppDistType distributionType)
+{
+    const auto& distTypeMap = GetDistTypeMap();
+    for (const auto& item : distTypeMap) {
+        if (item.second == distributionType) {
+            return item.first;
+        }
+    }
+    return "";
+}
+
+AppDistType ParseAppDistType(const std::string& distributionTypeString)
+{
+    const auto& distTypeMap = GetDistTypeMap();
+    auto iter = distTypeMap.find(distributionTypeString);
+    if (iter == distTypeMap.end()) {
+        return AppDistType::NONE_TYPE;
+    }
+    return static_cast<AppDistType>(iter->second);
+}
+
 int32_t VerifyProfile(const std::string& filePath, ProvisionInfo& provisionInfo)
 {
     if (!g_isInit && !HapVerifyInit()) {
