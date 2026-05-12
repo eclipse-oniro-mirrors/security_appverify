@@ -141,15 +141,19 @@ void GetJsonObjectIfExist(const cJSON* obj, const std::string& key, cJSON** out)
 namespace OHOS {
 namespace Security {
 namespace Verify {
-const std::map<std::string, int32_t> distTypeMap = {
-    {VALUE_DIST_TYPE_APP_GALLERY, AppDistType::APP_GALLERY},
-    {VALUE_DIST_TYPE_ENTERPRISE, AppDistType::ENTERPRISE},
-    {VALUE_DIST_TYPE_ENTERPRISE_NORMAL, AppDistType::ENTERPRISE_NORMAL},
-    {VALUE_DIST_TYPE_ENTERPRISE_MDM, AppDistType::ENTERPRISE_MDM},
-    {VALUE_DIST_TYPE_OS_INTEGRATION, AppDistType::OS_INTEGRATION},
-    {VALUE_DIST_TYPE_CROWDTESTING, AppDistType::CROWDTESTING},
-    {VALUR_DIST_TYPE_INTERNALTESTING, AppDistType::INTERNALTESTING}
-};
+const std::map<std::string, int32_t>& GetDistTypeMap()
+{
+    static const std::map<std::string, int32_t> distTypeMap = {
+        {VALUE_DIST_TYPE_APP_GALLERY, AppDistType::APP_GALLERY},
+        {VALUE_DIST_TYPE_ENTERPRISE, AppDistType::ENTERPRISE},
+        {VALUE_DIST_TYPE_ENTERPRISE_NORMAL, AppDistType::ENTERPRISE_NORMAL},
+        {VALUE_DIST_TYPE_ENTERPRISE_MDM, AppDistType::ENTERPRISE_MDM},
+        {VALUE_DIST_TYPE_OS_INTEGRATION, AppDistType::OS_INTEGRATION},
+        {VALUE_DIST_TYPE_CROWDTESTING, AppDistType::CROWDTESTING},
+        {VALUR_DIST_TYPE_INTERNALTESTING, AppDistType::INTERNALTESTING}
+    };
+    return distTypeMap;
+}
 
 static bool g_isRdDevice = false;
 
@@ -165,6 +169,7 @@ void ParseAppDistType(const cJSON* obj, ProvisionInfo& out)
 {
     std::string distType;
     GetStringIfExist(obj, KEY_APP_DIST_TYPE, distType);
+    const auto& distTypeMap = GetDistTypeMap();
     if (distTypeMap.find(distType) != distTypeMap.end()) {
         out.distributionType = static_cast<AppDistType>(distTypeMap.at(distType));
         return;

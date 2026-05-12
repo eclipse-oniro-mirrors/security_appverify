@@ -15,6 +15,9 @@
 #ifndef PROVISION_VERIFY_H
 #define PROVISION_VERIFY_H
 
+#include <map>
+#include <string>
+
 #include "common/export_define.h"
 #include "provision/provision_info.h"
 
@@ -30,6 +33,8 @@ enum AppProvisionVerifyResult {
     PROVISION_NUM_DEVICE_EXCEEDED, // No. of device exceeds maximum number
     PROVISION_DEVICE_UNAUTHORIZED, // Device id not included
 };
+
+const std::map<std::string, int32_t>& GetDistTypeMap();
 
 /**
  * @brief Parse and verify the app provision

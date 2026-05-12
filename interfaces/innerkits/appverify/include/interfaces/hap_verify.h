@@ -38,6 +38,8 @@ DLL_EXPORT std::string GenerateUuidByKey(const std::string &key);
 DLL_EXPORT int32_t VerifyProfile(const std::string& filePath, ProvisionInfo& provisionInfo);
 DLL_EXPORT int32_t VerifyProfileByP7bBlock(const uint32_t p7bBlockLength,
     const unsigned char *p7bBlock, bool needParseProvision, ProvisionInfo &provisionInfo);
+DLL_EXPORT std::string AppDistTypeToString(AppDistType distributionType);
+DLL_EXPORT AppDistType ParseAppDistType(const std::string& distributionTypeString);
 } // namespace Verify
 } // namespace Security
 } // namespace OHOS
