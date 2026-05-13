@@ -37,7 +37,9 @@ DigestParameter::DigestParameter(const DigestParameter& other)
     digestOutputSizeBytes = other.digestOutputSizeBytes;
     md = other.md;
     ptrCtx = EVP_MD_CTX_create();
-    EVP_MD_CTX_copy(ptrCtx, other.ptrCtx);
+    if (ptrCtx != nullptr && other.ptrCtx != nullptr) {
+        EVP_MD_CTX_copy(ptrCtx, other.ptrCtx);
+    }
 }
 
 DigestParameter& DigestParameter::operator = (const DigestParameter& other)
@@ -50,7 +52,9 @@ DigestParameter& DigestParameter::operator = (const DigestParameter& other)
     digestOutputSizeBytes = other.digestOutputSizeBytes;
     md = other.md;
     ptrCtx = EVP_MD_CTX_create();
-    EVP_MD_CTX_copy(ptrCtx, other.ptrCtx);
+    if (ptrCtx != nullptr && other.ptrCtx != nullptr) {
+        EVP_MD_CTX_copy(ptrCtx, other.ptrCtx);
+    }
     return *this;
 }
 }  // namespace OHOS::Security::Verify
