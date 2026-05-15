@@ -16,6 +16,7 @@
 #include "common/random_access_file.h"
 
 #include <cerrno>
+#include <climits>
 #include <fcntl.h>
 #include <parameters.h>
 #include <string>
@@ -121,11 +122,15 @@ long long RandomAccessFile::DoMMap(int32_t bufCapacity, long long offset, MmapIn
     if (fd == FILE_OPEN_FAIL_ERROR_NUM) {
         return FILE_IS_CLOSE;
     }
-    if (offset < 0 || offset > fileLength - bufCapacity) {
+    if (bufCapacity <= 0 || offset < 0 || offset > fileLength - bufCapacity) {
         return READ_OFFSET_OUT_OF_RANGE;
     }
     mmapInfo.mmapPosition = (offset / memoryPageSize) * memoryPageSize;
-    mmapInfo.readMoreLen = static_cast<int>(offset - mmapInfo.mmapPosition);
+    long long readMoreLen = offset - mmapInfo.mmapPosition;
+    if (readMoreLen > INT_MAX || bufCapacity > INT_MAX - readMoreLen) {
+        return MMAP_PARAM_INVALID;
+    }
+    mmapInfo.readMoreLen = static_cast<int>(readMoreLen);
     mmapInfo.mmapSize = bufCapacity + mmapInfo.readMoreLen;
     mmapInfo.mapAddr = reinterpret_cast<char*>(mmap(nullptr, mmapInfo.mmapSize, PROT_READ,
         MAP_SHARED | MAP_POPULATE, fd, mmapInfo.mmapPosition));
@@ -211,6 +216,11 @@ long long RandomAccessFile::ReadFileFullyFromOffsetV2(char buf[], long long offs
     if (bytesRead < 0) {
         HAPVERIFY_LOG_ERROR("pread failed: %{public}d", errno);
         return bytesRead;
+    }
+    if (bytesRead != bufCapacity) {
+        HAPVERIFY_LOG_ERROR("pread incomplete: bytesRead=%{public}lld, bufCapacity=%{public}d",
+            bytesRead, bufCapacity);
+        return READ_OFFSET_OUT_OF_RANGE;
     }
 
     return bytesRead;

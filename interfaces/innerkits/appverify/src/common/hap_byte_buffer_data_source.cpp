@@ -52,6 +52,11 @@ void HapByteBufferDataSource::Reset()
 
 bool HapByteBufferDataSource::ReadDataAndDigestUpdate(const DigestParameter& digestParam, int32_t chunkSize)
 {
+    if (chunkSize <= 0 || chunkSize > hapByteBuffer.Remaining()) {
+        HAPVERIFY_LOG_ERROR("Invalid chunkSize");
+        return false;
+    }
+
     const unsigned char* chunk = reinterpret_cast<const unsigned char*>(hapByteBuffer.GetBufferPtr() +
         hapByteBuffer.GetPosition());
     bool res = HapVerifyOpensslUtils::DigestUpdate(digestParam, chunk, chunkSize);

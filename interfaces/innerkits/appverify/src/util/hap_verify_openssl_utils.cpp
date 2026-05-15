@@ -257,6 +257,10 @@ bool HapVerifyOpensslUtils::VerifyShaWithRsaPss(const PKCS7_SIGNER_INFO* signInf
     }
     int32_t mdType = OBJ_obj2nid(signInfo->digest_alg->algorithm);
     const EVP_MD_CTX* mdCtx = FindMdCtxInBio(p7Bio, mdType);
+    if (mdCtx == nullptr) {
+        HAPVERIFY_LOG_ERROR("FindMdCtxInBio failed");
+        return false;
+    }
     EVP_MD_CTX* mdCtxTmp = EVP_MD_CTX_new();
     if (mdCtxTmp == nullptr) {
         HAPVERIFY_LOG_ERROR("EVP_MD_CTX_new failed");
@@ -600,8 +604,15 @@ int32_t HapVerifyOpensslUtils::GetDigest(const HapByteBuffer& chunk, const std::
     }
     for (int32_t i = 0; i < static_cast<int>(optionalBlocks.size()); i++) {
         chunkLen = optionalBlocks[i].optionalBlockValue.GetCapacity();
-        if (EVP_DigestUpdate(digestParameter.ptrCtx, optionalBlocks[i].optionalBlockValue.GetBufferPtr(),
-            chunkLen) <= 0) {
+        if (chunkLen == 0) {
+            continue;
+        }
+        const char* optionalBlockValue = optionalBlocks[i].optionalBlockValue.GetBufferPtr();
+        if (optionalBlockValue == nullptr) {
+            HAPVERIFY_LOG_ERROR("optional block value is nullptr");
+            return outLen;
+        }
+        if (EVP_DigestUpdate(digestParameter.ptrCtx, optionalBlockValue, chunkLen) <= 0) {
             GetOpensslErrorMessage();
             HAPVERIFY_LOG_ERROR("EVP_DigestUpdate %{public}dst optional block failed", i);
             return outLen;
