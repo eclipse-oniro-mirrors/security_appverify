@@ -27,12 +27,15 @@ config("verify_test_config") {
 
 ohos_unittest("verify_test") {
   module_out_path = module_output_path
+  use_exceptions = true
   defines = []
 
   sources = [
+    "//base/security/appverify/interfaces/innerkits/appverify/src/common/random_access_file.cpp",
     "//base/security/appverify/interfaces/innerkits/appverify/src/init/json_parser_utils.cpp",
     "//base/security/appverify/interfaces/innerkits/appverify/src/provision/provision_verify.cpp",
     "//base/security/appverify/interfaces/innerkits/appverify/src/ticket/ticket_verify.cpp",
+    "//base/security/appverify/interfaces/innerkits/appverify/src/util/hap_verify_openssl_utils.cpp",
     "unittest/src/hap_byte_buffer_test.cpp",
     "unittest/src/hap_cert_verify_openssl_utils_test.cpp",
     "unittest/src/hap_crl_manager_test.cpp",
@@ -40,6 +43,7 @@ ohos_unittest("verify_test") {
     "unittest/src/hap_signing_block_utils_test.cpp",
     "unittest/src/hap_verify_hitls_utils_test.cpp",
     "unittest/src/hap_verify_openssl_utils_test.cpp",
+    "unittest/src/hap_verify_permission_test.cpp",
     "unittest/src/hap_verify_result_test.cpp",
     "unittest/src/hap_verify_test.cpp",
     "unittest/src/hap_verify_v2_test.cpp",
@@ -61,6 +65,7 @@ ohos_unittest("verify_test") {
     "c_utils:utils",
     "googletest:gtest_main",
     "openssl:libcrypto_shared",
+    "zlib:libz",
   ]
 
   if (is_standard_system) {

@@ -59,17 +59,22 @@ struct HapSubSignBlockHead {
 class HapSigningBlockUtils {
 public:
     DLL_EXPORT static bool FindHapSignature(RandomAccessFile& hapFile, SignatureInfo& signInfo);
-    DLL_EXPORT static bool GetOptionalBlockIndex(std::vector<OptionalBlock>& optionBlocks, int32_t type, int& index);
+    DLL_EXPORT static bool GetOptionalBlockIndex(const std::vector<OptionalBlock>& optionBlocks, int32_t type,
+        int& index);
     DLL_EXPORT static bool VerifyHapIntegrity(Pkcs7Context& digestInfo, RandomAccessFile& hapFile,
-        SignatureInfo& signInfo);
+        SignatureInfo& signInfo, HapByteBuffer* chunkDigestOut = nullptr);
     DLL_EXPORT static bool VerifyHapIntegrityWithHitls(Pkcs7Context& digestInfo, RandomAccessFile& hapFile,
-        SignatureInfo& signInfo);
+        SignatureInfo& signInfo, HapByteBuffer* chunkDigestOut = nullptr);
     DLL_EXPORT static bool VerifyHapIntegrity(Pkcs7Context& digestInfo, RandomAccessFile& hapFile,
-        SignatureInfo& signInfo, const std::vector<OptionalBlock>& digestBlocks);
+        SignatureInfo& signInfo, const std::vector<OptionalBlock>& digestBlocks,
+        HapByteBuffer* chunkDigestOut = nullptr);
     DLL_EXPORT static bool VerifyHapIntegrityWithHitls(Pkcs7Context& digestInfo, RandomAccessFile& hapFile,
-        SignatureInfo& signInfo, const std::vector<OptionalBlock>& digestBlocks);
+        SignatureInfo& signInfo, const std::vector<OptionalBlock>& digestBlocks,
+        HapByteBuffer* chunkDigestOut = nullptr);
     DLL_EXPORT static std::vector<OptionalBlock> BuildDigestBlocks(const SignatureInfo& signInfo,
         const std::vector<int32_t>& excludedOptionalTypes = {}, bool includeSignatureBlock = false);
+    DLL_EXPORT static bool ComputeChunkDigest(Pkcs7Context& digestInfo, RandomAccessFile& hapFile,
+        SignatureInfo& signInfo, HapByteBuffer& chunkDigest);
 
 private:
     DLL_EXPORT static const long long HAP_SIG_BLOCK_MAGIC_HIGH_OLD;

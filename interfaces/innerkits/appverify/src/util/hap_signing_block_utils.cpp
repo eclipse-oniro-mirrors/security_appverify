@@ -416,7 +416,8 @@ bool HapSigningBlockUtils::ClassifyHapSubSigningBlock(SignatureInfo& signInfo,
     return ret;
 }
 
-bool HapSigningBlockUtils::GetOptionalBlockIndex(std::vector<OptionalBlock>& optionBlocks, int32_t type, int& index)
+bool HapSigningBlockUtils::GetOptionalBlockIndex(const std::vector<OptionalBlock>& optionBlocks, int32_t type,
+    int& index)
 {
     int32_t len = static_cast<int>(optionBlocks.size());
     for (int32_t i = 0; i < len; i++) {
@@ -429,14 +430,14 @@ bool HapSigningBlockUtils::GetOptionalBlockIndex(std::vector<OptionalBlock>& opt
 }
 
 bool HapSigningBlockUtils::VerifyHapIntegrity(
-    Pkcs7Context& digestInfo, RandomAccessFile& hapFile, SignatureInfo& signInfo)
+    Pkcs7Context& digestInfo, RandomAccessFile& hapFile, SignatureInfo& signInfo, HapByteBuffer* chunkDigestOut)
 {
-    return VerifyHapIntegrity(digestInfo, hapFile, signInfo, signInfo.optionBlocks);
+    return VerifyHapIntegrity(digestInfo, hapFile, signInfo, signInfo.optionBlocks, chunkDigestOut);
 }
 
 bool HapSigningBlockUtils::VerifyHapIntegrity(
     Pkcs7Context& digestInfo, RandomAccessFile& hapFile, SignatureInfo& signInfo,
-    const std::vector<OptionalBlock>& digestBlocks)
+    const std::vector<OptionalBlock>& digestBlocks, HapByteBuffer* chunkDigestOut)
 {
     HAPVERIFY_LOG_DEBUG("Verify Integrity with Openssl Start");
     if (!SetUnsignedInt32(signInfo.hapEocd, ZIP_CD_OFFSET_IN_EOCD, signInfo.hapSigningBlockOffset)) {
@@ -486,7 +487,54 @@ bool HapSigningBlockUtils::VerifyHapIntegrity(
         }
     }
 
-    return VerifyDigest(digestParam, nId, digestBlocks, chunkDigest, digestInfo);
+    if (!VerifyDigest(digestParam, nId, digestBlocks, chunkDigest, digestInfo)) {
+        return false;
+    }
+    if (chunkDigestOut != nullptr) {
+        *chunkDigestOut = chunkDigest;
+    }
+    return true;
+}
+
+bool HapSigningBlockUtils::ComputeChunkDigest(Pkcs7Context& digestInfo, RandomAccessFile& hapFile,
+    SignatureInfo& signInfo, HapByteBuffer& chunkDigest)
+{
+    if (!SetUnsignedInt32(signInfo.hapEocd, ZIP_CD_OFFSET_IN_EOCD, signInfo.hapSigningBlockOffset)) {
+        HAPVERIFY_LOG_ERROR("Set central dir offset failed");
+        return false;
+    }
+
+    long long contentsZipSize = signInfo.hapSigningBlockOffset;
+    long long centralDirSize = signInfo.hapEocdOffset - signInfo.hapCentralDirOffset;
+    HapFileDataSource contentsZip(hapFile, 0, contentsZipSize, 0);
+    HapFileDataSource centralDir(hapFile, signInfo.hapCentralDirOffset, centralDirSize, 0);
+    HapByteBufferDataSource eocd(signInfo.hapEocd);
+    DataSource* content[ZIP_BLOCKS_NUM_NEED_DIGEST] = { &contentsZip, &centralDir, &eocd };
+    int32_t nId = HapVerifyOpensslUtils::GetDigestAlgorithmId(digestInfo.digestAlgorithm);
+    DigestParameter digestParam = GetDigestParameter(nId);
+    int32_t chunkCount = 0;
+    int32_t sumOfChunksLen = 0;
+    if (!GetSumOfChunkDigestLen(content, ZIP_BLOCKS_NUM_NEED_DIGEST, digestParam.digestOutputSizeBytes,
+        chunkCount, sumOfChunksLen)) {
+        HAPVERIFY_LOG_ERROR("GetSumOfChunkDigestLen failed");
+        return false;
+    }
+    chunkDigest.SetCapacity(sumOfChunksLen);
+    chunkDigest.PutByte(0, ZIP_FIRST_LEVEL_CHUNK_PREFIX);
+    chunkDigest.PutInt32(1, chunkCount);
+    if (!HapVerifyParallelizationSupported() || contentsZipSize <= SMALL_FILE_SIZE) {
+        int32_t offset = ZIP_CHUNK_DIGEST_PRIFIX_LEN;
+        return ComputeDigestsForDataSourceArray(digestParam, content, ZIP_BLOCKS_NUM_NEED_DIGEST,
+            chunkDigest, offset);
+    }
+    int32_t contentsZipChunkCount = GetChunkCount(contentsZipSize, CHUNK_SIZE);
+    if (!ComputeDigestsForContentsZip(nId, hapFile, contentsZipChunkCount, contentsZipSize, chunkDigest)) {
+        HAPVERIFY_LOG_ERROR("ComputeDigestsForContentsZip failed, alg: %{public}d", nId);
+        return false;
+    }
+    int32_t offset = ZIP_CHUNK_DIGEST_PRIFIX_LEN + contentsZipChunkCount * digestParam.digestOutputSizeBytes;
+    return ComputeDigestsForDataSourceArray(digestParam, content + 1, ZIP_BLOCKS_NUM_NEED_DIGEST - 1,
+        chunkDigest, offset);
 }
 
 bool HapSigningBlockUtils::VerifyDigest(const DigestParameter& digestParam, const int32_t nId,
@@ -822,14 +870,14 @@ bool HapSigningBlockUtils::ComputeDigestsForContentsZipWithHitls(int32_t hitlsAl
 }
 
 bool HapSigningBlockUtils::VerifyHapIntegrityWithHitls(
-    Pkcs7Context& digestInfo, RandomAccessFile& hapFile, SignatureInfo& signInfo)
+    Pkcs7Context& digestInfo, RandomAccessFile& hapFile, SignatureInfo& signInfo, HapByteBuffer* chunkDigestOut)
 {
-    return VerifyHapIntegrityWithHitls(digestInfo, hapFile, signInfo, signInfo.optionBlocks);
+    return VerifyHapIntegrityWithHitls(digestInfo, hapFile, signInfo, signInfo.optionBlocks, chunkDigestOut);
 }
 
 bool HapSigningBlockUtils::VerifyHapIntegrityWithHitls(
     Pkcs7Context& digestInfo, RandomAccessFile& hapFile, SignatureInfo& signInfo,
-    const std::vector<OptionalBlock>& digestBlocks)
+    const std::vector<OptionalBlock>& digestBlocks, HapByteBuffer* chunkDigestOut)
 {
     if (OHOS::system::GetBoolParameter("ohos.appverify.hitls.off", false)) {
         HAPVERIFY_LOG_INFO("hitls is turned off, fallback to openssl");
@@ -926,6 +974,9 @@ bool HapSigningBlockUtils::VerifyHapIntegrityWithHitls(
     if (!digestInfo.content.IsEqual(actualDigest)) {
         HAPVERIFY_LOG_ERROR("digest of contents verify failed, alg %{public}d", kHitlsAlgId);
         return false;
+    }
+    if (chunkDigestOut != nullptr) {
+        *chunkDigestOut = chunkDigest;
     }
 
     HAPVERIFY_LOG_DEBUG("Verify Integrity with Hitls Success");

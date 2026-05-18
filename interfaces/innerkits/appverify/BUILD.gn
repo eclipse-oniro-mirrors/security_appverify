@@ -53,6 +53,7 @@ if (os_level == "standard") {
       "src/util/hap_signing_block_utils.cpp",
       "src/util/hap_verify_hitls_utils.cpp",
       "src/util/hap_verify_openssl_utils.cpp",
+      "src/util/hap_zip_reader.cpp",
       "src/verify/enterprise_resign_mgr.cpp",
       "src/verify/hap_verify_v2.cpp",
     ]
@@ -71,6 +72,7 @@ if (os_level == "standard") {
       "c_utils:utils",
       "openssl:libcrypto_shared",
       "bounds_checking_function:libsec_shared",
+      "zlib:shared_libz",
     ]
 
     defines = []
