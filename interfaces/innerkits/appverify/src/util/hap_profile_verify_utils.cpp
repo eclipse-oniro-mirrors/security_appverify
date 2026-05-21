@@ -28,14 +28,20 @@ namespace Verify {
 bool HapProfileVerifyUtils::ParseProfile(Pkcs7Context& profilePkcs7Context, const Pkcs7Context& hapPkcs7Context,
     const HapByteBuffer& pkcs7ProfileBlock, std::string& profile)
 {
+    const char* profileBlock = pkcs7ProfileBlock.GetBufferPtr();
+    int32_t profileBlockLen = pkcs7ProfileBlock.GetCapacity();
+    if (profileBlock == nullptr || profileBlockLen <= 0) {
+        HAPVERIFY_LOG_ERROR("profile block is invalid");
+        return false;
+    }
     if (hapPkcs7Context.matchResult.matchState == MATCH_WITH_SIGN &&
         hapPkcs7Context.matchResult.source == APP_GALLARY) {
-        profile = std::string(pkcs7ProfileBlock.GetBufferPtr(), pkcs7ProfileBlock.GetCapacity());
+        profile = std::string(profileBlock, static_cast<size_t>(profileBlockLen));
         HAPVERIFY_LOG_DEBUG("hap include unsigned provision");
         return true;
     }
-    const unsigned char* pkcs7Block = reinterpret_cast<const unsigned char*>(pkcs7ProfileBlock.GetBufferPtr());
-    uint32_t pkcs7Len = static_cast<unsigned int>(pkcs7ProfileBlock.GetCapacity());
+    const unsigned char* pkcs7Block = reinterpret_cast<const unsigned char*>(profileBlock);
+    uint32_t pkcs7Len = static_cast<unsigned int>(profileBlockLen);
     if (!HapVerifyOpensslUtils::ParsePkcs7Package(pkcs7Block, pkcs7Len, profilePkcs7Context)) {
         HAPVERIFY_LOG_ERROR("parse pkcs7 failed");
         return false;
