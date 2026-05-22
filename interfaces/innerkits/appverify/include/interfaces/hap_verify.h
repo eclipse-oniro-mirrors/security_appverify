@@ -18,16 +18,43 @@
 #include <string>
 
 #include "common/export_define.h"
+#include "common/hap_byte_buffer.h"
 #include "interfaces/hap_verify_result.h"
 #include "util/signature_info.h"
 
 namespace OHOS {
 namespace Security {
 namespace Verify {
+struct BootstrapInfo {
+    int32_t version = 0;
+    HapByteBuffer chunkDigest;
+    std::string moduleRaw;
+    std::string shareFilesRaw;
+    std::string profileJsonRaw;
+
+    DLL_EXPORT uint8_t *Dump();
+    DLL_EXPORT uint64_t GetSize();
+    DLL_EXPORT int32_t Load(uint8_t *data, size_t dataLen);
+};
+
+enum class VerifyType {
+    All,
+    Fast,
+};
+
+struct VerifyParams {
+    std::string filePath;
+    std::string certPath;
+    VerifyType type = VerifyType::All;
+    bool verifyEnterpriseResign = true;
+};
+
 DLL_EXPORT bool EnableDebugMode();
 DLL_EXPORT void DisableDebugMode();
 DLL_EXPORT int32_t HapVerify(const std::string& filePath, HapVerifyResult& hapVerifyResult, bool readFile = false,
     const std::string& localCertDir = "");
+DLL_EXPORT int32_t VerifyOrParseHapPermission(const VerifyParams& params, BootstrapInfo& bootstrapInfo,
+    ProvisionInfo& provisionInfo, bool& isChanged);
 DLL_EXPORT int32_t ParseHapProfile(const std::string& filePath, HapVerifyResult& hapVerifyV1Result,
     bool readFile = false);
 DLL_EXPORT int32_t ParseHapSignatureInfo(const std::string& filePath, SignatureInfo &hapSignInfo);

@@ -28,6 +28,9 @@
 namespace OHOS {
 namespace Security {
 namespace Verify {
+struct BootstrapInfo;
+struct VerifyParams;
+
 class HapVerifyV2 {
 public:
     int32_t Verify(const std::string& filePath, HapVerifyResult& hapVerifyV1Result,
@@ -38,10 +41,13 @@ public:
     int32_t VerifyProfile(const std::string& filePath, ProvisionInfo& provisionInfo);
     int32_t VerifyProfileByP7bBlock(const uint32_t p7bBlockLength,
         const unsigned char *p7bBlock, bool needParseProvision, ProvisionInfo &provisionInfo);
+    int32_t VerifyOrParseHapPermission(const VerifyParams& params, BootstrapInfo& bootstrapInfo,
+        ProvisionInfo& provisionInfo, bool& isChanged);
 
 private:
     int32_t Verify(RandomAccessFile& hapFile, const std::string& localCertDir,
-        HapVerifyResult& hapVerifyV1Result);
+        HapVerifyResult& hapVerifyV1Result, HapByteBuffer* chunkDigestOut = nullptr,
+        bool verifyEnterpriseResign = true);
     int32_t VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context, const HapByteBuffer& hapProfileBlock,
         HapVerifyResult& hapVerifyV1Result, bool& profileNeadWriteCrl);
     int32_t VerifyAppPkcs7(Pkcs7Context& pkcs7Context, const HapByteBuffer& hapSignatureBlock);

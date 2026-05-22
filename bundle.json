@@ -31,7 +31,8 @@
           "ipc",
           "openssl",
           "os_account",
-          "samgr"
+          "samgr",
+          "zlib"
         ],
         "third_party": [
           "bounds_checking_function",
