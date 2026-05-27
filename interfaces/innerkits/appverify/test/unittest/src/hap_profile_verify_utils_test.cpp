@@ -80,4 +80,21 @@ HWTEST_F(HapProfileVerifyUtilsTest, ParseProfileTest002, TestSize.Level1)
     bool ret = HapProfileVerifyUtils::ParseProfile(profilePkcs7Context, hapPkcs7Context, pkcs7ProfileBlock, profile);
     EXPECT_FALSE(ret);
 }
+
+/**
+ * @tc.name: ParseProfileTest003
+ * @tc.desc: ParseProfileTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapProfileVerifyUtilsTest, ParseProfileTest003, TestSize.Level1)
+{
+    Pkcs7Context profilePkcs7Context = {};
+    Pkcs7Context hapPkcs7Context = {};
+    std::string mockProfile = "{}";
+    HapByteBuffer pkcs7ProfileBlock(mockProfile.size());
+    pkcs7ProfileBlock.PutData(0, mockProfile.c_str(), mockProfile.size());
+    std::string profile = "";
+    bool ret = HapProfileVerifyUtils::ParseProfile(profilePkcs7Context, hapPkcs7Context, pkcs7ProfileBlock, profile);
+    EXPECT_FALSE(ret);
+}
 }
