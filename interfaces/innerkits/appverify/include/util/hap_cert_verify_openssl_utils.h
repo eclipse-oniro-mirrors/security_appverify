@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,8 +37,13 @@ public:
     DLL_EXPORT static bool GetCertsChain(CertChain& certsChain, CertSign& certVisitSign, Pkcs7Context& pkcs7Context);
     DLL_EXPORT static bool CertVerify(X509* cert, const X509* issuerCert);
     DLL_EXPORT static bool GetSubjectFromX509(const X509* cert, std::string& subject);
+    DLL_EXPORT static bool GetEachSubjectFromX509(const X509* cert, std::string& subjectC, std::string& subjectO,
+        std::string& subjectOU, std::string& subjectCN);
     DLL_EXPORT static bool GetIssuerFromX509(const X509* cert, std::string& issuer);
+    DLL_EXPORT static bool GetEachIssuerFromX509(const X509* cert, std::string& issuerC, std::string& issuerO,
+        std::string& issuerOU, std::string& issuerCN);
     DLL_EXPORT static bool GetSerialNumberFromX509(const X509* cert, long long& certNumber);
+    DLL_EXPORT static bool GetSerialNumberFromX509(const X509* cert, std::string& certNumber);
     DLL_EXPORT static bool GetIssuerFromX509Crl(const X509_CRL* crl, std::string& issuer);
     DLL_EXPORT static bool VerifyCertChainPeriodOfValidity(CertChain& certsChain, const ASN1_TYPE* signTime);
     DLL_EXPORT static bool VerifyCrl(CertChain& certsChain, STACK_OF(X509_CRL)* crls, Pkcs7Context& pkcs7Context);
@@ -50,6 +55,7 @@ public:
     DLL_EXPORT static bool GetPublickeyBase64(const X509* cert, std::string& publicKey);
     DLL_EXPORT static int32_t CalculateLenAfterBase64Encode(int32_t len);
     DLL_EXPORT static bool GetOrganizationFromPemCert(const std::string& certStr, std::string& organization);
+    DLL_EXPORT static bool GetAuthorityKeyIdentifier(const X509* cert, std::string& authorityKeyIdentifier);
 
 private:
     DLL_EXPORT static X509* FindCertOfIssuer(X509* cert, CertSign& certVisitSign);
