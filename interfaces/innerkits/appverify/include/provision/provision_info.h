@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,6 +37,7 @@ enum AppDistType {
     ENTERPRISE_NORMAL = 5,
     ENTERPRISE_MDM = 6,
     INTERNALTESTING = 7,
+    DEVELOPER = 8,
 };
 
 struct BundleInfo {
@@ -75,6 +76,19 @@ struct Metadata {
     std::string resource;
 };
 
+struct HspPlugin {
+    int32_t certType;
+    std::string subjectCN;
+    std::string issuerCN;
+    std::string subjectOU;
+    std::string issuerC;
+    std::string issuerO;
+    std::string issuerOU;
+    std::string subjectO;
+    std::string serialNumber;
+    std::string authKeyIdentifier;
+};
+
 struct ProvisionInfo {
     DLL_EXPORT ProvisionInfo();
     DLL_EXPORT ~ProvisionInfo();
@@ -101,6 +115,7 @@ struct ProvisionInfo {
     std::string appServiceCapabilities;
     std::string organization;
     std::string developerCert;
+    HspPlugin hspPluginInfo;
     bool isOpenHarmony = false;
     bool isEnterpriseResigned = false;
 };

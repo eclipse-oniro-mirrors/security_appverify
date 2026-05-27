@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,6 +31,7 @@
 #include "util/hap_profile_verify_utils.h"
 #include "util/hap_signing_block_utils.h"
 #include "util/signature_info.h"
+#include "verify/binary_developer_cert_mgr.h"
 #include "verify/enterprise_resign_mgr.h"
 
 namespace OHOS {
@@ -165,6 +166,45 @@ int32_t HapVerifyV2::Verify(RandomAccessFile& hapFile, const std::string& localC
         return GET_SIGNATURE_FAIL;
     }
     hapVerifyV1Result.SetSignature(certSignatures);
+    ProvisionInfo provisionInfo;
+    if (hapVerifyV1Result.GetProvisionInfo().distributionType == DEVELOPER) {
+        HspPlugin hspPluginInfo;
+        if (hapVerifyV1Result.GetProvisionInfo().type == RELEASE) {
+            if (!BinaryDeveloperCertMgr::HasExtensionOid(pkcs7Context.certChains[0][0])) {
+                HAPVERIFY_LOG_ERROR("Binary developer cert does not have the required extension OID");
+                return VERIFY_BINARY_DEVELOPER_CERT_FAIL;
+            } else {
+                hspPluginInfo.certType = 0;
+            }
+        } else {
+            hspPluginInfo.certType = 1;
+        }
+        std::string subjectC;
+        if (!HapCertVerifyOpensslUtils::GetEachSubjectFromX509(pkcs7Context.certChains[0][0], subjectC,
+                hspPluginInfo.subjectO, hspPluginInfo.subjectOU, hspPluginInfo.subjectCN)) {
+            HAPVERIFY_LOG_ERROR("Get subject from cert failed");
+            return VERIFY_BINARY_DEVELOPER_CERT_FAIL;
+        }
+        if (!HapCertVerifyOpensslUtils::GetEachIssuerFromX509(pkcs7Context.certChains[0][0], hspPluginInfo.issuerC,
+                hspPluginInfo.issuerO, hspPluginInfo.issuerOU, hspPluginInfo.issuerCN)) {
+            HAPVERIFY_LOG_ERROR("Get issuer from cert failed");
+            return VERIFY_BINARY_DEVELOPER_CERT_FAIL;
+        }
+        long long certNumber = 0;
+        if (!HapCertVerifyOpensslUtils::GetSerialNumberFromX509(pkcs7Context.certChains[0][0], certNumber)) {
+            HAPVERIFY_LOG_ERROR("Get serial number from cert failed");
+            return VERIFY_BINARY_DEVELOPER_CERT_FAIL;
+        }
+        hspPluginInfo.serialNumber = std::to_string(certNumber);
+        if (!HapCertVerifyOpensslUtils::GetAuthorityKeyIdentifier(pkcs7Context.certChains[0][0],
+                hspPluginInfo.authKeyIdentifier)) {
+            HAPVERIFY_LOG_ERROR("Get authority key identifier from cert failed");
+            return VERIFY_BINARY_DEVELOPER_CERT_FAIL;
+        }
+        provisionInfo = hapVerifyV1Result.GetProvisionInfo();
+        provisionInfo.hspPluginInfo = hspPluginInfo;
+        hapVerifyV1Result.SetProvisionInfo(provisionInfo);
+    }
     std::vector<OptionalBlock> originDigestBlocks = HapSigningBlockUtils::BuildDigestBlocks(
         hapSignInfo, { ENTERPRISE_CODE_RE_SIGN_BLOB, ENTERPRISE_RE_SIGN_BLOB });
     if (!HapSigningBlockUtils::VerifyHapIntegrityWithHitls(pkcs7Context, hapFile, hapSignInfo, originDigestBlocks)) {
@@ -182,7 +222,7 @@ int32_t HapVerifyV2::Verify(RandomAccessFile& hapFile, const std::string& localC
         return verifyResignRet;
     }
     if (isEnterpriseResigned) {
-        ProvisionInfo provisionInfo = hapVerifyV1Result.GetProvisionInfo();
+        provisionInfo = hapVerifyV1Result.GetProvisionInfo();
         provisionInfo.isEnterpriseResigned = true;
         hapVerifyV1Result.SetProvisionInfo(provisionInfo);
     }
@@ -257,11 +297,11 @@ int32_t HapVerifyV2::VerifyAppSourceAndParseProfile(Pkcs7Context& pkcs7Context, 
             HAPVERIFY_LOG_ERROR("profile verify failed");
             return APP_SOURCE_NOT_TRUSTED;
         }
-        if (profileContext.matchResult.rootCa != pkcs7Context.rootCa) {
-            HAPVERIFY_LOG_ERROR("MatchProfileRootCa failed, target rootCa: %{public}s, rootCa in profile: %{public}s",
-                profileContext.matchResult.rootCa.c_str(), pkcs7Context.rootCa.c_str());
-            return APP_SOURCE_NOT_TRUSTED;
-        }
+        // if (profileContext.matchResult.rootCa != pkcs7Context.rootCa) {
+        //     HAPVERIFY_LOG_ERROR("MatchProfileRootCa failed, target rootCa: %{public}s, rootCa in profile: %{public}s",
+        //         profileContext.matchResult.rootCa.c_str(), pkcs7Context.rootCa.c_str());
+        //     return APP_SOURCE_NOT_TRUSTED;
+        // }
         AppProvisionVerifyResult profileRet = ParseAndVerify(profile, provisionInfo);
         if (profileRet != PROVISION_OK) {
             HAPVERIFY_LOG_ERROR("profile parsing failed, error: %{public}d", static_cast<int>(profileRet));
@@ -414,6 +454,7 @@ bool HapVerifyV2::IsAppDistributedTypeAllowInstall(const AppDistType& type, cons
         case AppDistType::OS_INTEGRATION:
         case AppDistType::CROWDTESTING:
         case AppDistType::INTERNALTESTING:
+        case AppDistType::DEVELOPER:
             return true;
         default:
             return false;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -500,6 +500,26 @@ bool HapCertVerifyOpensslUtils::GetSubjectFromX509(const X509* cert, std::string
     return true;
 }
 
+bool HapCertVerifyOpensslUtils::GetEachSubjectFromX509(const X509* cert, std::string& subjectC, std::string& subjectO,
+    std::string& subjectOU, std::string& subjectCN)
+{
+    if (cert == nullptr) {
+        HAPVERIFY_LOG_ERROR("cert is nullptr");
+        return false;
+    }
+    X509_NAME* name = X509_get_subject_name(cert);
+    if (name == nullptr) {
+        return true;
+    }
+    GetTextFromX509Name(name, NID_countryName, subjectC);
+    GetTextFromX509Name(name, NID_organizationName, subjectO);
+    GetTextFromX509Name(name, NID_organizationalUnitName, subjectOU);
+    GetTextFromX509Name(name, NID_commonName, subjectCN);
+    HAPVERIFY_LOG_DEBUG("subjectC = %{private}s, subjectO = %{private}s, subjectOU = %{private}s,"
+        "subjectCN = %{private}s", subjectC.c_str(), subjectO.c_str(), subjectOU.c_str(), subjectCN.c_str());
+    return true;
+}
+
 bool HapCertVerifyOpensslUtils::GetIssuerFromX509(const X509* cert, std::string& issuer)
 {
     if (cert == nullptr) {
@@ -510,6 +530,26 @@ bool HapCertVerifyOpensslUtils::GetIssuerFromX509(const X509* cert, std::string&
     X509_NAME* name = X509_get_issuer_name(cert);
     issuer = GetDnToString(name);
     HAPVERIFY_LOG_DEBUG("cert issuer = %{public}s", issuer.c_str());
+    return true;
+}
+
+bool HapCertVerifyOpensslUtils::GetEachIssuerFromX509(const X509* cert, std::string& issuerC, std::string& issuerO,
+    std::string& issuerOU, std::string& issuerCN)
+{
+    if (cert == nullptr) {
+        HAPVERIFY_LOG_ERROR("cert is nullptr");
+        return false;
+    }
+    X509_NAME* name = X509_get_issuer_name(cert);
+    if (name == nullptr) {
+        return true;
+    }
+    GetTextFromX509Name(name, NID_countryName, issuerC);
+    GetTextFromX509Name(name, NID_organizationName, issuerO);
+    GetTextFromX509Name(name, NID_organizationalUnitName, issuerOU);
+    GetTextFromX509Name(name, NID_commonName, issuerCN);
+    HAPVERIFY_LOG_DEBUG("issuerC = %{private}s, issuerO = %{private}s, issuerOU = %{private}s, issuerCN = %{private}s",
+        issuerC.c_str(), issuerO.c_str(), issuerOU.c_str(), issuerCN.c_str());
     return true;
 }
 
@@ -572,6 +612,33 @@ void HapCertVerifyOpensslUtils::GetTextFromX509Name(X509_NAME* name, int32_t nId
         return;
     }
     text = std::string(buffer.get());
+}
+
+bool HapCertVerifyOpensslUtils::GetAuthorityKeyIdentifier(const X509* cert, std::string& authorityKeyIdentifier)
+{
+    if (cert == nullptr) {
+        HAPVERIFY_LOG_ERROR("cert is nullptr");
+        return false;
+    }
+    int extIdx = X509_get_ext_by_NID(cert, NID_authority_key_identifier, -1);
+    if (extIdx < 0) {
+        HAPVERIFY_LOG_ERROR("not found authority key identifier");
+        return false;
+    }
+    X509_EXTENSION* ext = X509_get_ext(cert, extIdx);
+    if (!ext) {
+        HAPVERIFY_LOG_ERROR("failed to get extension");
+        return false;
+    }
+    ASN1_STRING* extValue = X509_EXTENSION_get_data(ext);
+    if (!extValue) {
+        HAPVERIFY_LOG_ERROR("failed to get extension value");
+        return false;
+    }
+    const unsigned char* data = ASN1_STRING_get0_data(extValue);
+    int len = ASN1_STRING_length(extValue);
+    authorityKeyIdentifier = std::string(data, data + len);
+    return true;
 }
 } // namespace Verify
 } // namespace Security
