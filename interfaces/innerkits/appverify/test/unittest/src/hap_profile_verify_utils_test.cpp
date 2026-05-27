@@ -56,7 +56,9 @@ HWTEST_F(HapProfileVerifyUtilsTest, ParseProfileTest001, TestSize.Level1)
 {
     Pkcs7Context profilePkcs7Context = {};
     Pkcs7Context hapPkcs7Context = {};
-    HapByteBuffer pkcs7ProfileBlock = {};
+    std::string mockProfile = "{}";
+    HapByteBuffer pkcs7ProfileBlock(mockProfile.size());
+    pkcs7ProfileBlock.PutData(0, mockProfile.c_str(), mockProfile.size());
     std::string profile = "";
     hapPkcs7Context.matchResult.matchState = MATCH_WITH_SIGN;
     hapPkcs7Context.matchResult.source = APP_GALLARY;
