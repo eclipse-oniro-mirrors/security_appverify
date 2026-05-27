@@ -398,4 +398,20 @@ HWTEST_F(HapVerifyTest, VerifyProfileByP7bBlock004, TestSize.Level1)
     EXPECT_EQ(ret, VERIFY_SUCCESS);
     EXPECT_FALSE(provisionInfo.bundleInfo.bundleName.empty());
 }
+
+/**
+ * @tc.name: HapVerifyTest.AppDistTypeToString001
+ * @tc.desc: The static function will return string of appDistType;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyTest, AppDistTypeToString001, TestSize.Level1)
+{
+    ProvisionInfo provisionInfo;
+    std::string ret = AppDistTypeToString(AppDistType::APP_GALLERY);
+    EXPECT_EQ(ret, "app_gallery");
+    AppDistType type = ParseAppDistType(ret);
+    EXPECT_EQ(type, AppDistType::APP_GALLERY);
+    ret = AppDistTypeToString(AppDistType::NONE_TYPE);
+    EXPECT_TRUE(ret.empty());
+}
 }
