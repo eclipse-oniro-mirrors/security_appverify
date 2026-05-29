@@ -411,9 +411,13 @@ static int32_t VerifyUdid(const ProfileProf *pf)
 
 static int32_t VerifyDebugInfo(const ProfileProf *pf)
 {
-    if (strcmp(pf->type, DEBUG_TYPE) != 0) {
+    if ((pf->type != NULL) && strcmp(pf->type, DEBUG_TYPE) != 0) {
         LOG_INFO("not debug app, return ok");
         return V_OK;
+    }
+    if (pf->debugInfo.devIdType == NULL) {
+        LOG_ERROR("devIdType is NULL");
+        return V_ERR;
     }
     LOG_PRINT_STR("devid type: %s", pf->debugInfo.devIdType);
     int32_t ret;
