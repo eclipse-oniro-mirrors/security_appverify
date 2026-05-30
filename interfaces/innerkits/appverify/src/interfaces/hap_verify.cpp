@@ -89,6 +89,32 @@ bool AddWouldOverflow(uint64_t lhs, uint64_t rhs)
 {
     return lhs > std::numeric_limits<uint64_t>::max() - rhs;
 }
+
+bool EnableDebugModeLocked(TrustedRootCa& rootCertsObj, TrustedSourceManager& trustedAppSourceManager)
+{
+    bool ret = rootCertsObj.EnableDebug() && trustedAppSourceManager.EnableDebug();
+    if (!ret) {
+        rootCertsObj.DisableDebug();
+        trustedAppSourceManager.DisableDebug();
+    }
+    return ret;
+}
+
+void DisableDebugModeLocked(TrustedRootCa& rootCertsObj, TrustedSourceManager& trustedAppSourceManager)
+{
+    rootCertsObj.DisableDebug();
+    trustedAppSourceManager.DisableDebug();
+}
+
+void UpdateDebugModeBySystemParameter(TrustedRootCa& rootCertsObj, TrustedSourceManager& trustedAppSourceManager)
+{
+    if (OHOS::system::GetParameter(ENABLE_DEBUG_MODE_PARMA, "") == TRUE) {
+        HAPVERIFY_LOG_INFO("param enable debug mode true");
+        EnableDebugModeLocked(rootCertsObj, trustedAppSourceManager);
+        return;
+    }
+    DisableDebugModeLocked(rootCertsObj, trustedAppSourceManager);
+}
 } // namespace
 
 bool HapVerifyInit()
@@ -98,49 +124,46 @@ bool HapVerifyInit()
     HapCrlManager& hapCrlManager = HapCrlManager::GetInstance();
     DeviceTypeManager& deviceTypeManager = DeviceTypeManager::GetInstance();
     TrustedTicketManager& trustedTicketSourceManager = TrustedTicketManager::GetInstance();
-    g_mtx.lock();
-    g_isInit = rootCertsObj.Init() && trustedAppSourceManager.Init();
+    std::lock_guard<std::mutex> lock(g_mtx);
     if (!g_isInit) {
-        rootCertsObj.Recovery();
-        trustedAppSourceManager.Recovery();
+        g_isInit = rootCertsObj.Init() && trustedAppSourceManager.Init();
+        if (!g_isInit) {
+            rootCertsObj.Recovery();
+            trustedAppSourceManager.Recovery();
+        }
+        trustedTicketSourceManager.Init();
+        hapCrlManager.Init();
+        deviceTypeManager.GetDeviceTypeInfo();
     }
-    trustedTicketSourceManager.Init();
-    hapCrlManager.Init();
-    deviceTypeManager.GetDeviceTypeInfo();
-    g_mtx.unlock();
+    if (g_isInit) {
+        UpdateDebugModeBySystemParameter(rootCertsObj, trustedAppSourceManager);
+    }
     return g_isInit;
 }
 
+// Retained for compatibility with earlier external callers. Appverify interfaces now
+// update debug mode from the system parameter in HapVerifyInit().
 bool EnableDebugMode()
 {
     TrustedRootCa& rootCertsObj = TrustedRootCa::GetInstance();
     TrustedSourceManager& trustedAppSourceManager = TrustedSourceManager::GetInstance();
-    g_mtx.lock();
-    bool ret = rootCertsObj.EnableDebug() && trustedAppSourceManager.EnableDebug();
-    if (!ret) {
-        rootCertsObj.DisableDebug();
-        trustedAppSourceManager.DisableDebug();
-    }
-    g_mtx.unlock();
-    return ret;
+    std::lock_guard<std::mutex> lock(g_mtx);
+    return EnableDebugModeLocked(rootCertsObj, trustedAppSourceManager);
 }
 
 void DisableDebugMode()
 {
     TrustedRootCa& rootCertsObj = TrustedRootCa::GetInstance();
     TrustedSourceManager& trustedAppSourceManager = TrustedSourceManager::GetInstance();
-    g_mtx.lock();
-    rootCertsObj.DisableDebug();
-    trustedAppSourceManager.DisableDebug();
-    g_mtx.unlock();
+    std::lock_guard<std::mutex> lock(g_mtx);
+    DisableDebugModeLocked(rootCertsObj, trustedAppSourceManager);
 }
 
 void SetDevMode(DevMode mode)
 {
     TrustedRootCa& rootCertsObj = TrustedRootCa::GetInstance();
-    g_mtx.lock();
+    std::lock_guard<std::mutex> lock(g_mtx);
     rootCertsObj.SetDevMode(mode);
-    g_mtx.unlock();
 }
 
 uint64_t BootstrapInfo::GetSize()
@@ -265,7 +288,7 @@ int32_t BootstrapInfo::Load(uint8_t *data, size_t dataLen)
 int32_t HapVerify(const std::string& filePath, HapVerifyResult& hapVerifyResult,
     bool readFile, const std::string& localCertDir)
 {
-    if (!g_isInit && !HapVerifyInit()) {
+    if (!HapVerifyInit()) {
         return VERIFY_SOURCE_INIT_FAIL;
     }
     HapVerifyV2 hapVerifyV2;
@@ -275,7 +298,7 @@ int32_t HapVerify(const std::string& filePath, HapVerifyResult& hapVerifyResult,
 int32_t VerifyOrParseHapPermission(const VerifyParams& params, BootstrapInfo& bootstrapInfo,
     ProvisionInfo& provisionInfo, bool& isChanged)
 {
-    if (!g_isInit && !HapVerifyInit()) {
+    if (!HapVerifyInit()) {
         return VERIFY_SOURCE_INIT_FAIL;
     }
     HapVerifyV2 hapVerifyV2;
@@ -302,7 +325,7 @@ int32_t ParseBundleNameAndAppIdentifier(const int32_t fileFd, std::string &bundl
         HAPVERIFY_LOG_ERROR("fd invalid");
         return OPEN_FILE_ERROR;
     }
-    if (!g_isInit && !HapVerifyInit()) {
+    if (!HapVerifyInit()) {
         HAPVERIFY_LOG_ERROR("init failed");
         return VERIFY_SOURCE_INIT_FAIL;
     }
@@ -351,7 +374,7 @@ AppDistType ParseAppDistType(const std::string& distributionTypeString)
 
 int32_t VerifyProfile(const std::string& filePath, ProvisionInfo& provisionInfo)
 {
-    if (!g_isInit && !HapVerifyInit()) {
+    if (!HapVerifyInit()) {
         return VERIFY_SOURCE_INIT_FAIL;
     }
     HapVerifyV2 hapVerifyV2;
@@ -361,12 +384,8 @@ int32_t VerifyProfile(const std::string& filePath, ProvisionInfo& provisionInfo)
 int32_t VerifyProfileByP7bBlock(const uint32_t p7bBlockLength,
     const unsigned char *p7bBlock, bool needParseProvision, ProvisionInfo &provisionInfo)
 {
-    if (!g_isInit && !HapVerifyInit()) {
+    if (!HapVerifyInit()) {
         return VERIFY_SOURCE_INIT_FAIL;
-    }
-    if (OHOS::system::GetParameter(ENABLE_DEBUG_MODE_PARMA, "") == TRUE) {
-        HAPVERIFY_LOG_INFO("param enable debug mode true");
-        EnableDebugMode();
     }
     HapVerifyV2 hapVerifyV2;
     return hapVerifyV2.VerifyProfileByP7bBlock(p7bBlockLength, p7bBlock, needParseProvision, provisionInfo);
