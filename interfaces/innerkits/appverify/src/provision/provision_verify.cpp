@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -64,6 +64,7 @@ const std::string VALUE_DIST_TYPE_ENTERPRISE_MDM = "enterprise_mdm";
 const std::string VALUR_DIST_TYPE_INTERNALTESTING = "internaltesting";
 const std::string VALUE_DIST_TYPE_OS_INTEGRATION = "os_integration";
 const std::string VALUE_DIST_TYPE_CROWDTESTING = "crowdtesting";
+const std::string VALUE_DIST_TYPE_DEVELOPER = "developer_id";
 const std::string VALUE_DEVICE_ID_TYPE_UDID = "udid";
 const std::string VALUE_VALIDITY = "validity";
 const std::string VALUE_NOT_BEFORE = "not-before";
@@ -150,7 +151,8 @@ const std::map<std::string, int32_t>& GetDistTypeMap()
         {VALUE_DIST_TYPE_ENTERPRISE_MDM, AppDistType::ENTERPRISE_MDM},
         {VALUE_DIST_TYPE_OS_INTEGRATION, AppDistType::OS_INTEGRATION},
         {VALUE_DIST_TYPE_CROWDTESTING, AppDistType::CROWDTESTING},
-        {VALUR_DIST_TYPE_INTERNALTESTING, AppDistType::INTERNALTESTING}
+        {VALUR_DIST_TYPE_INTERNALTESTING, AppDistType::INTERNALTESTING},
+        {VALUE_DIST_TYPE_DEVELOPER, AppDistType::DEVELOPER}
     };
     return distTypeMap;
 }

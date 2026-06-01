@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -40,6 +40,7 @@
 #include "util/hap_signing_block_utils.h"
 #include "util/hap_zip_reader.h"
 #include "util/signature_info.h"
+#include "verify/binary_developer_cert_mgr.h"
 #include "verify/enterprise_resign_mgr.h"
 
 #include "openssl/evp.h"
@@ -868,6 +869,26 @@ int32_t HapVerifyV2::Verify(RandomAccessFile& hapFile, const std::string& localC
     if (chunkDigestOut != nullptr) {
         *chunkDigestOut = chunkDigest;
     }
+    ProvisionInfo provisionInfo;
+    if (hapVerifyV1Result.GetProvisionInfo().distributionType == AppDistType::DEVELOPER) {
+        HspPlugin hspPluginInfo;
+        if (hapVerifyV1Result.GetProvisionInfo().type == ProvisionType::RELEASE) {
+            if (!BinaryDeveloperCertMgr::HasExtensionOid(pkcs7Context.certChains[0][0])) {
+                HAPVERIFY_LOG_ERROR("Binary developer cert does not have the required extension OID");
+                return VERIFY_BINARY_DEVELOPER_CERT_FAIL;
+            }
+            hspPluginInfo.certType = 0;
+        } else {
+            return VERIFY_BINARY_DEVELOPER_CERT_FAIL;
+        }
+        if (!BinaryDeveloperCertMgr::GetHspPluginInfo(pkcs7Context.certChains[0][0], hspPluginInfo)) {
+            HAPVERIFY_LOG_ERROR("Get hsp plugin info failed");
+            return VERIFY_BINARY_DEVELOPER_CERT_FAIL;
+        }
+        provisionInfo = hapVerifyV1Result.GetProvisionInfo();
+        provisionInfo.hspPluginInfo = hspPluginInfo;
+        hapVerifyV1Result.SetProvisionInfo(provisionInfo);
+    }
     if (verifyEnterpriseResign) {
         bool isEnterpriseResigned = false;
         int32_t verifyResignRet = VerifyEnterpriseResignBlocks(hapFile, hapSignInfo,
@@ -877,7 +898,7 @@ int32_t HapVerifyV2::Verify(RandomAccessFile& hapFile, const std::string& localC
             return verifyResignRet;
         }
         if (isEnterpriseResigned) {
-            ProvisionInfo provisionInfo = hapVerifyV1Result.GetProvisionInfo();
+            provisionInfo = hapVerifyV1Result.GetProvisionInfo();
             provisionInfo.isEnterpriseResigned = true;
             hapVerifyV1Result.SetProvisionInfo(provisionInfo);
         }
@@ -1110,6 +1131,7 @@ bool HapVerifyV2::IsAppDistributedTypeAllowInstall(const AppDistType& type, cons
         case AppDistType::OS_INTEGRATION:
         case AppDistType::CROWDTESTING:
         case AppDistType::INTERNALTESTING:
+        case AppDistType::DEVELOPER:
             return true;
         default:
             return false;
