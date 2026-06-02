@@ -877,7 +877,7 @@ int32_t HapVerifyV2::Verify(RandomAccessFile& hapFile, const std::string& localC
                 HAPVERIFY_LOG_ERROR("Binary developer cert does not have the required extension OID");
                 return VERIFY_BINARY_DEVELOPER_CERT_FAIL;
             }
-            hspPluginInfo.certType = 0;
+            hspPluginInfo.certType = BinaryCertType::Binary_RELEASE;
         } else {
             return VERIFY_BINARY_DEVELOPER_CERT_FAIL;
         }

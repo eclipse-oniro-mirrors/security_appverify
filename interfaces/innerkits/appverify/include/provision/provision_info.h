@@ -28,6 +28,11 @@ enum ProvisionType {
     RELEASE = 1,
 };
 
+enum BinaryCertType {
+    Binary_RELEASE = 0,
+    Binary_DEBUG = 1,
+};
+
 enum AppDistType {
     NONE_TYPE = 0,
     APP_GALLERY = 1,
