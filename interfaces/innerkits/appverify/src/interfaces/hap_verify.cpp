@@ -371,6 +371,22 @@ int32_t VerifyProfileByP7bBlock(const uint32_t p7bBlockLength,
     HapVerifyV2 hapVerifyV2;
     return hapVerifyV2.VerifyProfileByP7bBlock(p7bBlockLength, p7bBlock, needParseProvision, provisionInfo);
 }
+
+int32_t ParseProvisionJson(const std::string& provisionJson, ProvisionInfo& provisionInfo)
+{
+    HapVerifyV2 hapVerifyV2;
+    auto ret = ParseProfile(provisionJson, provisionInfo);
+    if (ret != PROVISION_OK) {
+        HAPVERIFY_LOG_ERROR("profile parse failed, error: %{public}d", static_cast<int>(ret));
+        return PROFILE_PARSE_FAIL;
+    }
+    hapVerifyV2.SetOrganization(provisionInfo);
+    if (!hapVerifyV2.GenerateAppId(provisionInfo) || !hapVerifyV2.GenerateFingerprint(provisionInfo)) {
+        HAPVERIFY_LOG_ERROR("Generate appId or generate fingerprint failed");
+        return PROFILE_PARSE_FAIL;
+    }
+    return VERIFY_SUCCESS;
+}
 } // namespace Verify
 } // namespace Security
 } // namespace OHOS
