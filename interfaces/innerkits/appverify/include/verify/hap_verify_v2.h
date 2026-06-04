@@ -43,6 +43,9 @@ public:
         const unsigned char *p7bBlock, bool needParseProvision, ProvisionInfo &provisionInfo);
     int32_t VerifyOrParseHapPermission(const VerifyParams& params, BootstrapInfo& bootstrapInfo,
         ProvisionInfo& provisionInfo, bool& isChanged);
+    DLL_EXPORT bool GenerateAppId(ProvisionInfo& provisionInfo);
+    DLL_EXPORT bool GenerateFingerprint(ProvisionInfo& provisionInfo);
+    DLL_EXPORT void SetOrganization(ProvisionInfo& provisionInfo);
 
 private:
     int32_t Verify(RandomAccessFile& hapFile, const std::string& localCertDir,
@@ -61,12 +64,9 @@ private:
     DLL_EXPORT int32_t VerifyProfileInfo(const Pkcs7Context& pkcs7Context, const Pkcs7Context& profileContext,
         ProvisionInfo& provisionInfo);
     bool CheckProfileSignatureIsRight(const MatchingStates& matchState, const ProvisionType& type);
-    DLL_EXPORT bool GenerateAppId(ProvisionInfo& provisionInfo);
-    DLL_EXPORT bool GenerateFingerprint(ProvisionInfo& provisionInfo);
     bool VerifyProfileSignature(const Pkcs7Context& pkcs7Context, Pkcs7Context& profileContext);
     void SetProfileBlockData(const Pkcs7Context& pkcs7Context, const HapByteBuffer& hapProfileBlock,
         ProvisionInfo& provisionInfo);
-    void SetOrganization(ProvisionInfo& provisionInfo);
     bool ParseProfileFromP7b(const std::string& p7bFilePath, Pkcs7Context& pkcs7Context);
     int32_t VerifyEnterpriseResignBlocks(RandomAccessFile& hapFile, const SignatureInfo& hapSignInfo,
         const AppDistType appDistType, const std::string& localCertDir, bool& isEnterpriseResigned);
