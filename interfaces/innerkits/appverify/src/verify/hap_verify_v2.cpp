@@ -869,25 +869,15 @@ int32_t HapVerifyV2::Verify(RandomAccessFile& hapFile, const std::string& localC
     if (chunkDigestOut != nullptr) {
         *chunkDigestOut = chunkDigest;
     }
-    ProvisionInfo provisionInfo;
     if (hapVerifyV1Result.GetProvisionInfo().distributionType == AppDistType::DEVELOPER) {
-        HspPlugin hspPluginInfo;
         if (hapVerifyV1Result.GetProvisionInfo().type == ProvisionType::RELEASE) {
             if (!BinaryDeveloperCertMgr::HasExtensionOid(pkcs7Context.certChains[0][0])) {
                 HAPVERIFY_LOG_ERROR("Binary developer cert does not have the required extension OID");
                 return VERIFY_BINARY_DEVELOPER_CERT_FAIL;
             }
-            hspPluginInfo.certType = 0;
         } else {
             return VERIFY_BINARY_DEVELOPER_CERT_FAIL;
         }
-        if (!BinaryDeveloperCertMgr::GetHspPluginInfo(pkcs7Context.certChains[0][0], hspPluginInfo)) {
-            HAPVERIFY_LOG_ERROR("Get hsp plugin info failed");
-            return VERIFY_BINARY_DEVELOPER_CERT_FAIL;
-        }
-        provisionInfo = hapVerifyV1Result.GetProvisionInfo();
-        provisionInfo.hspPluginInfo = hspPluginInfo;
-        hapVerifyV1Result.SetProvisionInfo(provisionInfo);
     }
     if (verifyEnterpriseResign) {
         bool isEnterpriseResigned = false;
@@ -898,7 +888,7 @@ int32_t HapVerifyV2::Verify(RandomAccessFile& hapFile, const std::string& localC
             return verifyResignRet;
         }
         if (isEnterpriseResigned) {
-            provisionInfo = hapVerifyV1Result.GetProvisionInfo();
+            ProvisionInfo provisionInfo = hapVerifyV1Result.GetProvisionInfo();
             provisionInfo.isEnterpriseResigned = true;
             hapVerifyV1Result.SetProvisionInfo(provisionInfo);
         }
@@ -1569,6 +1559,38 @@ int32_t HapVerifyV2::VerifyProfileByP7bBlock(const uint32_t p7bBlockLength,
             HAPVERIFY_LOG_ERROR("profile parsing failed, error: %{public}d", static_cast<int32_t>(profileRet));
             return profileRet;
         }
+    }
+    return VERIFY_SUCCESS;
+}
+
+int32_t HapVerifyV2::ParseHspPluginInfo(const uint32_t p7bBlockLength, const unsigned char *p7bBlock,
+    HspPlugin& hspPlugin)
+{
+    Pkcs7Context pkcs7Context;
+    if (!HapVerifyOpensslUtils::ParsePkcs7Package(p7bBlock, p7bBlockLength, pkcs7Context)) {
+        HAPVERIFY_LOG_ERROR("parse p7b failed");
+        return PROFILE_PARSE_FAIL;
+    }
+    std::string provisionJson = std::string(pkcs7Context.content.GetBufferPtr(), pkcs7Context.content.GetCapacity());
+    ProvisionInfo provisionInfo;
+    int32_t ret = ParseProfile(provisionJson, provisionInfo);
+    if (ret != PROVISION_OK) {
+        HAPVERIFY_LOG_ERROR("profile parse failed, error: %{public}d", static_cast<int32_t>(ret));
+        return PROFILE_PARSE_FAIL;
+    }
+    if (provisionInfo.type == ProvisionType::DEBUG) {
+        hspPlugin.certType = BinaryCertType::Binary_DEBUG;
+    } else {
+        hspPlugin.certType = BinaryCertType::Binary_RELEASE;
+    }
+    ret = HapVerifyOpensslUtils::GetCertChains(pkcs7Context.p7, pkcs7Context);
+    if (ret != VERIFY_SUCCESS) {
+        HAPVERIFY_LOG_ERROR("GetCertChains from pkcs7 failed");
+        return ret;
+    }
+    if (!BinaryDeveloperCertMgr::GetHspPluginInfo(pkcs7Context.certChains[0][0], hspPlugin)) {
+        HAPVERIFY_LOG_ERROR("Get hsp plugin info failed");
+        return VERIFY_BINARY_DEVELOPER_CERT_FAIL;
     }
     return VERIFY_SUCCESS;
 }

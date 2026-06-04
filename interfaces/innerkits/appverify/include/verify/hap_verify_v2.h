@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -43,6 +43,7 @@ public:
         const unsigned char *p7bBlock, bool needParseProvision, ProvisionInfo &provisionInfo);
     int32_t VerifyOrParseHapPermission(const VerifyParams& params, BootstrapInfo& bootstrapInfo,
         ProvisionInfo& provisionInfo, bool& isChanged);
+    int32_t ParseHspPluginInfo(const uint32_t p7bBlockLength, const unsigned char *p7bBlock, HspPlugin& hspPlugin);
     DLL_EXPORT bool GenerateAppId(ProvisionInfo& provisionInfo);
     DLL_EXPORT bool GenerateFingerprint(ProvisionInfo& provisionInfo);
     DLL_EXPORT void SetOrganization(ProvisionInfo& provisionInfo);
