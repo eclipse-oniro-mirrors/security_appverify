@@ -22,6 +22,8 @@
 
 #include <gtest/gtest.h>
 
+#include "parameters.h"
+
 #include "init/trusted_root_ca.h"
 #include "interfaces/hap_verify.h"
 #include "interfaces/hap_verify_result.h"
@@ -33,6 +35,10 @@
 using namespace testing::ext;
 using namespace OHOS::Security::Verify;
 namespace {
+const char* ENABLE_DEBUG_MODE_PARMA = "param.bms.test.enable_debug_mode";
+const char* TRUE = "true";
+const char* FALSE = "false";
+
 class HapVerifyTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -46,10 +52,12 @@ public:
 
 void HapVerifyTest::SetUpTestCase(void)
 {
+    OHOS::system::SetParameter(ENABLE_DEBUG_MODE_PARMA, TRUE);
 }
 
 void HapVerifyTest::TearDownTestCase(void)
 {
+    OHOS::system::SetParameter(ENABLE_DEBUG_MODE_PARMA, FALSE);
 }
 
 void HapVerifyTest::SetUp()
