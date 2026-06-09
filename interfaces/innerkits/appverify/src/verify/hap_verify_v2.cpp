@@ -97,7 +97,8 @@ const std::set<std::string> READ_ONLY_PREFIXES = {
     "/sys_prod/app",
     "/preload/app"
 };
-const std::string SPM_ENFORCE_PARAM = "accesstoken.spm.enforce";
+const std::string SPM_ENFORCE_PARAM = "accesstoken.permission.spm.enforcing";
+const std::string SPM_ENFORCE_VALUE = "1";
 const std::string AGC_APP_SIGNING_CERT =
     "C=CN, O=Huawei, OU=HOS AppGallery, CN=HOS AppGallery Application Release";
 const std::string AGC_ISSUER_CA =
@@ -125,7 +126,7 @@ bool IsReadOnlyHap(const std::string& filePath)
 
 bool IsSpmEnforce()
 {
-    return OHOS::system::GetBoolParameter(SPM_ENFORCE_PARAM, false);
+    return OHOS::system::GetParameter(SPM_ENFORCE_PARAM, "") == SPM_ENFORCE_VALUE;
 }
 
 bool BufferToString(const HapByteBuffer& buffer, std::string& output)
