@@ -75,7 +75,6 @@ ProvisionInfo &ProvisionInfo::operator=(const ProvisionInfo &info)
     this->developerCert = info.developerCert;
     this->isOpenHarmony = info.isOpenHarmony;
     this->isEnterpriseResigned = info.isEnterpriseResigned;
-    this->hspPluginInfo = info.hspPluginInfo;
     return *this;
 }
 } // namespace Verify

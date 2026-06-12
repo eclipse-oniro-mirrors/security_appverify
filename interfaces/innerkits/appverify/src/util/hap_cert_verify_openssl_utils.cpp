@@ -509,6 +509,7 @@ bool HapCertVerifyOpensslUtils::GetEachSubjectFromX509(const X509* cert, std::st
     }
     X509_NAME* name = X509_get_subject_name(cert);
     if (name == nullptr) {
+        HAPVERIFY_LOG_DEBUG("cert subject is empty");
         return true;
     }
     GetTextFromX509Name(name, NID_countryName, subjectC);
@@ -542,6 +543,7 @@ bool HapCertVerifyOpensslUtils::GetEachIssuerFromX509(const X509* cert, std::str
     }
     X509_NAME* name = X509_get_issuer_name(cert);
     if (name == nullptr) {
+        HAPVERIFY_LOG_DEBUG("cert issuer is empty");
         return true;
     }
     GetTextFromX509Name(name, NID_countryName, issuerC);

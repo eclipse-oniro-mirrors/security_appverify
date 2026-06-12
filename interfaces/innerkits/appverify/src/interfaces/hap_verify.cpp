@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -405,6 +405,15 @@ int32_t ParseProvisionJson(const std::string& provisionJson, ProvisionInfo& prov
         return PROFILE_PARSE_FAIL;
     }
     return VERIFY_SUCCESS;
+}
+
+int32_t ParseHspPluginInfo(const uint32_t p7bBlockLength, const unsigned char *p7bBlock, HspPlugin& hspPlugin)
+{
+    if (!g_isInit && !HapVerifyInit()) {
+        return VERIFY_SOURCE_INIT_FAIL;
+    }
+    HapVerifyV2 hapVerifyV2;
+    return hapVerifyV2.ParseHspPluginInfo(p7bBlockLength, p7bBlock, hspPlugin);
 }
 } // namespace Verify
 } // namespace Security
