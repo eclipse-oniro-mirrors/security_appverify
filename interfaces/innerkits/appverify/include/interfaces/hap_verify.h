@@ -68,8 +68,7 @@ DLL_EXPORT int32_t VerifyProfileByP7bBlock(const uint32_t p7bBlockLength,
 DLL_EXPORT int32_t ParseProvisionJson(const std::string& provisionJson, ProvisionInfo& provisionInfo);
 DLL_EXPORT std::string AppDistTypeToString(AppDistType distributionType);
 DLL_EXPORT AppDistType ParseAppDistType(const std::string& distributionTypeString);
-DLL_EXPORT int32_t ParseHspPluginInfo(const uint32_t p7bBlockLength, const unsigned char *p7bBlock,
-    HspPlugin& hspPlugin);
+DLL_EXPORT int32_t ParseHspPluginInfo(const std::string& certInProfile, HspPlugin& hspPlugin);
 } // namespace Verify
 } // namespace Security
 } // namespace OHOS

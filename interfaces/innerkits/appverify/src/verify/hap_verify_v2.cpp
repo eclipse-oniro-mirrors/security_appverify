@@ -1564,35 +1564,19 @@ int32_t HapVerifyV2::VerifyProfileByP7bBlock(const uint32_t p7bBlockLength,
     return VERIFY_SUCCESS;
 }
 
-int32_t HapVerifyV2::ParseHspPluginInfo(const uint32_t p7bBlockLength, const unsigned char *p7bBlock,
-    HspPlugin& hspPlugin)
+int32_t HapVerifyV2::ParseHspPluginInfo(const std::string& certInProfile, HspPlugin& hspPlugin)
 {
-    Pkcs7Context pkcs7Context;
-    if (!HapVerifyOpensslUtils::ParsePkcs7Package(p7bBlock, p7bBlockLength, pkcs7Context)) {
-        HAPVERIFY_LOG_ERROR("parse p7b failed");
-        return PROFILE_PARSE_FAIL;
-    }
-    std::string provisionJson = std::string(pkcs7Context.content.GetBufferPtr(), pkcs7Context.content.GetCapacity());
-    ProvisionInfo provisionInfo;
-    int32_t ret = ParseProfile(provisionJson, provisionInfo);
-    if (ret != PROVISION_OK) {
-        HAPVERIFY_LOG_ERROR("profile parse failed, error: %{public}d", static_cast<int32_t>(ret));
-        return PROFILE_PARSE_FAIL;
-    }
-    if (provisionInfo.type == ProvisionType::DEBUG) {
-        hspPlugin.certType = BinaryCertType::Binary_DEBUG;
-    } else {
-        hspPlugin.certType = BinaryCertType::Binary_RELEASE;
-    }
-    ret = HapVerifyOpensslUtils::GetCertChains(pkcs7Context.p7, pkcs7Context);
-    if (ret != VERIFY_SUCCESS) {
-        HAPVERIFY_LOG_ERROR("GetCertChains from pkcs7 failed");
-        return ret;
-    }
-    if (!BinaryDeveloperCertMgr::GetHspPluginInfo(pkcs7Context.certChains[0][0], hspPlugin)) {
-        HAPVERIFY_LOG_ERROR("Get hsp plugin info failed");
+    X509* cert = HapCertVerifyOpensslUtils::GetX509CertFromPemString(certInProfile);
+    if (cert == nullptr) {
+        HAPVERIFY_LOG_ERROR("GetX509CertFromPemString failed");
         return VERIFY_BINARY_DEVELOPER_CERT_FAIL;
     }
+    if (!BinaryDeveloperCertMgr::GetHspPluginInfo(cert, hspPlugin)) {
+        HAPVERIFY_LOG_ERROR("Get hsp plugin info failed");
+        X509_free(cert);
+        return VERIFY_BINARY_DEVELOPER_CERT_FAIL;
+    }
+    X509_free(cert);
     return VERIFY_SUCCESS;
 }
 } // namespace Verify
