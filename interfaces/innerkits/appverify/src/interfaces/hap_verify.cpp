@@ -407,13 +407,13 @@ int32_t ParseProvisionJson(const std::string& provisionJson, ProvisionInfo& prov
     return VERIFY_SUCCESS;
 }
 
-int32_t ParseHspPluginInfo(const uint32_t p7bBlockLength, const unsigned char *p7bBlock, HspPlugin& hspPlugin)
+int32_t ParseHspPluginInfo(const std::string& certInProfile, HspPlugin& hspPlugin)
 {
     if (!g_isInit && !HapVerifyInit()) {
         return VERIFY_SOURCE_INIT_FAIL;
     }
     HapVerifyV2 hapVerifyV2;
-    return hapVerifyV2.ParseHspPluginInfo(p7bBlockLength, p7bBlock, hspPlugin);
+    return hapVerifyV2.ParseHspPluginInfo(certInProfile, hspPlugin);
 }
 } // namespace Verify
 } // namespace Security

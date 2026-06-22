@@ -43,7 +43,7 @@ public:
         const unsigned char *p7bBlock, bool needParseProvision, ProvisionInfo &provisionInfo);
     int32_t VerifyOrParseHapPermission(const VerifyParams& params, BootstrapInfo& bootstrapInfo,
         ProvisionInfo& provisionInfo, bool& isChanged);
-    int32_t ParseHspPluginInfo(const uint32_t p7bBlockLength, const unsigned char *p7bBlock, HspPlugin& hspPlugin);
+    int32_t ParseHspPluginInfo(const std::string& certInProfile, HspPlugin& hspPlugin);
     DLL_EXPORT bool GenerateAppId(ProvisionInfo& provisionInfo);
     DLL_EXPORT bool GenerateFingerprint(ProvisionInfo& provisionInfo);
     DLL_EXPORT void SetOrganization(ProvisionInfo& provisionInfo);
