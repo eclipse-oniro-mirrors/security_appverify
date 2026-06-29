@@ -39,6 +39,39 @@ const char* ENABLE_DEBUG_MODE_PARMA = "param.bms.test.enable_debug_mode";
 const char* TRUE = "true";
 const char* FALSE = "false";
 
+const std::string TEST_DISTRIBUTION_CERT =
+    "-----BEGIN CERTIFICATE-----\n"
+    "MIIB6zCCAZCgAwIBAgIUehyrXgC2UXZeRqH0Pgn20i1RnM4wCgYIKoZIzj0EAwIw\n"
+    "QTELMAkGA1UEBhMCQ04xEDAOBgNVBAoMB1Rlc3RPcmcxDzANBgNVBAsMBlRlc3RP\n"
+    "VTEPMA0GA1UEAwwGVGVzdENOMB4XDTI2MDYyOTA2MTUyOFoXDTM2MDYyNjA2MTUy\n"
+    "OFowQTELMAkGA1UEBhMCQ04xEDAOBgNVBAoMB1Rlc3RPcmcxDzANBgNVBAsMBlRl\n"
+    "c3RPVTEPMA0GA1UEAwwGVGVzdENOMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE\n"
+    "qw4PQAlqRsCUtjG4h+ORBSU7Oi/0fZbsEPgKaXy+dXFwlFmUbhrOPGmSbA9MOZhE\n"
+    "ZXPotipfM1NnudPJf8/+XqNmMGQwCwYDVR0PBAQDAgeAMB0GA1UdDgQWBBSJHizv\n"
+    "HPCFH69U9KIB+kk1zyjc6jAfBgNVHSMEGDAWgBSJHizvHPCFH69U9KIB+kk1zyjc\n"
+    "6jAVBgwrBgEEAY9bAoJ4AQgEBTADAQH/MAoGCCqGSM49BAMCA0kAMEYCIQCjSpux\n"
+    "Kc82wDZUe/fO4udfCFHvxCTYLu51swaoc0sYUAIhALhAUS53eM+tOaJZicYOSI3n\n"
+    "FA2WW/MrrEWHMNE/jqCx\n"
+    "-----END CERTIFICATE-----\n";
+
+const std::string BuildProvisionJson(const std::string& cert)
+{
+    return "{"
+        "\"version-code\": 1,"
+        "\"version-name\": \"1.0\","
+        "\"uuid\": \"test-uuid\","
+        "\"app-distribution-type\": \"app_gallery\","
+        "\"bundle-info\": {"
+        "\"developer-id\": \"test-developer\","
+        "\"distribution-certificate\": \"" + cert + "\""
+        "}"
+        "}";
+}
+
+const std::string TEST_VALID_PROVISION_JSON = BuildProvisionJson(TEST_DISTRIBUTION_CERT);
+const std::string TEST_INVALID_CERT_PROVISION_JSON = BuildProvisionJson("invalid certificate");
+const std::string TEST_EMPTY_CERT_PROVISION_JSON = BuildProvisionJson("");
+
 class HapVerifyTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -421,5 +454,38 @@ HWTEST_F(HapVerifyTest, AppDistTypeToString001, TestSize.Level1)
     EXPECT_EQ(type, AppDistType::APP_GALLERY);
     ret = AppDistTypeToString(AppDistType::NONE_TYPE);
     EXPECT_TRUE(ret.empty());
+}
+
+/**
+ * @tc.name: HapVerifyTest.ParseProvisionJson001
+ * @tc.desc: ParseProvisionJson returns VERIFY_SUCCESS and fills appId, fingerprint and organization.
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyTest, ParseProvisionJson001, TestSize.Level1)
+{
+    ProvisionInfo provisionInfo;
+    int32_t ret = ParseProvisionJson(TEST_VALID_PROVISION_JSON, provisionInfo);
+    EXPECT_EQ(ret, VERIFY_SUCCESS);
+    EXPECT_FALSE(provisionInfo.appId.empty());
+    EXPECT_FALSE(provisionInfo.fingerprint.empty());
+    EXPECT_EQ(provisionInfo.organization, "TestOrg");
+}
+
+/**
+ * @tc.name: HapVerifyTest.ParseProvisionJson002
+ * @tc.desc: ParseProvisionJson returns PROFILE_PARSE_FAIL for invalid JSON, invalid cert or empty cert.
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyTest, ParseProvisionJson002, TestSize.Level1)
+{
+    ProvisionInfo provisionInfo;
+    EXPECT_EQ(ParseProvisionJson("not a json string", provisionInfo), PROFILE_PARSE_FAIL);
+    EXPECT_TRUE(provisionInfo.appId.empty());
+
+    EXPECT_EQ(ParseProvisionJson(TEST_INVALID_CERT_PROVISION_JSON, provisionInfo), PROFILE_PARSE_FAIL);
+    EXPECT_TRUE(provisionInfo.appId.empty());
+
+    EXPECT_EQ(ParseProvisionJson(TEST_EMPTY_CERT_PROVISION_JSON, provisionInfo), PROFILE_PARSE_FAIL);
+    EXPECT_TRUE(provisionInfo.appId.empty());
 }
 }
