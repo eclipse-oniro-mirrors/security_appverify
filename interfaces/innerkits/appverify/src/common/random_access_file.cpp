@@ -283,7 +283,11 @@ bool RandomAccessFile::ReadFileFromOffsetAndDigestUpdateV2(const DigestParameter
 
 bool RandomAccessFile::HapVerifyParallelizationSupported()
 {
+#ifdef X86_EMULATOR_MODE
+    return false;
+#else
     return OHOS::system::GetBoolParameter("const.appverify.hap_verify_parallel", false);
+#endif
 }
 
 bool RandomAccessFile::ReadFileFromOffsetAndHitlsDigestUpdate(HitlsDigestParameter& digestParam,

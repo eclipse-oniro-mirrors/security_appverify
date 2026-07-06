@@ -726,7 +726,11 @@ bool HapSigningBlockUtils::InitDigestPrefix(const DigestParameter& digestParam,
 
 bool HapSigningBlockUtils::HapVerifyParallelizationSupported()
 {
+#ifdef X86_EMULATOR_MODE
+    return false;
+#else
     return OHOS::system::GetBoolParameter("const.appverify.hap_verify_parallel", false);
+#endif
 }
 
 bool HapSigningBlockUtils::ComputeDigestsForOneDataSourceWithHitls(DataSource& content,
