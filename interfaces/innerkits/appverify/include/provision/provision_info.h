@@ -82,7 +82,7 @@ struct Metadata {
 };
 
 struct HspPlugin {
-    int32_t certType;
+    int32_t certType = 0;
     std::string subjectCN;
     std::string issuerCN;
     std::string subjectOU;
