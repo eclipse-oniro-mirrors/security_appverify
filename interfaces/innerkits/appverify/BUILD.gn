@@ -62,6 +62,7 @@ if (os_level == "standard") {
     public_configs = [ ":libhapverify_config" ]
 
     cflags_cc = [
+      "-Os",
       "-DHILOG_ENABLE",
       "-fvisibility=hidden",
     ]
