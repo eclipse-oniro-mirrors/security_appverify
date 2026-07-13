@@ -17,6 +17,7 @@
 #define SECURITY_APP_FILE_H
 
 #include <stdint.h>
+#include <stdlib.h>
 
 #ifdef __cplusplus
 #if __cplusplus
