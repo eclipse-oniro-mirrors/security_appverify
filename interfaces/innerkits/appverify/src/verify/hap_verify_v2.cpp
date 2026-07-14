@@ -1229,6 +1229,16 @@ int32_t HapVerifyV2::VerifyOrParseHapPermission(const VerifyParams& params, Boot
         HapVerifyResult verifyResult;
         HapByteBuffer chunkDigest;
         int32_t ret = Verify(hapFile, params.certPath, verifyResult, &chunkDigest, params.verifyEnterpriseResign);
+        if (ret == SIGNATURE_NOT_FOUND) {
+            BootstrapInfo newBootstrap;
+            HapZipReader reader(hapFile);
+            if (!reader.ReadEntry(MODULE_JSON, newBootstrap.moduleRaw) &&
+                !reader.ReadEntry(CONFIG_JSON, newBootstrap.moduleRaw)) {
+                HAPVERIFY_LOG_ERROR("read module.json/config.json failed");
+            }
+            bootstrapInfo = newBootstrap;
+            return ret;
+        }
         if (ret != VERIFY_SUCCESS) {
             HAPVERIFY_LOG_ERROR("scene 1 failed");
             return ret;
