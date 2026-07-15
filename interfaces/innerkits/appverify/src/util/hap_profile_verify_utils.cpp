@@ -47,7 +47,14 @@ bool HapProfileVerifyUtils::ParseProfile(Pkcs7Context& profilePkcs7Context, cons
         return false;
     }
 
-    profile = std::string(profilePkcs7Context.content.GetBufferPtr(), profilePkcs7Context.content.GetCapacity());
+    const char* contentBuffer = profilePkcs7Context.content.GetBufferPtr();
+    int32_t contentLen = profilePkcs7Context.content.GetCapacity();
+    if (contentBuffer == nullptr || contentLen <= 0) {
+        HAPVERIFY_LOG_ERROR("profile content is invalid after pkcs7 parsing");
+        return false;
+    }
+
+    profile = std::string(contentBuffer, static_cast<size_t>(contentLen));
     return true;
 }
 
