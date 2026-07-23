@@ -33,6 +33,22 @@ using namespace OHOS::Security::Verify;
 namespace {
 const std::string ERROR_CERTIFICATE = "errorCertificate";
 const std::string TEST_CERTIFICATE = "-----BEGIN CERTIFICATE-----\nMIICMzCCAbegAwIBAgIEaOC/zDAMBggqhkjOPQQDAwUAMGMxCzAJBgNVBAYTAkNO\nMRQwEgYDVQQKEwtPcGVuSGFybW9ueTEZMBcGA1UECxMQT3Blbkhhcm1vbnkgVGVh\nbTEjMCEGA1UEAxMaT3Blbkhhcm1vbnkgQXBwbGljYXRpb24gQ0EwHhcNMjEwMjAy\nMTIxOTMxWhcNNDkxMjMxMTIxOTMxWjBoMQswCQYDVQQGEwJDTjEUMBIGA1UEChML\nT3Blbkhhcm1vbnkxGTAXBgNVBAsTEE9wZW5IYXJtb255IFRlYW0xKDAmBgNVBAMT\nH09wZW5IYXJtb255IEFwcGxpY2F0aW9uIFJlbGVhc2UwWTATBgcqhkjOPQIBBggq\nhkjOPQMBBwNCAATbYOCQQpW5fdkYHN45v0X3AHax12jPBdEDosFRIZ1eXmxOYzSG\nJwMfsHhUU90E8lI0TXYZnNmgM1sovubeQqATo1IwUDAfBgNVHSMEGDAWgBTbhrci\nFtULoUu33SV7ufEFfaItRzAOBgNVHQ8BAf8EBAMCB4AwHQYDVR0OBBYEFPtxruhl\ncRBQsJdwcZqLu9oNUVgaMAwGCCqGSM49BAMDBQADaAAwZQIxAJta0PQ2p4DIu/ps\nLMdLCDgQ5UH1l0B4PGhBlMgdi2zf8nk9spazEQI/0XNwpft8QAIwHSuA2WelVi/o\nzAlF08DnbJrOOtOnQq5wHOPlDYB4OtUzOYJk9scotrEnJxJzGsh/\n-----END CERTIFICATE-----\n";
+constexpr int32_t TEST_DIGEST_BLOCK_LEN_OFFSET = 8;
+constexpr int32_t TEST_DIGEST_ALGORITHM_OFFSET = 12;
+constexpr int32_t TEST_DIGEST_LEN_OFFSET = 16;
+constexpr int32_t TEST_DIGEST_OFFSET_IN_CONTENT = 20;
+constexpr int32_t TEST_DIGEST_LEN = 32;
+constexpr int32_t TEST_DIGEST_ALGORITHM = 1;
+constexpr int32_t TEST_DIGEST_CONTENT_LEN = TEST_DIGEST_OFFSET_IN_CONTENT + TEST_DIGEST_LEN;
+constexpr int32_t TEST_DIGEST_BLOCK_HEADER_LEN = sizeof(int32_t) * 2;
+
+void InitDigestContent(Pkcs7Context& digest, int32_t digestLen)
+{
+    digest.content.SetCapacity(TEST_DIGEST_CONTENT_LEN);
+    digest.content.PutInt32(TEST_DIGEST_BLOCK_LEN_OFFSET, TEST_DIGEST_BLOCK_HEADER_LEN + digestLen);
+    digest.content.PutInt32(TEST_DIGEST_ALGORITHM_OFFSET, TEST_DIGEST_ALGORITHM);
+    digest.content.PutInt32(TEST_DIGEST_LEN_OFFSET, digestLen);
+}
 
 class HapVerifyV2Test : public testing::Test {
 public:
@@ -289,6 +305,60 @@ HWTEST_F(HapVerifyV2Test, GetDigestAndAlgorithmTest003, TestSize.Level1)
     digest.content.SetCapacity(TEST_FILE_BLOCK_LENGTH);
     digest.digestAlgorithm = RELEASE;
     ASSERT_FALSE(hapVerifyV2.GetDigestAndAlgorithm(digest));
+}
+
+/**
+ * @tc.name: Test GetDigestAndAlgorithm function
+ * @tc.desc: The function rejects a negative digest length;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyV2Test, GetDigestAndAlgorithmTest004, TestSize.Level1)
+{
+    HapVerifyV2 hapVerifyV2;
+    Pkcs7Context digest;
+    InitDigestContent(digest, -1);
+    ASSERT_FALSE(hapVerifyV2.GetDigestAndAlgorithm(digest));
+}
+
+/**
+ * @tc.name: Test GetDigestAndAlgorithm function
+ * @tc.desc: The function rejects a zero digest length;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyV2Test, GetDigestAndAlgorithmTest005, TestSize.Level1)
+{
+    HapVerifyV2 hapVerifyV2;
+    Pkcs7Context digest;
+    InitDigestContent(digest, 0);
+    ASSERT_FALSE(hapVerifyV2.GetDigestAndAlgorithm(digest));
+}
+
+/**
+ * @tc.name: Test GetDigestAndAlgorithm function
+ * @tc.desc: The function rejects a digest length greater than the available content;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyV2Test, GetDigestAndAlgorithmTest006, TestSize.Level1)
+{
+    HapVerifyV2 hapVerifyV2;
+    Pkcs7Context digest;
+    InitDigestContent(digest, TEST_DIGEST_LEN + 1);
+    ASSERT_FALSE(hapVerifyV2.GetDigestAndAlgorithm(digest));
+}
+
+/**
+ * @tc.name: Test GetDigestAndAlgorithm function
+ * @tc.desc: The function accepts a valid digest length;
+ * @tc.type: FUNC
+ */
+HWTEST_F(HapVerifyV2Test, GetDigestAndAlgorithmTest007, TestSize.Level1)
+{
+    HapVerifyV2 hapVerifyV2;
+    Pkcs7Context digest;
+    InitDigestContent(digest, TEST_DIGEST_LEN);
+    ASSERT_TRUE(hapVerifyV2.GetDigestAndAlgorithm(digest));
+    ASSERT_EQ(digest.content.GetCapacity(), TEST_DIGEST_LEN);
+    ASSERT_EQ(digest.digestAlgorithm, TEST_DIGEST_ALGORITHM);
 }
 
 /**

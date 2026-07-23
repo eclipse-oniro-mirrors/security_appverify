@@ -1195,7 +1195,15 @@ bool HapVerifyV2::GetDigestAndAlgorithm(Pkcs7Context& digest)
         return false;
     }
 
-    int32_t sum = sizeof(digestlen) + sizeof(digest.digestAlgorithm) + digestlen;
+    const int32_t contentCapacity = digest.content.GetCapacity();
+    if (digestlen <= 0 || digestlen > contentCapacity - DIGEST_OFFSET_IN_CONTENT) {
+        HAPVERIFY_LOG_ERROR("invalid digestlen: %{public}d, contentCapacity: %{public}d",
+            digestlen, contentCapacity);
+        return false;
+    }
+
+    const int32_t digestBlockHeaderLen = static_cast<int32_t>(sizeof(digestlen) + sizeof(digest.digestAlgorithm));
+    const int32_t sum = digestBlockHeaderLen + digestlen;
     if (sum != digestBlockLen) {
         HAPVERIFY_LOG_ERROR("digestBlockLen: %{public}d is not equal to sum: %{public}d",
             digestBlockLen, sum);
