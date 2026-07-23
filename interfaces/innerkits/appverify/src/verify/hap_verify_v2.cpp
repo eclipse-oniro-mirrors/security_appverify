@@ -1384,10 +1384,10 @@ int32_t HapVerifyV2::ParseHapProfile(const std::string& filePath, HapVerifyResul
     Pkcs7Context profileContext;
     if (!HapVerifyOpensslUtils::ParsePkcs7Package(pkcs7Block, pkcs7Len, profileContext)) {
         HAPVERIFY_LOG_ERROR("parse pkcs7 failed");
-        return false;
+        return VERIFY_APP_PKCS7_FAIL;
     }
     std::string profile = std::string(profileContext.content.GetBufferPtr(), profileContext.content.GetCapacity());
-    HAPVERIFY_LOG_DEBUG("profile is %{public}s", profile.c_str());
+    HAPVERIFY_LOG_DEBUG("profile is %{private}s", profile.c_str());
     ProvisionInfo info;
     auto ret = ParseProfile(profile, info);
     if (ret != PROVISION_OK) {
