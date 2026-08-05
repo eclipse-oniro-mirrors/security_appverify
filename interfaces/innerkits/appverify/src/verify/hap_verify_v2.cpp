@@ -166,7 +166,7 @@ bool GetShareFilesEntryName(const std::string& moduleRaw, std::string& entryName
     return true;
 }
 
-bool ReadPermissionRaw(RandomAccessFile& hapFile, BootstrapInfo& bootstrapInfo)
+bool ReadPermissionRaw(RandomAccessFile& hapFile, BootstrapInfo& bootstrapInfo, bool enableFastPath = false)
 {
     HapZipReader reader(hapFile);
     if (!reader.ReadEntry(MODULE_JSON, bootstrapInfo.moduleRaw) &&
@@ -188,6 +188,12 @@ bool ReadPermissionRaw(RandomAccessFile& hapFile, BootstrapInfo& bootstrapInfo)
         return false;
     }
     const HapByteBuffer& profileBlock = signInfo.optionBlocks[profileIndex].optionalBlockValue;
+
+    if (enableFastPath && HapVerifyOpensslUtils::GetPkcs7ContentByAsn1(profileBlock,
+        bootstrapInfo.profileJsonRaw)) {
+        return true;
+    }
+
     Pkcs7Context profileContext;
     if (!HapVerifyOpensslUtils::ParsePkcs7Package(
         reinterpret_cast<const unsigned char*>(profileBlock.GetBufferPtr()),
@@ -200,13 +206,13 @@ bool ReadPermissionRaw(RandomAccessFile& hapFile, BootstrapInfo& bootstrapInfo)
     return BufferToString(profileContext.content, bootstrapInfo.profileJsonRaw);
 }
 
-bool ReadPermissionRaw(const std::string& filePath, BootstrapInfo& bootstrapInfo)
+bool ReadPermissionRaw(const std::string& filePath, BootstrapInfo& bootstrapInfo, bool enableFastPath = false)
 {
     RandomAccessFile hapFile;
     if (!hapFile.Init(filePath)) {
         return false;
     }
-    return ReadPermissionRaw(hapFile, bootstrapInfo);
+    return ReadPermissionRaw(hapFile, bootstrapInfo, enableFastPath);
 }
 
 uint32_t ReadLe32(const char* data, size_t offset)
@@ -1276,7 +1282,7 @@ int32_t HapVerifyV2::VerifyOrParseHapPermission(const VerifyParams& params, Boot
     if (IsReadOnlyHap(params.filePath)) {
         HAPVERIFY_LOG_DEBUG("scene 2-1 start");
         BootstrapInfo current;
-        if (!ReadPermissionRaw(params.filePath, current)) {
+        if (!ReadPermissionRaw(params.filePath, current, true)) {
             HAPVERIFY_LOG_ERROR("scene 2-1 failed");
             return PROFILE_PARSE_FAIL;
         }

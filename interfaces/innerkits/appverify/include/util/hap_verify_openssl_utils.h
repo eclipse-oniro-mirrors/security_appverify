@@ -62,6 +62,7 @@ public:
     static int32_t GetDigest(const DigestParameter& digestParameter, unsigned char (&out)[EVP_MAX_MD_SIZE]);
     static int32_t GetDigestAlgorithmOutputSizeBytes(int32_t nId);
     DLL_EXPORT static int32_t GetDigestAlgorithmId(int32_t signAlgorithm);
+    static bool GetPkcs7ContentByAsn1(const HapByteBuffer& pkcs7Block, std::string& content);
     static void GetOpensslErrorMessage();
 
 private:

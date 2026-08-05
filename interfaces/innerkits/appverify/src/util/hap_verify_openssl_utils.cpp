@@ -15,6 +15,9 @@
 
 #include "util/hap_verify_openssl_utils.h"
 
+#include <climits>
+#include <cstring>
+
 #include "common/hap_verify_log.h"
 #include "openssl/asn1.h"
 #include "openssl/bio.h"
@@ -28,6 +31,205 @@
 namespace OHOS {
 namespace Security {
 namespace Verify {
+namespace {
+constexpr int32_t ASN1_GET_OBJECT_ERROR = 0x80;
+constexpr int32_t ASN1_GET_OBJECT_INDEFINITE_LENGTH = 0x01;
+constexpr unsigned char PKCS7_SIGNED_DATA_OID[] = {
+    0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x07, 0x02
+};
+constexpr unsigned char PKCS7_DATA_OID[] = {
+    0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x07, 0x01
+};
+
+class Pkcs7ProfileParser final {
+public:
+    static bool Parse(const unsigned char* data, size_t dataLen, std::string& content)
+    {
+        if (data == nullptr || dataLen == 0 || dataLen > static_cast<size_t>(LONG_MAX)) {
+            return false;
+        }
+
+        const unsigned char* dataEnd = data + dataLen;
+        const unsigned char* cursor = data;
+        Asn1Object contentInfo;
+        if (!ReadExpectedConstructedObject(cursor, dataEnd, V_ASN1_UNIVERSAL, V_ASN1_SEQUENCE, contentInfo) ||
+            cursor != dataEnd) {
+            return false;
+        }
+
+        const unsigned char* contentInfoCursor = contentInfo.content;
+        Asn1Object contentType;
+        Asn1Object signedDataWrapper;
+        if (!ReadExpectedPrimitiveObject(contentInfoCursor, contentInfo.end,
+            V_ASN1_UNIVERSAL, V_ASN1_OBJECT, contentType) ||
+            !IsExpectedOid(contentType, PKCS7_SIGNED_DATA_OID, sizeof(PKCS7_SIGNED_DATA_OID)) ||
+            !ReadExpectedConstructedObject(contentInfoCursor, contentInfo.end,
+            V_ASN1_CONTEXT_SPECIFIC, 0, signedDataWrapper) || contentInfoCursor != contentInfo.end) {
+            return false;
+        }
+
+        const unsigned char* wrapperCursor = signedDataWrapper.content;
+        Asn1Object signedData;
+        if (!ReadExpectedConstructedObject(wrapperCursor, signedDataWrapper.end,
+            V_ASN1_UNIVERSAL, V_ASN1_SEQUENCE, signedData) || wrapperCursor != signedDataWrapper.end) {
+            return false;
+        }
+        return ParseSignedData(signedData, content);
+    }
+
+private:
+    struct Asn1Object {
+        const unsigned char* content = nullptr;
+        const unsigned char* end = nullptr;
+        size_t length = 0;
+        int tag = 0;
+        int cls = 0;
+        bool constructed = false;
+    };
+
+    static bool ReadObject(const unsigned char*& cursor, const unsigned char* parentEnd, Asn1Object& object)
+    {
+        if (cursor == nullptr || parentEnd == nullptr || cursor >= parentEnd) {
+            return false;
+        }
+        size_t remainSize = static_cast<size_t>(parentEnd - cursor);
+        if (remainSize > static_cast<size_t>(LONG_MAX)) {
+            return false;
+        }
+
+        const unsigned char* objectStart = cursor;
+        const unsigned char* objectContent = cursor;
+        long objectLength = 0;
+        int objectTag = 0;
+        int objectClass = 0;
+        int ret = ASN1_get_object(&objectContent, &objectLength, &objectTag, &objectClass,
+            static_cast<long>(remainSize));
+        if ((ret & ASN1_GET_OBJECT_ERROR) != 0 || (ret & ASN1_GET_OBJECT_INDEFINITE_LENGTH) != 0 ||
+            objectLength < 0 || objectContent < objectStart || objectContent > parentEnd) {
+            return false;
+        }
+
+        size_t contentLength = static_cast<size_t>(objectLength);
+        if (contentLength > static_cast<size_t>(parentEnd - objectContent)) {
+            return false;
+        }
+
+        object.content = objectContent;
+        object.end = objectContent + contentLength;
+        object.length = contentLength;
+        object.tag = objectTag;
+        object.cls = objectClass;
+        object.constructed = (ret & V_ASN1_CONSTRUCTED) != 0;
+        cursor = object.end;
+        return true;
+    }
+
+    static bool IsExpectedObject(const Asn1Object& object, int expectedClass, int expectedTag,
+        bool expectedConstructed)
+    {
+        return object.cls == expectedClass && object.tag == expectedTag &&
+            object.constructed == expectedConstructed;
+    }
+
+    static bool ReadExpectedPrimitiveObject(const unsigned char*& cursor, const unsigned char* parentEnd,
+        int expectedClass, int expectedTag, Asn1Object& object)
+    {
+        return ReadObject(cursor, parentEnd, object) &&
+            IsExpectedObject(object, expectedClass, expectedTag, false);
+    }
+
+    static bool ReadExpectedConstructedObject(const unsigned char*& cursor, const unsigned char* parentEnd,
+        int expectedClass, int expectedTag, Asn1Object& object)
+    {
+        return ReadObject(cursor, parentEnd, object) &&
+            IsExpectedObject(object, expectedClass, expectedTag, true);
+    }
+
+    static bool IsExpectedOid(const Asn1Object& object, const unsigned char* expectedOid, size_t expectedOidLen)
+    {
+        return expectedOid != nullptr && object.length == expectedOidLen && object.content != nullptr &&
+            std::memcmp(object.content, expectedOid, expectedOidLen) == 0;
+    }
+
+    static bool ParseSignedData(const Asn1Object& signedData, std::string& content)
+    {
+        const unsigned char* cursor = signedData.content;
+        Asn1Object version;
+        Asn1Object digestAlgorithms;
+        Asn1Object encapsulatedContentInfo;
+        if (!ReadExpectedPrimitiveObject(cursor, signedData.end,
+            V_ASN1_UNIVERSAL, V_ASN1_INTEGER, version) ||
+            !ReadExpectedConstructedObject(cursor, signedData.end,
+            V_ASN1_UNIVERSAL, V_ASN1_SET, digestAlgorithms) ||
+            !ReadExpectedConstructedObject(cursor, signedData.end,
+            V_ASN1_UNIVERSAL, V_ASN1_SEQUENCE, encapsulatedContentInfo) ||
+            version.length == 0 || digestAlgorithms.length == 0) {
+            return false;
+        }
+
+        const unsigned char* profileData = nullptr;
+        size_t profileDataLen = 0;
+        if (!ParseEncapsulatedContentInfo(encapsulatedContentInfo, profileData, profileDataLen) ||
+            !ParseSignedDataTail(cursor, signedData.end)) {
+            return false;
+        }
+        content.assign(reinterpret_cast<const char*>(profileData), profileDataLen);
+        return true;
+    }
+
+    static bool ParseEncapsulatedContentInfo(const Asn1Object& encapsulatedContentInfo,
+        const unsigned char*& profileData, size_t& profileDataLen)
+    {
+        const unsigned char* cursor = encapsulatedContentInfo.content;
+        Asn1Object contentType;
+        Asn1Object contentWrapper;
+        if (!ReadExpectedPrimitiveObject(cursor, encapsulatedContentInfo.end,
+            V_ASN1_UNIVERSAL, V_ASN1_OBJECT, contentType) ||
+            !IsExpectedOid(contentType, PKCS7_DATA_OID, sizeof(PKCS7_DATA_OID)) ||
+            !ReadExpectedConstructedObject(cursor, encapsulatedContentInfo.end,
+            V_ASN1_CONTEXT_SPECIFIC, 0, contentWrapper) || cursor != encapsulatedContentInfo.end) {
+            return false;
+        }
+
+        const unsigned char* wrapperCursor = contentWrapper.content;
+        Asn1Object profile;
+        if (!ReadExpectedPrimitiveObject(wrapperCursor, contentWrapper.end,
+            V_ASN1_UNIVERSAL, V_ASN1_OCTET_STRING, profile) || wrapperCursor != contentWrapper.end ||
+            profile.content == nullptr || profile.length == 0) {
+            return false;
+        }
+        profileData = profile.content;
+        profileDataLen = profile.length;
+        return true;
+    }
+
+    static bool ParseSignedDataTail(const unsigned char*& cursor, const unsigned char* signedDataEnd)
+    {
+        Asn1Object object;
+        if (!ReadObject(cursor, signedDataEnd, object)) {
+            return false;
+        }
+        if (IsContextSpecificObject(object, 0)) {
+            if (!ReadObject(cursor, signedDataEnd, object)) {
+                return false;
+            }
+        }
+        if (IsContextSpecificObject(object, 1)) {
+            if (!ReadObject(cursor, signedDataEnd, object)) {
+                return false;
+            }
+        }
+        return object.cls == V_ASN1_UNIVERSAL && object.tag == V_ASN1_SET && object.constructed &&
+            object.length > 0 && cursor == signedDataEnd;
+    }
+
+    static bool IsContextSpecificObject(const Asn1Object& object, int expectedTag)
+    {
+        return object.cls == V_ASN1_CONTEXT_SPECIFIC && object.tag == expectedTag && object.constructed;
+    }
+};
+} // namespace
+
 using Pkcs7SignerInfoStack = STACK_OF(PKCS7_SIGNER_INFO);
 using X509AttributeStack = STACK_OF(X509_ATTRIBUTE);
 
@@ -64,6 +266,24 @@ bool HapVerifyOpensslUtils::ParsePkcs7Package(const unsigned char packageData[],
         HAPVERIFY_LOG_ERROR("Get content from pkcs7 failed");
         return false;
     }
+    return true;
+}
+
+bool HapVerifyOpensslUtils::GetPkcs7ContentByAsn1(const HapByteBuffer& pkcs7Block, std::string& content)
+{
+    int32_t pkcs7Len = pkcs7Block.GetCapacity();
+    const char* pkcs7Data = pkcs7Block.GetBufferPtr();
+    if (pkcs7Len <= 0 || pkcs7Data == nullptr) {
+        HAPVERIFY_LOG_DEBUG("invalid pkcs7 block");
+        return false;
+    }
+
+    if (!Pkcs7ProfileParser::Parse(reinterpret_cast<const unsigned char*>(pkcs7Data),
+        static_cast<size_t>(pkcs7Len), content)) {
+        HAPVERIFY_LOG_DEBUG("get pkcs7 content by asn1 failed");
+        return false;
+    }
+    HAPVERIFY_LOG_DEBUG("get pkcs7 content by asn1 success");
     return true;
 }
 
