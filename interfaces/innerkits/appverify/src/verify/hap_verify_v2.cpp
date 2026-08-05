@@ -1195,7 +1195,15 @@ bool HapVerifyV2::GetDigestAndAlgorithm(Pkcs7Context& digest)
         return false;
     }
 
-    int32_t sum = sizeof(digestlen) + sizeof(digest.digestAlgorithm) + digestlen;
+    const int32_t contentCapacity = digest.content.GetCapacity();
+    if (digestlen <= 0 || digestlen > contentCapacity - DIGEST_OFFSET_IN_CONTENT) {
+        HAPVERIFY_LOG_ERROR("invalid digestlen: %{public}d, contentCapacity: %{public}d",
+            digestlen, contentCapacity);
+        return false;
+    }
+
+    const int32_t digestBlockHeaderLen = static_cast<int32_t>(sizeof(digestlen) + sizeof(digest.digestAlgorithm));
+    const int32_t sum = digestBlockHeaderLen + digestlen;
     if (sum != digestBlockLen) {
         HAPVERIFY_LOG_ERROR("digestBlockLen: %{public}d is not equal to sum: %{public}d",
             digestBlockLen, sum);
@@ -1376,10 +1384,10 @@ int32_t HapVerifyV2::ParseHapProfile(const std::string& filePath, HapVerifyResul
     Pkcs7Context profileContext;
     if (!HapVerifyOpensslUtils::ParsePkcs7Package(pkcs7Block, pkcs7Len, profileContext)) {
         HAPVERIFY_LOG_ERROR("parse pkcs7 failed");
-        return false;
+        return VERIFY_APP_PKCS7_FAIL;
     }
     std::string profile = std::string(profileContext.content.GetBufferPtr(), profileContext.content.GetCapacity());
-    HAPVERIFY_LOG_DEBUG("profile is %{public}s", profile.c_str());
+    HAPVERIFY_LOG_DEBUG("profile is %{private}s", profile.c_str());
     ProvisionInfo info;
     auto ret = ParseProfile(profile, info);
     if (ret != PROVISION_OK) {
