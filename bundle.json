@@ -23,6 +23,7 @@
       "ram": "500kb",
       "deps": {
         "components": [
+          "bounds_checking_function",
           "cJSON",
           "c_utils",
           "hilog",
