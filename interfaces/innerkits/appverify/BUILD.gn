@@ -70,6 +70,7 @@ if (os_level == "standard") {
     deps = []
 
     external_deps = [
+      "bounds_checking_function:libsec_shared",
       "cJSON:cjson",
       "c_utils:utils",
       "openssl:libcrypto_shared",
