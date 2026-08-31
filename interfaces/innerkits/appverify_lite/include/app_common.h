@@ -17,6 +17,7 @@
 #define SECURITY_APP_COMMON_H
 
 #include <stdint.h>
+#include <malloc.h>
 
 #include "app_verify_base.h"
 #include "app_verify_pub.h"
