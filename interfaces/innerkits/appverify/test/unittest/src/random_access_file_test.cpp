@@ -135,6 +135,25 @@ HWTEST_F(RandomAccessFileTest, ReadFileFullyFromOffsetTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ReadFileFullyFromOffsetV2Test001
+ * @tc.desc: Test ReadFileFullyFromOffsetV2 with invalid buffer capacity.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RandomAccessFileTest, ReadFileFullyFromOffsetV2Test001, TestSize.Level1)
+{
+    std::string filePath = "./test_hapverify_v2_capacity.zip";
+    SignatureInfo signatureInfo;
+    CreatTestZipFile(filePath, signatureInfo, TEST_FILE_BLOCK_LENGTH);
+    RandomAccessFile randomAccessFile;
+    ASSERT_TRUE(randomAccessFile.Init(filePath, true));
+
+    char buffer[1] = {0};
+    EXPECT_EQ(randomAccessFile.ReadFileFullyFromOffset(buffer, 0, sizeof(buffer)), sizeof(buffer));
+    EXPECT_EQ(randomAccessFile.ReadFileFullyFromOffset(buffer, 0, 0), DEST_BUFFER_IS_NULL);
+    EXPECT_EQ(randomAccessFile.ReadFileFullyFromOffset(buffer, 0, -1), DEST_BUFFER_IS_NULL);
+}
+
+/**
  * @tc.name: Test InitWithFd function
  * @tc.desc: The static function will return each reading result;
  * @tc.type: FUNC

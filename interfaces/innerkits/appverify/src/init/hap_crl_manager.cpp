@@ -55,18 +55,17 @@ HapCrlManager::~HapCrlManager()
 
 void HapCrlManager::Init()
 {
+    std::lock_guard<std::mutex> lock(crlMtx);
     if (isInit) {
         return;
     }
 
-    crlMtx.lock();
     HapByteBuffer crlsBuffer;
     bool ret = ReadCrls(crlsBuffer);
     if (ret && crlsBuffer.HasRemaining()) {
         ParseCrls(crlsBuffer);
         isInit = true;
     }
-    crlMtx.unlock();
 }
 
 bool HapCrlManager::ParseCrls(HapByteBuffer& crlsBuffer)
@@ -133,11 +132,10 @@ bool HapCrlManager::ReadCrls(HapByteBuffer& crlsBuffer)
 
 void HapCrlManager::WriteCrlsToFile()
 {
-    crlMtx.lock();
+    std::lock_guard<std::mutex> lock(crlMtx);
     std::ofstream crlFile(HAP_CRL_FILE_PATH, std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
     if (!crlFile.is_open()) {
         HAPVERIFY_LOG_ERROR("open %{public}s failed", HAP_CRL_FILE_PATH.c_str());
-        crlMtx.unlock();
         return;
     }
     uint32_t numOfCrl = crlsMap.size();
@@ -147,7 +145,6 @@ void HapCrlManager::WriteCrlsToFile()
     }
     HAPVERIFY_LOG_INFO("Write %{public}u crls to file done", numOfCrl);
     crlFile.close();
-    crlMtx.unlock();
 }
 
 X509_CRL* HapCrlManager::GetCrlByIssuer(const std::string& issuer)
@@ -177,12 +174,11 @@ bool HapCrlManager::CrlCheck(X509* cert, X509_CRL* targetCrl, Pkcs7Context& pkcs
         return false;
     }
 
-    crlMtx.lock();
+    std::lock_guard<std::mutex> lock(crlMtx);
     /* crl in package compare with local crl, and decide which one to use */
     targetCrl = GetFinalCrl(targetCrl, pkcs7Context);
     if (targetCrl == nullptr) {
         HAPVERIFY_LOG_INFO("no crl");
-        crlMtx.unlock();
         return true;
     }
     X509_REVOKED* revoked = nullptr;
@@ -193,10 +189,8 @@ bool HapCrlManager::CrlCheck(X509* cert, X509_CRL* targetCrl, Pkcs7Context& pkcs
         HapCertVerifyOpensslUtils::GetSubjectFromX509(cert, certSuject);
         HAPVERIFY_LOG_ERROR("cert(issuer: %{public}s, subject: %{public}s, number:%{public}lld) is revoked",
             pkcs7Context.certIssuer.c_str(), certSuject.c_str(), certNumber);
-        crlMtx.unlock();
         return false;
     }
-    crlMtx.unlock();
     return true;
 }
 
