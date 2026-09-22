@@ -26,6 +26,10 @@ namespace Verify {
 #define HAPVERIFY_LOG_DOMAIN 0xD0011FE
 #endif
 
+#ifndef HAPVERIFY_FDSAN_TAG
+#define HAPVERIFY_FDSAN_TAG ((0xD0011FEULL << 32) | 0x1)
+#endif
+
 #ifndef HAPVERIFY_APP_LOG_TAG
 #define HAPVERIFY_APP_LOG_TAG "HapVerify"
 #endif
