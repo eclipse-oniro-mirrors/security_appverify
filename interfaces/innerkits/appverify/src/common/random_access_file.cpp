@@ -46,7 +46,7 @@ RandomAccessFile::RandomAccessFile()
 RandomAccessFile::~RandomAccessFile()
 {
     if (fd != FILE_OPEN_FAIL_ERROR_NUM) {
-        close(fd);
+        fdsan_close_with_tag(fd, HAPVERIFY_FDSAN_TAG);
     }
 }
 
@@ -57,6 +57,7 @@ bool RandomAccessFile::Init(const std::string& filePath, bool readFile)
         return false;
     }
 
+    fdsan_exchange_owner_tag(fd, 0, HAPVERIFY_FDSAN_TAG);
     if (memoryPageSize <= 0) {
         HAPVERIFY_LOG_ERROR("getting pagesize failed: %{public}d", memoryPageSize);
         return false;
@@ -83,6 +84,7 @@ bool RandomAccessFile::InitWithFd(const int32_t fileFd)
         return false;
     }
 
+    fdsan_exchange_owner_tag(fd, 0, HAPVERIFY_FDSAN_TAG);
     if (memoryPageSize <= 0) {
         HAPVERIFY_LOG_ERROR("getting pagesize failed: %{public}d", memoryPageSize);
         return false;
