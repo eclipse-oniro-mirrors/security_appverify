@@ -54,13 +54,13 @@ bool DeviceTypeManager::GetDeviceTypeInfo()
     bool currentDeviceType = GetDeviceType();
     HAPVERIFY_LOG_DEBUG("current device is type: %{public}d", static_cast<int>(currentDeviceType));
 
+    std::lock_guard<std::mutex> lock(getDeviceTypeMtx);
     if (currentDeviceType == deviceType) {
         return currentDeviceType;
     }
 
     TrustedRootCa& rootCertsObj = TrustedRootCa::GetInstance();
     TrustedSourceManager& trustedAppSourceManager = TrustedSourceManager::GetInstance();
-    getDeviceTypeMtx.lock();
     if (currentDeviceType) {
         /* Device type change from  commercial to debugging */
         bool ret = rootCertsObj.EnableDebug() && trustedAppSourceManager.EnableDebug();
@@ -68,7 +68,6 @@ bool DeviceTypeManager::GetDeviceTypeInfo()
             HAPVERIFY_LOG_ERROR("Enable debug failed");
             rootCertsObj.DisableDebug();
             trustedAppSourceManager.DisableDebug();
-            getDeviceTypeMtx.unlock();
             return currentDeviceType;
         }
     } else {
@@ -77,7 +76,6 @@ bool DeviceTypeManager::GetDeviceTypeInfo()
         trustedAppSourceManager.DisableDebug();
     }
     deviceType = currentDeviceType;
-    getDeviceTypeMtx.unlock();
     return currentDeviceType;
 }
 } // namespace Verify

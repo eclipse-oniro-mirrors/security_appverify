@@ -213,6 +213,10 @@ long long RandomAccessFile::ReadFileFullyFromOffsetV2(char buf[], long long offs
         HAPVERIFY_LOG_ERROR("buf is null");
         return DEST_BUFFER_IS_NULL;
     }
+    if (bufCapacity <= 0) {
+        HAPVERIFY_LOG_ERROR("Invalid buffer capacity");
+        return DEST_BUFFER_IS_NULL;
+    }
 
     long long bytesRead = pread(fd, buf, bufCapacity, offset);
     if (bytesRead < 0) {
