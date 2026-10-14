@@ -547,7 +547,7 @@ EXIT:
     APPV_FREE(profileData);
     return V_ERR;
 }
-static unsigned char *GetRsaPk(const mbedtls_pk_context *pk, int32_t *len)
+static unsigned char *GetRsaPk(const mbedtls_pk_context *pk, size_t *len)
 {
     unsigned char *buf = APPV_MALLOC(MAX_PK_BUF);
     if (buf == NULL) {
@@ -609,7 +609,7 @@ static unsigned char *GetEcPk(const mbedtls_pk_context *pk, int32_t *len)
         return NULL;
     }
     ret = mbedtls_ecp_point_write_binary(&ecCtx->MBEDTLS_PRIVATE(grp), &ecCtx->MBEDTLS_PRIVATE(Q),
-        MBEDTLS_ECP_PF_UNCOMPRESSED, (size_t *)len, buf, MBEDTLS_ECP_MAX_PT_LEN);
+        MBEDTLS_ECP_PF_UNCOMPRESSED, len, buf, MBEDTLS_ECP_MAX_PT_LEN);
     if (ret != V_OK) {
         LOG_ERROR("get ecc pk key error");
         (void)memset_s(buf, MBEDTLS_ECP_MAX_PT_LEN, 0, MBEDTLS_ECP_MAX_PT_LEN);
@@ -640,7 +640,7 @@ static unsigned char *GetEcPk(const mbedtls_pk_context *pk, int32_t *len)
     return pkBuf;
 }
 
-static unsigned char *GetPkBuf(const mbedtls_pk_context *pk, int32_t *len)
+static unsigned char *GetPkBuf(const mbedtls_pk_context *pk, size_t *len)
 {
     unsigned char *bufA = NULL;
     if (mbedtls_pk_get_type(pk) == MBEDTLS_PK_RSA || mbedtls_pk_get_type(pk) == MBEDTLS_PK_RSASSA_PSS) {
@@ -663,7 +663,7 @@ static int32_t ParseCertGetPk(const char *certEncoded, AppSignPk *pk)
         APPV_FREE(cert);
         return V_ERR;
     }
-    int32_t len = 0;
+    size_t len = 0;
     unsigned char *pkBuf = GetPkBuf(&cert->pk, &len);
     if (pkBuf == NULL) {
         LOG_ERROR("get pk error");
@@ -672,7 +672,7 @@ static int32_t ParseCertGetPk(const char *certEncoded, AppSignPk *pk)
         return V_ERR;
     }
     pk->pk = (char *)pkBuf;
-    pk->len = len;
+    pk->len = (int32_t)len;
     mbedtls_x509_crt_free(cert);
     APPV_FREE(cert);
     return V_OK;
@@ -814,7 +814,7 @@ static int32_t CmpCert(const mbedtls_x509_crt *certA, const CertInfo *binSignCer
         LOG_ERROR("pk type diff");
         return V_ERR;
     }
-    int32_t lenA = 0;
+    size_t lenA = 0;
     unsigned char *bufA = GetPkBuf(&certA->pk, &lenA);
     P_NULL_RETURN_RET_WTTH_LOG(bufA, V_ERR);
 
@@ -952,58 +952,98 @@ void FreeCertInfo(CertInfo *certInfo)
     return;
 }
 
-static int32_t GetCertInfo(const mbedtls_x509_crt *ctr, CertInfo **binSignCert)
+static int32_t InitCertInfo(CertInfo **certInfo)
 {
-    CertInfo *certInfo = APPV_MALLOC(sizeof(CertInfo));
-    P_NULL_RETURN_RET_WTTH_LOG(certInfo, V_ERR_MALLOC);
+    *certInfo = APPV_MALLOC(sizeof(CertInfo));
+    P_NULL_RETURN_RET_WTTH_LOG(*certInfo, V_ERR_MALLOC);
 
-    int32_t ret = CertInfoInit(certInfo);
+    int32_t ret = CertInfoInit(*certInfo);
     if (ret != V_OK) {
         LOG_ERROR("cert info init");
-        ret = V_ERR_MEMSET;
-        goto EXIT;
+        return V_ERR_MEMSET;
     }
+    return V_OK;
+}
+
+static int32_t SetCertIssuer(CertInfo *certInfo, const mbedtls_x509_crt *ctr)
+{
     certInfo->issuerLen = ctr->issuer_raw.len;
-    certInfo->subjectLen = ctr->subject_raw.len;
-    if (certInfo->issuerLen == 0 || certInfo->issuerLen > MAX_PROFILE_SIZE ||
-        certInfo->subjectLen == 0 || certInfo->subjectLen > MAX_PROFILE_SIZE) {
-        ret = V_ERR_MALLOC;
-        goto EXIT;
+    if (certInfo->issuerLen == 0 || certInfo->issuerLen > MAX_PROFILE_SIZE) {
+        return V_ERR_MALLOC;
     }
     certInfo->issuer = APPV_MALLOC(certInfo->issuerLen + 1);
     if (certInfo->issuer == NULL) {
-        ret = V_ERR_MALLOC;
-        goto EXIT;
+        return V_ERR_MALLOC;
     }
     certInfo->issuer[certInfo->issuerLen] = '\0';
-    ret = memcpy_s(certInfo->issuer, certInfo->issuerLen, ctr->issuer_raw.p, ctr->issuer_raw.len);
+    int32_t ret = memcpy_s(certInfo->issuer, certInfo->issuerLen, ctr->issuer_raw.p, ctr->issuer_raw.len);
     if (ret != EOK) {
-        ret = V_ERR_MEMCPY;
-        goto EXIT;
+        return V_ERR_MEMCPY;
+    }
+    return V_OK;
+}
+
+static int32_t SetCertSubject(CertInfo *certInfo, const mbedtls_x509_crt *ctr)
+{
+    certInfo->subjectLen = ctr->subject_raw.len;
+    if (certInfo->subjectLen == 0 || certInfo->subjectLen > MAX_PROFILE_SIZE) {
+        return V_ERR_MALLOC;
     }
     certInfo->subject = APPV_MALLOC(certInfo->subjectLen + 1);
     if (certInfo->subject == NULL) {
-        ret = V_ERR_MALLOC;
-        goto EXIT;
+        return V_ERR_MALLOC;
     }
     certInfo->subject[certInfo->subjectLen] = '\0';
-    ret = memcpy_s(certInfo->subject, certInfo->subjectLen, ctr->subject_raw.p, ctr->subject_raw.len);
+    int32_t ret = memcpy_s(certInfo->subject, certInfo->subjectLen, ctr->subject_raw.p, ctr->subject_raw.len);
     if (ret != EOK) {
-        ret = V_ERR_MEMCPY;
-        goto EXIT;
+        return V_ERR_MEMCPY;
     }
+    return V_OK;
+}
+
+static int32_t SetCertPublicKey(CertInfo *certInfo, const mbedtls_x509_crt *ctr)
+{
+    size_t pkLen = 0;
     certInfo->pkType = mbedtls_pk_get_type(&ctr->pk);
-    certInfo->pkBuf = (char *)GetPkBuf(&ctr->pk, &certInfo->pkLen);
+    certInfo->pkBuf = (char *)GetPkBuf(&ctr->pk, &pkLen);
     if (certInfo->pkBuf == NULL) {
         LOG_ERROR("get pk error");
-        ret = V_ERR;
+        return V_ERR;
+    }
+    certInfo->pkLen = (int32_t)pkLen;
+    return V_OK;
+}
+
+static int32_t GetCertInfo(const mbedtls_x509_crt *ctr, CertInfo **binSignCert)
+{
+    CertInfo *certInfo = NULL;
+    int32_t ret = InitCertInfo(&certInfo);
+    if (ret != V_OK) {
         goto EXIT;
     }
+
+    ret = SetCertIssuer(certInfo, ctr);
+    if (ret != V_OK) {
+        goto EXIT;
+    }
+
+    ret = SetCertSubject(certInfo, ctr);
+    if (ret != V_OK) {
+        goto EXIT;
+    }
+
+    ret = SetCertPublicKey(certInfo, ctr);
+    if (ret != V_OK) {
+        goto EXIT;
+    }
+
     *binSignCert = certInfo;
     return V_OK;
 EXIT:
-    FreeCertInfo(certInfo);
-    APPV_FREE(certInfo);
+    if (certInfo != NULL) {
+        FreeCertInfo(certInfo);
+        APPV_FREE(certInfo);
+    }
     return ret;
 }
 
