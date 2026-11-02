@@ -307,7 +307,7 @@ HWTEST_F(RandomAccessFileTest, HapFileDataSourceHitls001, TestSize.Level1)
     if (!HapVerifyHitlsUtils::DigestInit(digestParam, CRYPT_MD_SHA256_MB)) {
         GTEST_SKIP() << "openhitls runtime library is unavailable";
     }
-    ASSERT_TRUE(emptySource.ReadTwoChunksAndHitlsDigestUpdate(digestParam, 4));
+    ASSERT_FALSE(emptySource.ReadTwoChunksAndHitlsDigestUpdate(digestParam, 4));
     ASSERT_EQ(emptySource.sourcePosition, 0);
     HapVerifyHitlsUtils::DigestFree(digestParam);
 }

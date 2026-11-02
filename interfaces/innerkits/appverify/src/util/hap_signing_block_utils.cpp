@@ -19,16 +19,18 @@
 #include <climits>
 #include <parameters.h>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include "algorithm"
-#include "common/hap_byte_buffer_data_source.h"
 #include "common/hap_file_data_source.h"
 #include "common/hap_verify_log.h"
+#include "common/zip_tail_data_source.h"
 #include "openssl/evp.h"
 #include "securec.h"
 #include "util/hap_verify_hitls_utils.h"
 #include "util/hap_verify_openssl_utils.h"
+#include "util/zip64_eocd.h"
 
 namespace OHOS {
 namespace Security {
@@ -45,9 +47,7 @@ const long long HapSigningBlockUtils::SMALL_FILE_SIZE = CHUNK_SIZE * 2;
 const int32_t HapSigningBlockUtils::HAP_SIG_BLOCK_MIN_SIZE = 32;
 const int32_t HapSigningBlockUtils::ZIP_HEAD_OF_SIGNING_BLOCK_LENGTH = 32;
 
-const int32_t HapSigningBlockUtils::ZIP_EOCD_SEG_MIN_SIZE = 22;
-const int32_t HapSigningBlockUtils::ZIP_EOCD_SEGMENT_FLAG = 0x06054b50;
-const int32_t HapSigningBlockUtils::ZIP_EOCD_COMMENT_LENGTH_OFFSET = 20;
+const int32_t HapSigningBlockUtils::ZIP_EOCD_SEGMENT_FLAG = ZIP_EOCD_MAGIC;
 const int32_t HapSigningBlockUtils::ZIP_CD_OFFSET_IN_EOCD = 16;
 const int32_t HapSigningBlockUtils::ZIP_CD_SIZE_OFFSET_IN_EOCD = 12;
 const int32_t HapSigningBlockUtils::ZIP_BLOCKS_NUM_NEED_DIGEST = 3;
@@ -56,30 +56,32 @@ const int32_t HapSigningBlockUtils::ZIP_UPDATE_DIGEST_THREADS_NUM = 4;
 const char HapSigningBlockUtils::ZIP_FIRST_LEVEL_CHUNK_PREFIX = 0x5a;
 const char HapSigningBlockUtils::ZIP_SECOND_LEVEL_CHUNK_PREFIX = 0xa5;
 
-/*
- * The package of hap is ZIP format, and contains four segments: contents of Zip entry,
- * hap signatures block, central directory and end of central directory.
- * The function will find the data segment of hap signature block from hap file.
- */
 bool HapSigningBlockUtils::FindHapSignature(RandomAccessFile& hapFile, SignatureInfo& signInfo)
 {
-    std::pair<HapByteBuffer, long long> eocdAndOffsetInFile;
-    if (!FindEocdInHap(hapFile, eocdAndOffsetInFile)) {
-        HAPVERIFY_LOG_ERROR("find EoCD failed");
+    std::pair<HapByteBuffer, long long> eocd;
+    if (!FindEocdInHap(hapFile, eocd)) {
+        HAPVERIFY_LOG_ERROR("find EOCD failed");
         return false;
     }
 
-    signInfo.hapEocd = eocdAndOffsetInFile.first;
-    signInfo.hapEocdOffset = eocdAndOffsetInFile.second;
-    if (!GetCentralDirectoryOffset(signInfo.hapEocd, signInfo.hapEocdOffset, signInfo.hapCentralDirOffset)) {
-        HAPVERIFY_LOG_ERROR("get CD offset failed");
+    SignatureInfo parsed;
+    if (!ReadZip64Eocd(hapFile, eocd.first, eocd.second, parsed.zip64Info)) {
+        return false;
+    }
+    if (parsed.zip64Info) {
+        // The ZIP64 parser bounds the central directory offset by the legacy EOCD offset.
+        parsed.hapCentralDirOffset = static_cast<long long>(parsed.zip64Info->centralDirectoryOffset);
+    } else if (!GetCentralDirectoryOffset(eocd.first, eocd.second, parsed.hapCentralDirOffset)) {
         return false;
     }
 
-    if (!FindHapSigningBlock(hapFile, signInfo.hapCentralDirOffset, signInfo)) {
+    if (!FindHapSigningBlock(hapFile, parsed.hapCentralDirOffset, parsed)) {
         HAPVERIFY_LOG_ERROR("find signing block failed");
         return false;
     }
+    parsed.hapEocdOffset = eocd.second;
+    parsed.hapEocd = eocd.first;
+    signInfo = std::move(parsed);
     return true;
 }
 
@@ -106,12 +108,12 @@ bool HapSigningBlockUtils::FindEocdInHap(RandomAccessFile& hapFile, unsigned sho
 {
     long long fileLength = hapFile.GetLength();
     /* check whether has enough space for EoCD in the file. */
-    if (fileLength < ZIP_EOCD_SEG_MIN_SIZE) {
+    if (fileLength < ZIP_EOCD_MIN_SIZE) {
         HAPVERIFY_LOG_ERROR("file length %{public}lld is too smaller", fileLength);
         return false;
     }
 
-    int32_t searchRange = static_cast<int>(maxCommentSize) + ZIP_EOCD_SEG_MIN_SIZE;
+    int32_t searchRange = static_cast<int>(maxCommentSize) + ZIP_EOCD_MIN_SIZE;
     if (fileLength < static_cast<long long>(searchRange)) {
         searchRange = static_cast<int>(fileLength);
     }
@@ -119,7 +121,7 @@ bool HapSigningBlockUtils::FindEocdInHap(RandomAccessFile& hapFile, unsigned sho
     HapByteBuffer searchEocdBuffer(searchRange);
     long long searchRangeOffset = fileLength - searchEocdBuffer.GetCapacity();
     long long ret = hapFile.ReadFileFullyFromOffset(searchEocdBuffer, searchRangeOffset);
-    if (ret < 0) {
+    if (ret != searchRange) {
         HAPVERIFY_LOG_ERROR("read data from hap file error: %{public}lld", ret);
         return false;
     }
@@ -155,19 +157,19 @@ bool HapSigningBlockUtils::FindEocdInHap(RandomAccessFile& hapFile, unsigned sho
 bool HapSigningBlockUtils::FindEocdInSearchBuffer(HapByteBuffer& searchBuffer, int& offset)
 {
     int32_t searchBufferSize = searchBuffer.GetCapacity();
-    if (searchBufferSize < ZIP_EOCD_SEG_MIN_SIZE) {
+    if (searchBufferSize < ZIP_EOCD_MIN_SIZE) {
         HAPVERIFY_LOG_ERROR("The size of searchBuffer %{public}d is smaller than min size of Eocd",
             searchBufferSize);
         return false;
     }
 
-    int32_t currentOffset = searchBufferSize - ZIP_EOCD_SEG_MIN_SIZE;
+    int32_t currentOffset = searchBufferSize - ZIP_EOCD_MIN_SIZE;
     while (currentOffset >= 0) {
         int32_t hapEocdSegmentFlag;
         if (searchBuffer.GetInt32(currentOffset, hapEocdSegmentFlag) &&
             (hapEocdSegmentFlag == ZIP_EOCD_SEGMENT_FLAG)) {
             unsigned short commentLength;
-            int32_t expectedCommentLength = searchBufferSize - ZIP_EOCD_SEG_MIN_SIZE - currentOffset;
+            int32_t expectedCommentLength = searchBufferSize - ZIP_EOCD_MIN_SIZE - currentOffset;
             if (searchBuffer.GetUInt16(currentOffset + ZIP_EOCD_COMMENT_LENGTH_OFFSET, commentLength) &&
                 static_cast<int>(commentLength) == expectedCommentLength) {
                 offset = currentOffset;
@@ -440,17 +442,17 @@ bool HapSigningBlockUtils::VerifyHapIntegrity(
     const std::vector<OptionalBlock>& digestBlocks, HapByteBuffer* chunkDigestOut)
 {
     HAPVERIFY_LOG_DEBUG("Verify Integrity with Openssl Start");
-    if (!SetUnsignedInt32(signInfo.hapEocd, ZIP_CD_OFFSET_IN_EOCD, signInfo.hapSigningBlockOffset)) {
-        HAPVERIFY_LOG_ERROR("Set central dir offset failed");
+    ZipTailDataSource zipTail(hapFile);
+    if (!zipTail.Init(signInfo)) {
+        HAPVERIFY_LOG_ERROR("Prepare ZIP digest tail failed");
         return false;
     }
 
     long long contentsZipSize = signInfo.hapSigningBlockOffset;
-    long long centralDirSize = signInfo.hapEocdOffset - signInfo.hapCentralDirOffset;
+    long long centralDirSize = zipTail.GetTailOffset() - signInfo.hapCentralDirOffset;
     HapFileDataSource contentsZip(hapFile, 0, contentsZipSize, 0);
     HapFileDataSource centralDir(hapFile, signInfo.hapCentralDirOffset, centralDirSize, 0);
-    HapByteBufferDataSource eocd(signInfo.hapEocd);
-    DataSource* content[ZIP_BLOCKS_NUM_NEED_DIGEST] = { &contentsZip, &centralDir, &eocd };
+    DataSource* content[ZIP_BLOCKS_NUM_NEED_DIGEST] = { &contentsZip, &centralDir, &zipTail };
     int32_t nId = HapVerifyOpensslUtils::GetDigestAlgorithmId(digestInfo.digestAlgorithm);
     DigestParameter digestParam = GetDigestParameter(nId);
     HapByteBuffer chunkDigest;
@@ -499,17 +501,17 @@ bool HapSigningBlockUtils::VerifyHapIntegrity(
 bool HapSigningBlockUtils::ComputeChunkDigest(Pkcs7Context& digestInfo, RandomAccessFile& hapFile,
     SignatureInfo& signInfo, HapByteBuffer& chunkDigest)
 {
-    if (!SetUnsignedInt32(signInfo.hapEocd, ZIP_CD_OFFSET_IN_EOCD, signInfo.hapSigningBlockOffset)) {
-        HAPVERIFY_LOG_ERROR("Set central dir offset failed");
+    ZipTailDataSource zipTail(hapFile);
+    if (!zipTail.Init(signInfo)) {
+        HAPVERIFY_LOG_ERROR("Prepare ZIP digest tail failed");
         return false;
     }
 
     long long contentsZipSize = signInfo.hapSigningBlockOffset;
-    long long centralDirSize = signInfo.hapEocdOffset - signInfo.hapCentralDirOffset;
+    long long centralDirSize = zipTail.GetTailOffset() - signInfo.hapCentralDirOffset;
     HapFileDataSource contentsZip(hapFile, 0, contentsZipSize, 0);
     HapFileDataSource centralDir(hapFile, signInfo.hapCentralDirOffset, centralDirSize, 0);
-    HapByteBufferDataSource eocd(signInfo.hapEocd);
-    DataSource* content[ZIP_BLOCKS_NUM_NEED_DIGEST] = { &contentsZip, &centralDir, &eocd };
+    DataSource* content[ZIP_BLOCKS_NUM_NEED_DIGEST] = { &contentsZip, &centralDir, &zipTail };
     int32_t nId = HapVerifyOpensslUtils::GetDigestAlgorithmId(digestInfo.digestAlgorithm);
     DigestParameter digestParam = GetDigestParameter(nId);
     int32_t chunkCount = 0;
@@ -573,21 +575,32 @@ bool HapSigningBlockUtils::ComputeDigestsWithOptionalBlock(const DigestParameter
 bool HapSigningBlockUtils::GetSumOfChunkDigestLen(DataSource* contents[], int32_t len,
     int32_t chunkDigestLen, int& chunkCount, int& sumOfChunkDigestLen)
 {
+    int32_t totalChunks = 0;
     for (int32_t i = 0; i < len; i++) {
         if (contents[i] == nullptr) {
             HAPVERIFY_LOG_ERROR("contents[%{public}d] is nullptr", i);
             return false;
         }
         contents[i]->Reset();
-        chunkCount += GetChunkCount(contents[i]->Remaining(), CHUNK_SIZE);
+        long long remaining = contents[i]->Remaining();
+        if (remaining < 0) {
+            return false;
+        }
+        int32_t count = GetChunkCount(remaining, CHUNK_SIZE);
+        if ((remaining > 0 && count == 0) || count > INT_MAX - totalChunks) {
+            HAPVERIFY_LOG_ERROR("chunk count exceeds the digest format limit");
+            return false;
+        }
+        totalChunks += count;
     }
+    chunkCount = totalChunks;
 
     if (chunkCount <= 0) {
         HAPVERIFY_LOG_ERROR("no content for digest");
         return false;
     }
 
-    if (chunkDigestLen < 0 || ((INT_MAX - ZIP_CHUNK_DIGEST_PRIFIX_LEN) / chunkCount) < chunkDigestLen) {
+    if (chunkDigestLen <= 0 || ((INT_MAX - ZIP_CHUNK_DIGEST_PRIFIX_LEN) / chunkCount) < chunkDigestLen) {
         HAPVERIFY_LOG_ERROR("overflow chunkCount: %{public}d, chunkDigestLen: %{public}d",
             chunkCount, chunkDigestLen);
         return false;
@@ -697,11 +710,11 @@ DigestParameter HapSigningBlockUtils::GetDigestParameter(int32_t nId)
 
 int32_t HapSigningBlockUtils::GetChunkCount(long long inputSize, long long chunkSize)
 {
-    if (chunkSize <= 0 || inputSize > LLONG_MAX - chunkSize) {
+    if (chunkSize <= 0 || inputSize < 0) {
         return 0;
     }
 
-    long long res = (inputSize + chunkSize - 1) / chunkSize;
+    long long res = inputSize / chunkSize + (inputSize % chunkSize != 0);
     if (res > INT_MAX || res < 0) {
         return 0;
     }
@@ -895,20 +908,20 @@ bool HapSigningBlockUtils::VerifyHapIntegrityWithHitls(
     constexpr int32_t kHitlsDigestLen = HITLS_DIGEST_SIZE_SHA256;
     constexpr int32_t kHitlsAlgId = CRYPT_MD_SHA256_MB;
 
-    if (!SetUnsignedInt32(signInfo.hapEocd, ZIP_CD_OFFSET_IN_EOCD, signInfo.hapSigningBlockOffset)) {
-        HAPVERIFY_LOG_ERROR("Set central dir offset failed");
+    ZipTailDataSource zipTail(hapFile);
+    if (!zipTail.Init(signInfo)) {
+        HAPVERIFY_LOG_ERROR("Prepare ZIP digest tail failed");
         return false;
     }
 
     long long contentsZipSize = signInfo.hapSigningBlockOffset;
-    long long centralDirSize = signInfo.hapEocdOffset - signInfo.hapCentralDirOffset;
+    long long centralDirSize = zipTail.GetTailOffset() - signInfo.hapCentralDirOffset;
     HAPVERIFY_LOG_DEBUG("hitls: contentsZipSize=%{public}lld, centralDirSize=%{public}lld",
         contentsZipSize, centralDirSize);
 
     HapFileDataSource contentsZip(hapFile, 0, contentsZipSize, 0);
     HapFileDataSource centralDir(hapFile, signInfo.hapCentralDirOffset, centralDirSize, 0);
-    HapByteBufferDataSource eocd(signInfo.hapEocd);
-    DataSource* content[ZIP_BLOCKS_NUM_NEED_DIGEST] = { &contentsZip, &centralDir, &eocd };
+    DataSource* content[ZIP_BLOCKS_NUM_NEED_DIGEST] = { &contentsZip, &centralDir, &zipTail };
 
     int32_t nId = HapVerifyOpensslUtils::GetDigestAlgorithmId(digestInfo.digestAlgorithm);
     if (nId != NID_sha256) {
@@ -955,7 +968,7 @@ bool HapSigningBlockUtils::VerifyHapIntegrityWithHitls(
             HAPVERIFY_LOG_ERROR("ComputeDigestsForContentsZipWithHitls failed, alg: %{public}d", kHitlsAlgId);
             return false;
         }
-        // Compute digests for other contents(centralDir, eocd).
+        // Compute digests for the central directory and ZIP tail.
         int32_t chunkDigestOffset = ZIP_CHUNK_DIGEST_PRIFIX_LEN + contentsZipChunkCount * kHitlsDigestLen;
         if (!ComputeDigestsWithHitls(kHitlsAlgId, content + 1, ZIP_BLOCKS_NUM_NEED_DIGEST - 1,
             chunkDigest, chunkDigestOffset)) {

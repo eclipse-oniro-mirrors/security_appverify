@@ -69,7 +69,7 @@ private:
     void SetProfileBlockData(const Pkcs7Context& pkcs7Context, const HapByteBuffer& hapProfileBlock,
         ProvisionInfo& provisionInfo);
     bool ParseProfileFromP7b(const std::string& p7bFilePath, Pkcs7Context& pkcs7Context);
-    int32_t VerifyEnterpriseResignBlocks(RandomAccessFile& hapFile, const SignatureInfo& hapSignInfo,
+    int32_t VerifyEnterpriseResignBlocks(RandomAccessFile& hapFile, SignatureInfo& hapSignInfo,
         const AppDistType appDistType, const std::string& localCertDir, bool& isEnterpriseResigned);
     bool HasOptionalBlock(const std::vector<OptionalBlock>& optionBlocks, int32_t type) const;
 

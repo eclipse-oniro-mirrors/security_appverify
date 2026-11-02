@@ -26,7 +26,6 @@
 #include "util/hap_verify_hitls_utils.h"
 #include "util/pkcs7_context.h"
 #include "util/signature_info.h"
-#include "util/signature_info.h"
 
 namespace OHOS {
 namespace Security {
@@ -85,8 +84,6 @@ private:
     DLL_EXPORT static const int32_t ZIP_EOCD_SEGMENT_FLAG;
     static const long long CHUNK_SIZE;
     static const int32_t HAP_SIG_BLOCK_MIN_SIZE;
-    static const int32_t ZIP_EOCD_SEG_MIN_SIZE;
-    static const int32_t ZIP_EOCD_COMMENT_LENGTH_OFFSET;
     static const int32_t ZIP_CD_OFFSET_IN_EOCD;
     static const int32_t ZIP_CD_SIZE_OFFSET_IN_EOCD;
     static const int32_t ZIP_BLOCKS_NUM_NEED_DIGEST;

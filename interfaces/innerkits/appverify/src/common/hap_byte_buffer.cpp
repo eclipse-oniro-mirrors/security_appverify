@@ -106,8 +106,7 @@ HapByteBuffer& HapByteBuffer::operator=(const HapByteBuffer& other)
         return *this;
     }
 
-    buffer.reset(nullptr);
-    Init(other.GetCapacity());
+    SetCapacity(other.GetCapacity());
     if (buffer != nullptr && other.GetBufferPtr() != nullptr && capacity > 0) {
         if (memcpy_s(buffer.get(), capacity, other.GetBufferPtr(), other.GetCapacity()) != EOK) {
             HAPVERIFY_LOG_ERROR("memcpy_s failed");

@@ -15,6 +15,8 @@
 #ifndef HAP_RANDOM_ACCESS_FILE_H
 #define HAP_RANDOM_ACCESS_FILE_H
 
+#include <sys/types.h>
+
 #include "common/export_define.h"
 #include "common/hap_byte_buffer.h"
 #include "util/digest_parameter.h"
@@ -24,9 +26,9 @@ namespace OHOS {
 namespace Security {
 namespace Verify {
 struct MmapInfo {
-    long long mmapPosition;
-    int32_t readMoreLen = 0;
-    int32_t mmapSize = 0;
+    off_t mmapPosition;
+    size_t readMoreLen = 0;
+    size_t mmapSize = 0;
     char* mapAddr;
 };
 
@@ -55,7 +57,7 @@ private:
     static const int32_t FILE_OPEN_FAIL_ERROR_NUM;
     static int32_t memoryPageSize;
     int32_t fd = -1;
-    long long fileLength;
+    off_t fileLength;
     bool readFile_ = false;
 };
 } // namespace Verify

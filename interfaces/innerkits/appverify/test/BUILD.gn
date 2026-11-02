@@ -32,10 +32,13 @@ ohos_unittest("verify_test") {
 
   sources = [
     "//base/security/appverify/interfaces/innerkits/appverify/src/common/random_access_file.cpp",
+    "//base/security/appverify/interfaces/innerkits/appverify/src/common/zip_tail_data_source.cpp",
     "//base/security/appverify/interfaces/innerkits/appverify/src/init/json_parser_utils.cpp",
     "//base/security/appverify/interfaces/innerkits/appverify/src/provision/provision_verify.cpp",
     "//base/security/appverify/interfaces/innerkits/appverify/src/ticket/ticket_verify.cpp",
     "//base/security/appverify/interfaces/innerkits/appverify/src/util/hap_verify_openssl_utils.cpp",
+    "//base/security/appverify/interfaces/innerkits/appverify/src/util/hap_zip_reader.cpp",
+    "//base/security/appverify/interfaces/innerkits/appverify/src/util/zip64_eocd.cpp",
     "//base/security/appverify/interfaces/innerkits/appverify/src/verify/binary_developer_cert_mgr.cpp",
     "unittest/src/binary_developer_cert_mgr_test.cpp",
     "unittest/src/hap_byte_buffer_test.cpp",
@@ -55,6 +58,7 @@ ohos_unittest("verify_test") {
     "unittest/src/trusted_root_ca_test.cpp",
     "unittest/src/trusted_source_manager_test.cpp",
     "unittest/src/trusted_ticket_test.cpp",
+    "unittest/src/zip64_test.cpp",
   ]
 
   configs = [ ":verify_test_config" ]

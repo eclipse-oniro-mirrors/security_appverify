@@ -29,9 +29,9 @@ namespace Verify {
 struct HapZipEntryInfo {
     std::string name;
     uint16_t method = 0;
-    uint32_t compressedSize = 0;
-    uint32_t uncompressedSize = 0;
-    uint32_t localHeaderOffset = 0;
+    uint64_t compressedSize = 0;
+    uint64_t uncompressedSize = 0;
+    uint64_t localHeaderOffset = 0;
     uint64_t dataOffset = 0;
 };
 
@@ -44,13 +44,10 @@ public:
 
 private:
     bool EnsureParsed();
-    bool FindEocd(uint64_t& eocdOffset, uint32_t& centralDirSize, uint32_t& centralDirOffset,
-        uint16_t& entryCount);
-    bool ReadCentralDirectory(uint32_t centralDirSize, uint32_t centralDirOffset, uint16_t entryCount);
+    bool ReadCentralDirectory(uint64_t centralDirSize, uint64_t centralDirOffset, uint64_t entryCount);
+    bool FindEntry(const std::string& name, HapZipEntryInfo& entry);
     bool FillDataOffset(HapZipEntryInfo& entry);
-    bool InflateEntry(const std::vector<uint8_t>& compressed, uint32_t uncompressedSize, std::string& content);
-
-private:
+    bool InflateEntry(const std::vector<uint8_t>& compressed, uint64_t uncompressedSize, std::string& content);
     RandomAccessFile& hapFile_;
     bool parsed_ = false;
     std::vector<HapZipEntryInfo> entries_;
