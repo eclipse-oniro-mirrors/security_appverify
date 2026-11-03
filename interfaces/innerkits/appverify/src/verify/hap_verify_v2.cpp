@@ -209,7 +209,7 @@ bool ReadPermissionRaw(RandomAccessFile& hapFile, BootstrapInfo& bootstrapInfo, 
 bool ReadPermissionRaw(const std::string& filePath, BootstrapInfo& bootstrapInfo, bool enableFastPath = false)
 {
     RandomAccessFile hapFile;
-    if (!hapFile.Init(filePath)) {
+    if (!hapFile.Init(filePath, true)) {
         return false;
     }
     return ReadPermissionRaw(hapFile, bootstrapInfo, enableFastPath);
@@ -1302,7 +1302,7 @@ int32_t HapVerifyV2::VerifyOrParseHapPermission(const VerifyParams& params, Boot
     }
 
     RandomAccessFile hapFile;
-    if (!hapFile.Init(params.filePath)) {
+    if (!hapFile.Init(params.filePath, true)) {
         HAPVERIFY_LOG_ERROR("open hap file failed");
         return OPEN_FILE_ERROR;
     }
