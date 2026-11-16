@@ -687,6 +687,10 @@ DigestParameter HapSigningBlockUtils::GetDigestParameter(int32_t nId)
     digestParam.digestOutputSizeBytes = HapVerifyOpensslUtils::GetDigestAlgorithmOutputSizeBytes(nId);
     digestParam.md = EVP_get_digestbynid(nId);
     digestParam.ptrCtx = EVP_MD_CTX_create();
+    if (digestParam.ptrCtx == nullptr) {
+        HAPVERIFY_LOG_ERROR("EVP_MD_CTX_create failed");
+        return digestParam;
+    }
     EVP_MD_CTX_init(digestParam.ptrCtx);
     return digestParam;
 }

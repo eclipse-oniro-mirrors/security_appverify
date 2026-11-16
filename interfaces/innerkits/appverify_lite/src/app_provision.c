@@ -342,11 +342,13 @@ EXIT:
 
 static int32_t VerifyAppTypeAndDistribution(const ProfileProf *pf)
 {
+    P_NULL_RETURN_WTTH_LOG(pf->type);
     if ((strcmp(pf->type, DEBUG_TYPE) != 0) && (strcmp(pf->type, RELEASE_TYPE) != 0)) {
         LOG_PRINT_STR("invalid app type: %s", pf->type);
         return V_ERR;
     }
     if (strcmp(pf->type, RELEASE_TYPE) == 0) {
+        P_NULL_RETURN_WTTH_LOG(pf->appDistType);
         if ((strcmp(pf->appDistType, APP_GALLERY) != 0) && (strcmp(pf->appDistType, ENTERPRISE) != 0) &&
             (strcmp(pf->appDistType, ENTERPRISE_NORMAL) != 0) && (strcmp(pf->appDistType, ENTERPRISE_MDM) != 0) &&
             (strcmp(pf->appDistType, INTERNALTESTING) != 0) && (strcmp(pf->appDistType, OS_INTEGRATION) != 0)) {
@@ -359,12 +361,15 @@ static int32_t VerifyAppTypeAndDistribution(const ProfileProf *pf)
 
 static int32_t VerifyAppBundleInfo(const ProfileProf *pf)
 {
+    P_NULL_RETURN_WTTH_LOG(pf->type);
     if (strcmp(pf->type, DEBUG_TYPE) == 0) {
+        P_NULL_RETURN_WTTH_LOG(pf->bundleInfo.devCert);
         if (strlen((char *)pf->bundleInfo.devCert) == 0) {
             LOG_ERROR("debug app, dev cert null");
             return V_ERR;
         }
     } else if (strcmp(pf->type, RELEASE_TYPE) == 0) {
+        P_NULL_RETURN_WTTH_LOG(pf->bundleInfo.releaseCert);
         if (strlen((char *)pf->bundleInfo.releaseCert) == 0) {
             LOG_ERROR("debug app, dev cert null");
             return V_ERR;
@@ -435,7 +440,11 @@ int32_t VerifyProfileContent(const ProfileProf *pf)
     P_NULL_RETURN_WTTH_LOG(pf);
     int32_t ret = VerifyAppTypeAndDistribution(pf);
     if (ret != V_OK) {
-        LOG_PRINT_STR("invalid profile distribution type : %s", pf->appDistType);
+        if (pf->appDistType == NULL) {
+            LOG_ERROR("appDistType is NULL");
+        } else {
+            LOG_PRINT_STR("invalid profile distribution type : %s", pf->appDistType);
+        }
         return V_ERR_INVALID_DISP_TYPE;
     }
     ret = VerifyAppBundleInfo(pf);
