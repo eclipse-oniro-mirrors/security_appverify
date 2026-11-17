@@ -15,6 +15,7 @@
 #ifndef HAP_TRUSTED_ROOT_CA_H
 #define HAP_TRUSTED_ROOT_CA_H
 
+#include <atomic>
 #include <string>
 #include <unordered_map>
 
@@ -57,7 +58,7 @@ private:
     StringCertMap rootCertsForTest;
     bool isInit;
     bool isDebug;
-    DevMode devMode;
+    std::atomic<DevMode> devMode;
 };
 } // namespace Verify
 } // namespace Security

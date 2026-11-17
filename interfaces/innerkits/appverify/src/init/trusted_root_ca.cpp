@@ -70,7 +70,7 @@ void TrustedRootCa::DisableDebug()
 
 void TrustedRootCa::SetDevMode(DevMode mode)
 {
-    devMode = mode;
+    devMode.store(mode, std::memory_order_release);
 }
 
 bool TrustedRootCa::Init()
@@ -148,7 +148,7 @@ X509* TrustedRootCa::FindMatchedRoot(X509* caCert)
 X509* TrustedRootCa::FindMatchedRoot(const StringCertMap& rootCertMap, X509* caCert)
 {
     for (auto root : rootCertMap) {
-        if (root.first == OPENHARMONY_CERT && devMode == DevMode::NON_DEV) {
+        if (root.first == OPENHARMONY_CERT && devMode.load(std::memory_order_acquire) == DevMode::NON_DEV) {
             continue;
         }
         if (HapCertVerifyOpensslUtils::X509NameCompare(X509_get_subject_name(root.second),
