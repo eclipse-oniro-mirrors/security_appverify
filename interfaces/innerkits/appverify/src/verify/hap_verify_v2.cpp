@@ -1226,6 +1226,7 @@ bool HapVerifyV2::GetDigestAndAlgorithm(Pkcs7Context& digest)
 int32_t HapVerifyV2::VerifyOrParseHapPermission(const VerifyParams& params, BootstrapInfo& bootstrapInfo,
     ProvisionInfo& provisionInfo, bool& isChanged)
 {
+    HAPVERIFY_LOG_DEBUG("filePath=%{public}s", params.filePath.c_str());
     isChanged = false;
     // scene 1: verify all
     if (params.type == VerifyType::All) {
@@ -1273,7 +1274,7 @@ int32_t HapVerifyV2::VerifyOrParseHapPermission(const VerifyParams& params, Boot
         bootstrapInfo = newBootstrap;
         provisionInfo = verifyResult.GetProvisionInfo();
         isChanged = true;
-        HAPVERIFY_LOG_DEBUG("scene 1 success");
+        HAPVERIFY_LOG_DEBUG("scene 1 success, filePath=%{public}s", params.filePath.c_str());
         return VERIFY_SUCCESS;
     }
 
@@ -1287,7 +1288,7 @@ int32_t HapVerifyV2::VerifyOrParseHapPermission(const VerifyParams& params, Boot
             return PROFILE_PARSE_FAIL;
         }
         if (IsPermissionRawSame(current, bootstrapInfo)) {
-            HAPVERIFY_LOG_DEBUG("scene 2-1 success");
+            HAPVERIFY_LOG_DEBUG("scene 2-1 success, filePath=%{public}s", params.filePath.c_str());
             return VERIFY_SUCCESS;
         }
         current.version = bootstrapInfo.version;
@@ -1297,7 +1298,7 @@ int32_t HapVerifyV2::VerifyOrParseHapPermission(const VerifyParams& params, Boot
         }
         bootstrapInfo = current;
         isChanged = true;
-        HAPVERIFY_LOG_INFO("scene 2-1 success changed");
+        HAPVERIFY_LOG_INFO("scene 2-1 success changed, filePath=%{public}s", params.filePath.c_str());
         return VERIFY_SUCCESS;
     }
 
@@ -1317,7 +1318,7 @@ int32_t HapVerifyV2::VerifyOrParseHapPermission(const VerifyParams& params, Boot
     if (GetPermissionBlock(signInfo, permissionBlock)) {
         HAPVERIFY_LOG_DEBUG("scene 2-2-1 start");
         if (VerifyPermissionBlock(permissionBlock, signInfo, bootstrapInfo)) {
-            HAPVERIFY_LOG_DEBUG("scene 2-2-1 success");
+            HAPVERIFY_LOG_DEBUG("scene 2-2-1 success, filePath=%{public}s", params.filePath.c_str());
             return VERIFY_SUCCESS;
         }
         HAPVERIFY_LOG_ERROR("scene 2-2-1 failed");
@@ -1333,7 +1334,7 @@ int32_t HapVerifyV2::VerifyOrParseHapPermission(const VerifyParams& params, Boot
         HAPVERIFY_LOG_DEBUG("scene 2-2-2-1 start");
         BootstrapInfo current;
         if (ReadPermissionRaw(hapFile, current) && IsPermissionRawSame(current, bootstrapInfo)) {
-            HAPVERIFY_LOG_DEBUG("scene 2-2-2-1 success");
+            HAPVERIFY_LOG_DEBUG("scene 2-2-2-1 success, filePath=%{public}s", params.filePath.c_str());
             return VERIFY_SUCCESS;
         }
         HAPVERIFY_LOG_ERROR("scene 2-2-2-1 failed");
@@ -1350,7 +1351,7 @@ int32_t HapVerifyV2::VerifyOrParseHapPermission(const VerifyParams& params, Boot
         if (VerifyAppPkcs7(pkcs7Context, signInfo.hapSignatureBlock) == VERIFY_SUCCESS &&
             GetDigestAndAlgorithm(pkcs7Context) &&
             VerifyPermissionJsonChunksAndFullDigest(pkcs7Context, hapFile, signInfo, bootstrapInfo)) {
-            HAPVERIFY_LOG_DEBUG("scene 2-2-2-2 success");
+            HAPVERIFY_LOG_DEBUG("scene 2-2-2-2 success, filePath=%{public}s", params.filePath.c_str());
             return VERIFY_SUCCESS;
         }
     }
