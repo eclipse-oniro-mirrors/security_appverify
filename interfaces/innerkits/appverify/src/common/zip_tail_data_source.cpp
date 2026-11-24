@@ -65,16 +65,13 @@ bool ZipTailDataSource::Init(const SignatureInfo& signInfo)
         }
     }
     uint64_t signingOffset = static_cast<uint64_t>(signInfo.hapSigningBlockOffset);
-    bool patchLegacyOffset = !zip64 || !zip64->legacyDirectoryOffsetIsPlaceholder;
-    if (patchLegacyOffset && centralDirOffset > UINT32_MAX) {
-        HAPVERIFY_LOG_ERROR("ZIP legacy directory offset exceeds uint32 range");
-        return false;
-    }
-    if (patchLegacyOffset) {
-        patches_[patchCount_++] = { eocdOffset - tailOffset + EOCD_DIRECTORY_OFFSET_FIELD, signingOffset,
-            sizeof(uint32_t) };
-    }
-    if (zip64) {
+    if (!zip64) {
+        if (centralDirOffset > UINT32_MAX) {
+            HAPVERIFY_LOG_ERROR("ZIP legacy directory offset exceeds uint32 range");
+            return false;
+        }
+        patches_[patchCount_++] = { EOCD_DIRECTORY_OFFSET_FIELD, signingOffset, sizeof(uint32_t) };
+    } else {
         long long blockSize = centralDirOffset - signInfo.hapSigningBlockOffset;
         patches_[patchCount_++] = { ZIP64_EOCD_DIRECTORY_OFFSET_FIELD, signingOffset, sizeof(uint64_t) };
         // Removing the signing block shifts the ZIP64 EOCD and the locator's target by the same amount.
@@ -119,10 +116,12 @@ void ZipTailDataSource::Patch(std::vector<unsigned char>& bytes, const OffsetPat
 bool ZipTailDataSource::ReadChunk(int32_t size, std::vector<unsigned char>& bytes)
 {
     if (size <= 0 || size > Remaining()) {
+        HAPVERIFY_LOG_ERROR("ZIP tail chunk size exceeds remaining range");
         return false;
     }
     bytes.resize(static_cast<size_t>(size));
     if (file_.ReadFileFullyFromOffset(reinterpret_cast<char*>(bytes.data()), tailOffset_ + position_, size) != size) {
+        HAPVERIFY_LOG_ERROR("incomplete ZIP tail chunk read");
         return false;
     }
     for (size_t i = 0; i < patchCount_; ++i) {
@@ -134,7 +133,11 @@ bool ZipTailDataSource::ReadChunk(int32_t size, std::vector<unsigned char>& byte
 bool ZipTailDataSource::ReadDataAndDigestUpdate(const DigestParameter& param, int32_t chunkSize)
 {
     std::vector<unsigned char> bytes;
-    if (!ReadChunk(chunkSize, bytes) || !HapVerifyOpensslUtils::DigestUpdate(param, bytes.data(), chunkSize)) {
+    if (!ReadChunk(chunkSize, bytes)) {
+        return false;
+    }
+    if (!HapVerifyOpensslUtils::DigestUpdate(param, bytes.data(), chunkSize)) {
+        HAPVERIFY_LOG_ERROR("ZIP tail digest update failed");
         return false;
     }
     position_ += chunkSize;
@@ -144,8 +147,11 @@ bool ZipTailDataSource::ReadDataAndDigestUpdate(const DigestParameter& param, in
 bool ZipTailDataSource::ReadDataAndHitlsDigestUpdate(HitlsDigestParameter& param, int32_t chunkSize)
 {
     std::vector<unsigned char> bytes;
-    if (!ReadChunk(chunkSize, bytes) ||
-        !HapVerifyHitlsUtils::DigestUpdate(param, bytes.data(), bytes.data(), chunkSize)) {
+    if (!ReadChunk(chunkSize, bytes)) {
+        return false;
+    }
+    if (!HapVerifyHitlsUtils::DigestUpdate(param, bytes.data(), bytes.data(), chunkSize)) {
+        HAPVERIFY_LOG_ERROR("ZIP tail digest update failed");
         return false;
     }
     position_ += chunkSize;
@@ -155,11 +161,15 @@ bool ZipTailDataSource::ReadDataAndHitlsDigestUpdate(HitlsDigestParameter& param
 bool ZipTailDataSource::ReadTwoChunksAndHitlsDigestUpdate(HitlsDigestParameter& param, int32_t chunkSize)
 {
     if (chunkSize <= 0 || chunkSize > INT_MAX / 2) {
+        HAPVERIFY_LOG_ERROR("invalid ZIP tail dual chunk size");
         return false;
     }
     std::vector<unsigned char> bytes;
-    if (!ReadChunk(chunkSize * 2, bytes) ||
-        !HapVerifyHitlsUtils::DigestUpdate(param, bytes.data(), bytes.data() + chunkSize, chunkSize)) {
+    if (!ReadChunk(chunkSize * 2, bytes)) {
+        return false;
+    }
+    if (!HapVerifyHitlsUtils::DigestUpdate(param, bytes.data(), bytes.data() + chunkSize, chunkSize)) {
+        HAPVERIFY_LOG_ERROR("ZIP tail digest update failed");
         return false;
     }
     position_ += chunkSize * 2;

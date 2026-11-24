@@ -50,7 +50,7 @@ private:
     long long tailOffset_ = 0;
     long long position_ = 0;
     long long size_ = 0;
-    std::array<OffsetPatch, 3> patches_ {};
+    std::array<OffsetPatch, 2> patches_ {};
     size_t patchCount_ = 0;
 };
 } // namespace Verify

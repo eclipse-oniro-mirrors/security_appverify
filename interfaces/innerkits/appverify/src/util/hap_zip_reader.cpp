@@ -30,8 +30,16 @@ namespace Verify {
 namespace {
 constexpr uint32_t CENTRAL_DIR_MAGIC = 0x02014b50;
 constexpr uint32_t LOCAL_FILE_MAGIC = 0x04034b50;
-constexpr size_t CENTRAL_DIR_SIZE = 46;
-constexpr size_t LOCAL_FILE_SIZE = 30;
+constexpr size_t CENTRAL_DIR_HEADER_SIZE = 46;
+constexpr size_t LOCAL_FILE_HEADER_SIZE = 30;
+constexpr uint64_t MAX_ZIP32_ENTRIES = 655535;
+constexpr uint64_t MAX_ZIP64_ENTRIES = 65535ULL * 10;
+constexpr size_t MAX_ENTRY_NAME_SIZE = 4096;
+constexpr size_t MAX_ENTRY_EXTRA_SIZE = 4096;
+// Per-entry comments retain their full ZIP width. Also bound the single bulk allocation.
+constexpr uint64_t MAX_DIRECTORY_RECORD_SIZE =
+    CENTRAL_DIR_HEADER_SIZE + MAX_ENTRY_NAME_SIZE + MAX_ENTRY_EXTRA_SIZE + UINT16_MAX;
+constexpr uint64_t MAX_DIRECTORY_BUFFER_SIZE = 64ULL * 1024 * 1024;
 // ReadEntry materializes metadata in a string; package data itself is streamed by the verifier.
 constexpr uint64_t MAX_ENTRY_CONTENT_SIZE = INT_MAX;
 constexpr uint16_t STORE_METHOD = 0;
@@ -41,18 +49,21 @@ struct CentralDirectoryInfo {
     uint64_t offset = 0;
     uint64_t size = 0;
     uint64_t entryCount = 0;
+    bool zip64 = false;
 };
 
 bool FindEocd(RandomAccessFile& file, HapByteBuffer& eocd, long long& eocdOffset)
 {
     long long length = file.GetLength();
     if (length < ZIP_EOCD_MIN_SIZE) {
+        HAPVERIFY_LOG_ERROR("file shorter than ZIP EOCD");
         return false;
     }
     int32_t size = static_cast<int32_t>(std::min<long long>(length, ZIP_EOCD_MIN_SIZE + UINT16_MAX));
     long long searchOffset = length - size;
     HapByteBuffer buffer(size);
     if (file.ReadFileFullyFromOffset(buffer, searchOffset) != size) {
+        HAPVERIFY_LOG_ERROR("failed to read ZIP EOCD search range");
         return false;
     }
     for (int32_t pos = size - ZIP_EOCD_MIN_SIZE; pos >= 0; --pos) {
@@ -80,7 +91,7 @@ bool FindCentralDirectory(RandomAccessFile& file, CentralDirectoryInfo& director
         return false;
     }
     if (zip64) {
-        directory = {zip64->centralDirectoryOffset, zip64->centralDirectorySize, zip64->entryCount};
+        directory = {zip64->centralDirectoryOffset, zip64->centralDirectorySize, zip64->entryCount, true};
         return true;
     }
 
@@ -96,7 +107,7 @@ bool FindCentralDirectory(RandomAccessFile& file, CentralDirectoryInfo& director
     return true;
 }
 
-uint64_t ReadLe(const std::vector<uint8_t>& bytes, size_t offset, size_t width)
+uint64_t ReadLe(const uint8_t* bytes, size_t offset, size_t width)
 {
     uint64_t value = 0;
     for (size_t i = 0; i < width; ++i) {
@@ -109,10 +120,12 @@ bool ReadBytes(RandomAccessFile& file, uint64_t offset, size_t size, std::vector
 {
     long long fileLength = file.GetLength();
     if (fileLength < 0 || size > INT_MAX) {
+        HAPVERIFY_LOG_ERROR("invalid ZIP file length or read size");
         return false;
     }
     uint64_t length = static_cast<uint64_t>(fileLength);
     if (offset > length || size > length - offset) {
+        HAPVERIFY_LOG_ERROR("ZIP read range exceeds file length");
         return false;
     }
     int32_t readSize = static_cast<int32_t>(size);
@@ -121,27 +134,33 @@ bool ReadBytes(RandomAccessFile& file, uint64_t offset, size_t size, std::vector
         static_cast<long long>(offset), readSize) == readSize;
 }
 
-bool ParseZip64Extra(const std::vector<uint8_t>& extra, HapZipEntryInfo& entry, uint32_t disk)
+bool ParseZip64Extra(const uint8_t* extra, size_t extraSize, HapZipEntryInfo& entry, uint32_t disk)
 {
     bool needSize = entry.uncompressedSize == UINT32_MAX;
     bool needCompressedSize = entry.compressedSize == UINT32_MAX;
     bool needOffset = entry.localHeaderOffset == UINT32_MAX;
     bool needDisk = disk == UINT16_MAX;
+    if (!needDisk && disk != 0) {
+        HAPVERIFY_LOG_ERROR("ZIP entry disk number is nonzero");
+        return false;
+    }
     if (!needSize && !needCompressedSize && !needOffset && !needDisk) {
-        return disk == 0;
+        return true;
     }
     size_t pos = 0;
-    while (extra.size() - pos >= 4) {
+    while (extraSize - pos >= 4) {
         uint64_t tag = ReadLe(extra, pos, 2);
         size_t size = static_cast<size_t>(ReadLe(extra, pos + 2, 2));
         pos += 4;
-        if (size > extra.size() - pos) {
+        if (size > extraSize - pos) {
+            HAPVERIFY_LOG_ERROR("truncated ZIP extra field");
             return false;
         }
         if (tag == 1) {
             size_t required = (needSize + needCompressedSize + needOffset) * sizeof(uint64_t) +
                 (needDisk ? sizeof(uint32_t) : 0);
             if (size < required) {
+                HAPVERIFY_LOG_ERROR("ZIP64 extra field missing required values");
                 return false;
             }
             if (needSize) {
@@ -156,10 +175,15 @@ bool ParseZip64Extra(const std::vector<uint8_t>& extra, HapZipEntryInfo& entry, 
                 entry.localHeaderOffset = ReadLe(extra, pos, 8);
                 pos += 8;
             }
-            return needDisk ? ReadLe(extra, pos, 4) == 0 : disk == 0;
+            if (needDisk && ReadLe(extra, pos, 4) != 0) {
+                HAPVERIFY_LOG_ERROR("ZIP64 entry disk number is nonzero");
+                return false;
+            }
+            return true;
         }
         pos += size;
     }
+    HAPVERIFY_LOG_ERROR("missing required ZIP64 extra field");
     return false;
 }
 
@@ -179,22 +203,13 @@ bool HapZipReader::FindEntry(const std::string& name, HapZipEntryInfo& entry)
     if (!EnsureParsed()) {
         return false;
     }
-    const HapZipEntryInfo* found = nullptr;
     for (const auto& candidate : entries_) {
-        if (candidate.name != name) {
-            continue;
+        if (candidate.name == name) {
+            entry = candidate;
+            return true;
         }
-        if (found != nullptr) {
-            HAPVERIFY_LOG_ERROR("duplicate requested ZIP entry");
-            return false;
-        }
-        found = &candidate;
     }
-    if (found == nullptr) {
-        return false;
-    }
-    entry = *found;
-    return true;
+    return false;
 }
 
 bool HapZipReader::EnsureParsed()
@@ -203,8 +218,15 @@ bool HapZipReader::EnsureParsed()
         return true;
     }
     CentralDirectoryInfo directory;
-    if (!FindCentralDirectory(hapFile_, directory) ||
-        !ReadCentralDirectory(directory.size, directory.offset, directory.entryCount)) {
+    if (!FindCentralDirectory(hapFile_, directory)) {
+        return false;
+    }
+    if (directory.entryCount > (directory.zip64 ? MAX_ZIP64_ENTRIES : MAX_ZIP32_ENTRIES)) {
+        HAPVERIFY_LOG_ERROR("ZIP directory entry count exceeds limit: %{public}llu",
+            static_cast<unsigned long long>(directory.entryCount));
+        return false;
+    }
+    if (!ReadCentralDirectory(directory.size, directory.offset, directory.entryCount)) {
         return false;
     }
     parsed_ = true;
@@ -213,46 +235,55 @@ bool HapZipReader::EnsureParsed()
 
 bool HapZipReader::ReadCentralDirectory(uint64_t centralDirSize, uint64_t centralDirOffset, uint64_t entryCount)
 {
-    if (entryCount > centralDirSize / CENTRAL_DIR_SIZE) {
+    if (entryCount > centralDirSize / CENTRAL_DIR_HEADER_SIZE ||
+        centralDirSize > entryCount * MAX_DIRECTORY_RECORD_SIZE || centralDirSize > MAX_DIRECTORY_BUFFER_SIZE) {
+        HAPVERIFY_LOG_ERROR("invalid ZIP directory size %{public}llu for %{public}llu records",
+            static_cast<unsigned long long>(centralDirSize), static_cast<unsigned long long>(entryCount));
         return false;
     }
-    uint64_t consumed = 0;
+    std::vector<uint8_t> directory;
+    if (!ReadBytes(hapFile_, centralDirOffset, static_cast<size_t>(centralDirSize), directory)) {
+        HAPVERIFY_LOG_ERROR("read ZIP central directory failed");
+        return false;
+    }
+    size_t consumed = 0;
     std::vector<HapZipEntryInfo> parsedEntries;
-    // Read records incrementally and publish the cache only after the whole directory is valid.
+    parsedEntries.reserve(static_cast<size_t>(entryCount));
     for (uint64_t i = 0; i < entryCount; ++i) {
-        std::vector<uint8_t> header;
-        if (centralDirSize - consumed < CENTRAL_DIR_SIZE ||
-            !ReadBytes(hapFile_, centralDirOffset + consumed, CENTRAL_DIR_SIZE, header) ||
-            ReadLe(header, 0, 4) != CENTRAL_DIR_MAGIC) {
+        if (directory.size() - consumed < CENTRAL_DIR_HEADER_SIZE) {
+            HAPVERIFY_LOG_ERROR("truncated ZIP directory header");
+            return false;
+        }
+        const uint8_t* header = directory.data() + consumed;
+        if (ReadLe(header, 0, 4) != CENTRAL_DIR_MAGIC) {
+            HAPVERIFY_LOG_ERROR("invalid ZIP directory header magic");
             return false;
         }
         size_t nameSize = static_cast<size_t>(ReadLe(header, 28, 2));
         size_t extraSize = static_cast<size_t>(ReadLe(header, 30, 2));
         size_t commentSize = static_cast<size_t>(ReadLe(header, 32, 2));
-        uint64_t recordSize = CENTRAL_DIR_SIZE + nameSize + extraSize + commentSize;
-        if (recordSize > centralDirSize - consumed) {
+        size_t recordSize = CENTRAL_DIR_HEADER_SIZE + nameSize + extraSize + commentSize;
+        if (nameSize > MAX_ENTRY_NAME_SIZE || extraSize > MAX_ENTRY_EXTRA_SIZE ||
+            recordSize > directory.size() - consumed) {
+            HAPVERIFY_LOG_ERROR("invalid ZIP record lengths: name=%{public}zu extra=%{public}zu comment=%{public}zu",
+                nameSize, extraSize, commentSize);
             return false;
         }
-        std::vector<uint8_t> nameBytes;
-        std::vector<uint8_t> extra;
-        if (!ReadBytes(hapFile_, centralDirOffset + consumed + CENTRAL_DIR_SIZE, nameSize, nameBytes) ||
-            !ReadBytes(hapFile_, centralDirOffset + consumed + CENTRAL_DIR_SIZE + nameSize,
-                extraSize, extra)) {
-            return false;
-        }
+        const uint8_t* name = header + CENTRAL_DIR_HEADER_SIZE;
         HapZipEntryInfo candidate;
-        candidate.name.assign(nameBytes.begin(), nameBytes.end());
+        candidate.name.assign(reinterpret_cast<const char*>(name), nameSize);
         candidate.method = static_cast<uint16_t>(ReadLe(header, 10, 2));
         candidate.compressedSize = ReadLe(header, 20, 4);
         candidate.uncompressedSize = ReadLe(header, 24, 4);
         candidate.localHeaderOffset = ReadLe(header, 42, 4);
-        if (!ParseZip64Extra(extra, candidate, static_cast<uint32_t>(ReadLe(header, 34, 2)))) {
+        if (!ParseZip64Extra(name + nameSize, extraSize, candidate, static_cast<uint32_t>(ReadLe(header, 34, 2)))) {
             return false;
         }
         parsedEntries.push_back(std::move(candidate));
         consumed += recordSize;
     }
     if (consumed != centralDirSize) {
+        HAPVERIFY_LOG_ERROR("ZIP directory contains trailing bytes");
         return false;
     }
     entries_.swap(parsedEntries);
@@ -262,17 +293,23 @@ bool HapZipReader::ReadCentralDirectory(uint64_t centralDirSize, uint64_t centra
 bool HapZipReader::FillDataOffset(HapZipEntryInfo& entry)
 {
     std::vector<uint8_t> header;
-    if (!ReadBytes(hapFile_, entry.localHeaderOffset, LOCAL_FILE_SIZE, header) ||
-        ReadLe(header, 0, 4) != LOCAL_FILE_MAGIC) {
+    if (!ReadBytes(hapFile_, entry.localHeaderOffset, LOCAL_FILE_HEADER_SIZE, header) ||
+        ReadLe(header.data(), 0, 4) != LOCAL_FILE_MAGIC) {
+        HAPVERIFY_LOG_ERROR("unreadable or invalid ZIP local header");
         return false;
     }
-    uint64_t headerSize = LOCAL_FILE_SIZE + ReadLe(header, 26, 2) + ReadLe(header, 28, 2);
+    uint64_t headerSize = LOCAL_FILE_HEADER_SIZE + ReadLe(header.data(), 26, 2) + ReadLe(header.data(), 28, 2);
     uint64_t length = static_cast<uint64_t>(hapFile_.GetLength());
     if (headerSize > length - entry.localHeaderOffset) {
+        HAPVERIFY_LOG_ERROR("ZIP local header exceeds file length");
         return false;
     }
     entry.dataOffset = entry.localHeaderOffset + headerSize;
-    return entry.compressedSize <= length - entry.dataOffset;
+    if (entry.compressedSize > length - entry.dataOffset) {
+        HAPVERIFY_LOG_ERROR("ZIP compressed data exceeds file length");
+        return false;
+    }
+    return true;
 }
 
 bool HapZipReader::ReadEntry(const std::string& name, std::string& content)
@@ -286,12 +323,14 @@ bool HapZipReader::ReadEntry(const HapZipEntryInfo& entry, std::string& content)
     content.clear();
     long long fileLength = hapFile_.GetLength();
     if (fileLength < 0) {
+        HAPVERIFY_LOG_ERROR("invalid ZIP file length");
         return false;
     }
     uint64_t length = static_cast<uint64_t>(fileLength);
     if (entry.dataOffset > length || entry.compressedSize > length - entry.dataOffset ||
         entry.compressedSize > INT_MAX || entry.uncompressedSize > content.max_size() ||
         entry.uncompressedSize > MAX_ENTRY_CONTENT_SIZE) {
+        HAPVERIFY_LOG_ERROR("ZIP entry range or buffered size exceeds limit");
         return false;
     }
     std::vector<uint8_t> compressed;
@@ -301,6 +340,7 @@ bool HapZipReader::ReadEntry(const HapZipEntryInfo& entry, std::string& content)
     }
     if (entry.method == STORE_METHOD) {
         if (entry.compressedSize != entry.uncompressedSize) {
+            HAPVERIFY_LOG_ERROR("stored ZIP entry sizes differ");
             return false;
         }
         if (!compressed.empty()) {
@@ -319,12 +359,14 @@ bool HapZipReader::InflateEntry(const std::vector<uint8_t>& compressed, uint64_t
     std::string& content)
 {
     if (compressed.size() > UINT_MAX || uncompressedSize > MAX_ENTRY_CONTENT_SIZE) {
+        HAPVERIFY_LOG_ERROR("ZIP inflate size exceeds limit");
         return false;
     }
     // zlib needs output space even for an empty uncompressed entry.
     std::vector<uint8_t> output(static_cast<size_t>(std::max<uint64_t>(1, uncompressedSize)));
     z_stream stream {};
     if (inflateInit2(&stream, -MAX_WBITS) != Z_OK) {
+        HAPVERIFY_LOG_ERROR("ZIP inflate initialization failed");
         return false;
     }
     stream.next_in = const_cast<Bytef*>(compressed.data());
@@ -335,6 +377,7 @@ bool HapZipReader::InflateEntry(const std::vector<uint8_t>& compressed, uint64_t
     bool success = ret == Z_STREAM_END && stream.total_out == uncompressedSize && stream.avail_in == 0;
     inflateEnd(&stream);
     if (!success) {
+        HAPVERIFY_LOG_ERROR("ZIP inflate failed or lengths differ");
         return false;
     }
     content.assign(reinterpret_cast<const char*>(output.data()), static_cast<size_t>(uncompressedSize));

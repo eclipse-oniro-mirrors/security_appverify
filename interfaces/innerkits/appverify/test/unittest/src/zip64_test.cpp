@@ -91,9 +91,9 @@ public:
         std::remove(path.c_str());
     }
 
-    bool Build(uint64_t localOffset = 0, size_t extension = 0, bool zip64 = true, uint16_t commentSize = 0)
+    bool Build(uint64_t localOffset = 0, size_t extension = 0, bool zip64 = true, uint16_t commentSize = 0,
+        const std::string& name = "module.json", uint16_t extraPadding = 0)
     {
-        const std::string name = "module.json";
         std::vector<uint8_t> local(30 + name.size() + 2);
         PutLe(local, 0, 0x04034b50, 4);
         PutLe(local, 4, 20, 2);
@@ -117,13 +117,14 @@ public:
         PutLe(signing, 41, 2, 4);
         centralOffset = signingOffset + signing.size();
 
-        std::vector<uint8_t> central(46 + name.size() + (zip64 ? 28 : 0));
+        size_t extraSize = (zip64 ? 28 : 0) + extraPadding;
+        std::vector<uint8_t> central(46 + name.size() + extraSize);
         PutLe(central, 0, 0x02014b50, 4);
         PutLe(central, 6, zip64 ? 45 : 20, 2);
         PutLe(central, 20, zip64 ? UINT32_MAX : 2, 4);
         PutLe(central, 24, zip64 ? UINT32_MAX : 2, 4);
         PutLe(central, 28, name.size(), 2);
-        PutLe(central, 30, zip64 ? 28 : 0, 2);
+        PutLe(central, 30, extraSize, 2);
         PutLe(central, 42, zip64 ? UINT32_MAX : localOffset, 4);
         std::copy(name.begin(), name.end(), central.begin() + 46);
         if (zip64) {
@@ -287,9 +288,11 @@ HWTEST_F(Zip64Test, FailedDirectoryParseDoesNotCachePartialEntries, TestSize.Lev
     for (bool zip64 : {false, true}) {
         ASSERT_TRUE(Build(0, 0, zip64));
         // Append a second record with a broken magic after the valid module.json record.
-        std::vector<uint8_t> secondRecord(47, 0);
-        PutLe(secondRecord, 28, 1, 2);
-        secondRecord.back() = 'x';
+        const std::string name = "module.json";
+        std::vector<uint8_t> secondRecord(46 + name.size(), 0);
+        PutLe(secondRecord, 28, name.size(), 2);
+        PutLe(secondRecord, 42, centralOffset, 4);
+        std::copy(name.begin(), name.end(), secondRecord.begin() + 46);
         uint64_t newTailOffset = tailOffset + secondRecord.size();
         uint64_t directorySize = newTailOffset - centralOffset;
         if (zip64) {
@@ -341,6 +344,44 @@ HWTEST_F(Zip64Test, EntrySizesPreserve64BitValues, TestSize.Level1)
     entry.uncompressedSize = 2;
     EXPECT_FALSE(reader.ReadEntry(entry, content));
     EXPECT_TRUE(content.empty());
+}
+
+HWTEST_F(Zip64Test, DirectoryNameAndExtraLengthLimits, TestSize.Level1)
+{
+    for (bool zip64 : {false, true}) {
+        for (size_t nameSize : {4096, 4097}) {
+            for (uint16_t extraSize : {4096, 4097}) {
+                std::string name(nameSize, 'x');
+                ASSERT_TRUE(Build(0, 0, zip64, 0, name, extraSize - (zip64 ? 28 : 0)));
+                RandomAccessFile file;
+                ASSERT_TRUE(file.Init(path, true));
+                HapZipReader reader(file);
+                HapZipEntryInfo entry;
+                EXPECT_EQ(reader.GetEntry(name, entry), nameSize == 4096 && extraSize == 4096);
+            }
+        }
+    }
+}
+
+HWTEST_F(Zip64Test, LocatorRequiresLegacyDirectoryOffsetSentinel, TestSize.Level1)
+{
+    for (bool otherSentinels : {false, true}) {
+        ASSERT_TRUE(Build());
+        uint64_t legacyOffset = tailOffset + tail.size() - ZIP_EOCD_MIN_SIZE;
+        ASSERT_TRUE(Replace(legacyOffset + 16, centralOffset, 4));
+        if (!otherSentinels) {
+            ASSERT_TRUE(Replace(legacyOffset + 8, 1, 2));
+            ASSERT_TRUE(Replace(legacyOffset + 10, 1, 2));
+            ASSERT_TRUE(Replace(legacyOffset + 12, tailOffset - centralOffset, 4));
+        }
+        RandomAccessFile file;
+        ASSERT_TRUE(file.Init(path, true));
+        SignatureInfo signature;
+        EXPECT_FALSE(HapSigningBlockUtils::FindHapSignature(file, signature));
+        HapZipReader reader(file);
+        HapZipEntryInfo entry;
+        EXPECT_FALSE(reader.GetEntry("module.json", entry));
+    }
 }
 
 HWTEST_F(Zip64Test, RejectMalformedZip64, TestSize.Level1)
@@ -442,21 +483,14 @@ HWTEST_F(Zip64Test, TailRejectsMissingAndInconsistentLayout, TestSize.Level1)
 
 HWTEST_F(Zip64Test, TailOwnsParametersAfterSignatureChangesAndExpires, TestSize.Level1)
 {
-    // ZIP32, ZIP64 with placeholders, and ZIP64 with a representable legacy offset.
-    for (int format = 0; format < 3; ++format) {
-        bool zip64 = format != 0;
+    for (bool zip64 : {false, true}) {
         ASSERT_TRUE(Build(0, 0, zip64));
-        if (format == 2) {
-            ASSERT_TRUE(Replace(tailOffset + tail.size() - 22 + 16, centralOffset, 4));
-            PutLe(tail, tail.size() - 22 + 16, centralOffset, 4);
-        }
         std::vector<uint8_t> expected = tail;
-        if (format != 1) {
-            PutLe(expected, expected.size() - 22 + 16, signingOffset, 4);
-        }
         if (zip64) {
             PutLe(expected, 48, signingOffset, 8);
             PutLe(expected, 64, tailOffset - (centralOffset - signingOffset), 8);
+        } else {
+            PutLe(expected, expected.size() - 22 + 16, signingOffset, 4);
         }
         unsigned char wanted[EVP_MAX_MD_SIZE];
         unsigned int wantedSize = 0;
