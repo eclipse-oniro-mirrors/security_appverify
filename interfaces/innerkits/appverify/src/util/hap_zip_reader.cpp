@@ -32,14 +32,8 @@ constexpr uint32_t CENTRAL_DIR_MAGIC = 0x02014b50;
 constexpr uint32_t LOCAL_FILE_MAGIC = 0x04034b50;
 constexpr size_t CENTRAL_DIR_HEADER_SIZE = 46;
 constexpr size_t LOCAL_FILE_HEADER_SIZE = 30;
-constexpr uint64_t MAX_ZIP32_ENTRIES = 655535;
+constexpr uint64_t MAX_ZIP32_ENTRIES = UINT16_MAX;
 constexpr uint64_t MAX_ZIP64_ENTRIES = 65535ULL * 10;
-constexpr size_t MAX_ENTRY_NAME_SIZE = 4096;
-constexpr size_t MAX_ENTRY_EXTRA_SIZE = 4096;
-// Per-entry comments retain their full ZIP width. Also bound the single bulk allocation.
-constexpr uint64_t MAX_DIRECTORY_RECORD_SIZE =
-    CENTRAL_DIR_HEADER_SIZE + MAX_ENTRY_NAME_SIZE + MAX_ENTRY_EXTRA_SIZE + UINT16_MAX;
-constexpr uint64_t MAX_DIRECTORY_BUFFER_SIZE = 64ULL * 1024 * 1024;
 // ReadEntry materializes metadata in a string; package data itself is streamed by the verifier.
 constexpr uint64_t MAX_ENTRY_CONTENT_SIZE = INT_MAX;
 constexpr uint16_t STORE_METHOD = 0;
@@ -235,26 +229,25 @@ bool HapZipReader::EnsureParsed()
 
 bool HapZipReader::ReadCentralDirectory(uint64_t centralDirSize, uint64_t centralDirOffset, uint64_t entryCount)
 {
-    if (entryCount > centralDirSize / CENTRAL_DIR_HEADER_SIZE ||
-        centralDirSize > entryCount * MAX_DIRECTORY_RECORD_SIZE || centralDirSize > MAX_DIRECTORY_BUFFER_SIZE) {
+    if (entryCount > centralDirSize / CENTRAL_DIR_HEADER_SIZE) {
         HAPVERIFY_LOG_ERROR("invalid ZIP directory size %{public}llu for %{public}llu records",
             static_cast<unsigned long long>(centralDirSize), static_cast<unsigned long long>(entryCount));
         return false;
     }
-    std::vector<uint8_t> directory;
-    if (!ReadBytes(hapFile_, centralDirOffset, static_cast<size_t>(centralDirSize), directory)) {
-        HAPVERIFY_LOG_ERROR("read ZIP central directory failed");
-        return false;
-    }
-    size_t consumed = 0;
+    uint64_t consumed = 0;
     std::vector<HapZipEntryInfo> parsedEntries;
-    parsedEntries.reserve(static_cast<size_t>(entryCount));
+    std::vector<uint8_t> headerBytes;
+    std::vector<uint8_t> name;
+    std::vector<uint8_t> extra;
     for (uint64_t i = 0; i < entryCount; ++i) {
-        if (directory.size() - consumed < CENTRAL_DIR_HEADER_SIZE) {
+        const uint64_t remaining = centralDirSize - consumed;
+        const uint64_t recordOffset = centralDirOffset + consumed;
+        if (remaining < CENTRAL_DIR_HEADER_SIZE ||
+            !ReadBytes(hapFile_, recordOffset, CENTRAL_DIR_HEADER_SIZE, headerBytes)) {
             HAPVERIFY_LOG_ERROR("truncated ZIP directory header");
             return false;
         }
-        const uint8_t* header = directory.data() + consumed;
+        const uint8_t* header = headerBytes.data();
         if (ReadLe(header, 0, 4) != CENTRAL_DIR_MAGIC) {
             HAPVERIFY_LOG_ERROR("invalid ZIP directory header magic");
             return false;
@@ -263,20 +256,24 @@ bool HapZipReader::ReadCentralDirectory(uint64_t centralDirSize, uint64_t centra
         size_t extraSize = static_cast<size_t>(ReadLe(header, 30, 2));
         size_t commentSize = static_cast<size_t>(ReadLe(header, 32, 2));
         size_t recordSize = CENTRAL_DIR_HEADER_SIZE + nameSize + extraSize + commentSize;
-        if (nameSize > MAX_ENTRY_NAME_SIZE || extraSize > MAX_ENTRY_EXTRA_SIZE ||
-            recordSize > directory.size() - consumed) {
+        if (recordSize > remaining) {
             HAPVERIFY_LOG_ERROR("invalid ZIP record lengths: name=%{public}zu extra=%{public}zu comment=%{public}zu",
                 nameSize, extraSize, commentSize);
             return false;
         }
-        const uint8_t* name = header + CENTRAL_DIR_HEADER_SIZE;
+        const uint64_t nameOffset = recordOffset + CENTRAL_DIR_HEADER_SIZE;
+        if (!ReadBytes(hapFile_, nameOffset, nameSize, name) ||
+            !ReadBytes(hapFile_, nameOffset + nameSize, extraSize, extra)) {
+            HAPVERIFY_LOG_ERROR("failed to read ZIP directory name or extra");
+            return false;
+        }
         HapZipEntryInfo candidate;
-        candidate.name.assign(reinterpret_cast<const char*>(name), nameSize);
+        candidate.name.assign(name.begin(), name.end());
         candidate.method = static_cast<uint16_t>(ReadLe(header, 10, 2));
         candidate.compressedSize = ReadLe(header, 20, 4);
         candidate.uncompressedSize = ReadLe(header, 24, 4);
         candidate.localHeaderOffset = ReadLe(header, 42, 4);
-        if (!ParseZip64Extra(name + nameSize, extraSize, candidate, static_cast<uint32_t>(ReadLe(header, 34, 2)))) {
+        if (!ParseZip64Extra(extra.data(), extraSize, candidate, static_cast<uint32_t>(ReadLe(header, 34, 2)))) {
             return false;
         }
         parsedEntries.push_back(std::move(candidate));

@@ -23,6 +23,7 @@ namespace OHOS {
 namespace Security {
 namespace Verify {
 namespace {
+constexpr long long FOUR_GIB = 1LL << 32;
 constexpr uint32_t ZIP64_EOCD_MAGIC = 0x06064b50;
 constexpr uint32_t ZIP64_LOCATOR_MAGIC = 0x07064b50;
 constexpr uint64_t ZIP64_EOCD_HEADER_SIZE = 12;
@@ -107,6 +108,11 @@ bool ReadZip64Eocd(RandomAccessFile& file, const HapByteBuffer& eocd, long long 
         HAPVERIFY_LOG_ERROR("invalid legacy EOCD offset or buffer");
         return false;
     }
+    const long long fileLength = file.GetLength();
+    if (eocdOffset > fileLength || fileLength - eocdOffset != eocd.GetCapacity()) {
+        HAPVERIFY_LOG_ERROR("legacy EOCD does not end at file boundary");
+        return false;
+    }
     if (eocdOffset < ZIP64_LOCATOR_SIZE) {
         return true;
     }
@@ -118,6 +124,10 @@ bool ReadZip64Eocd(RandomAccessFile& file, const HapByteBuffer& eocd, long long 
         return false;
     }
     if (ReadLe(locator, 0, 4) != ZIP64_LOCATOR_MAGIC) {
+        if (fileLength > FOUR_GIB) {
+            HAPVERIFY_LOG_ERROR("ZIP64 locator required for file larger than 4 GiB");
+            return false;
+        }
         return true;
     }
     if (ReadLe(eocd, 16, 4) != UINT32_MAX) {

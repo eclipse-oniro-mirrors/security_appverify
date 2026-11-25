@@ -25,6 +25,7 @@
 #include "zlib.h"
 
 #include "common/zip_tail_data_source.h"
+#include "interfaces/hap_verify.h"
 #include "util/hap_signing_block_utils.h"
 #include "util/hap_verify_openssl_utils.h"
 #include "util/hap_zip_reader.h"
@@ -92,7 +93,7 @@ public:
     }
 
     bool Build(uint64_t localOffset = 0, size_t extension = 0, bool zip64 = true, uint16_t commentSize = 0,
-        const std::string& name = "module.json", uint16_t extraPadding = 0)
+        const std::string& name = "module.json", uint16_t extraPadding = 0, size_t gapBeforeDirectory = 0)
     {
         std::vector<uint8_t> local(30 + name.size() + 2);
         PutLe(local, 0, 0x04034b50, 4);
@@ -115,7 +116,7 @@ public:
         PutLe(signing, 25, 2334950737560224072ULL, 8);
         PutLe(signing, 33, 3617552046287187010ULL, 8);
         PutLe(signing, 41, 2, 4);
-        centralOffset = signingOffset + signing.size();
+        centralOffset = signingOffset + signing.size() + gapBeforeDirectory;
 
         size_t extraSize = (zip64 ? 28 : 0) + extraPadding;
         std::vector<uint8_t> central(46 + name.size() + extraSize);
@@ -346,21 +347,78 @@ HWTEST_F(Zip64Test, EntrySizesPreserve64BitValues, TestSize.Level1)
     EXPECT_TRUE(content.empty());
 }
 
-HWTEST_F(Zip64Test, DirectoryNameAndExtraLengthLimits, TestSize.Level1)
+HWTEST_F(Zip64Test, ReadsFullWidthDirectoryNameAndExtra, TestSize.Level1)
 {
+    const std::string name(UINT16_MAX, 'x');
     for (bool zip64 : {false, true}) {
-        for (size_t nameSize : {4096, 4097}) {
-            for (uint16_t extraSize : {4096, 4097}) {
-                std::string name(nameSize, 'x');
-                ASSERT_TRUE(Build(0, 0, zip64, 0, name, extraSize - (zip64 ? 28 : 0)));
-                RandomAccessFile file;
-                ASSERT_TRUE(file.Init(path, true));
-                HapZipReader reader(file);
-                HapZipEntryInfo entry;
-                EXPECT_EQ(reader.GetEntry(name, entry), nameSize == 4096 && extraSize == 4096);
-            }
-        }
+        ASSERT_TRUE(Build(0, 0, zip64, 0, name, UINT16_MAX - (zip64 ? 28 : 0)));
+        RandomAccessFile file;
+        ASSERT_TRUE(file.Init(path, true));
+        HapZipReader reader(file);
+        std::string content;
+        ASSERT_TRUE(reader.ReadEntry(name, content));
+        EXPECT_EQ(content, "{}");
     }
+}
+
+HWTEST_F(Zip64Test, ReadsDirectoryLargerThan64MiB, TestSize.Level1)
+{
+    ASSERT_TRUE(Build(0, 0, false));
+    // Append 1024 directory entries with maximum-length comments. Leave comments sparse.
+    constexpr uint16_t additionalEntries = 1024;
+    std::vector<uint8_t> record(47, 0);
+    PutLe(record, 0, 0x02014b50, 4);
+    PutLe(record, 28, 1, 2);
+    PutLe(record, 32, UINT16_MAX, 2);
+    record.back() = 'x';
+    uint64_t offset = tailOffset;
+    int fd = open(path.c_str(), O_RDWR);
+    ASSERT_GE(fd, 0);
+    bool written = true;
+    for (uint16_t i = 0; i < additionalEntries && written; ++i) {
+        written = WriteAt(fd, offset, record);
+        offset += record.size() + UINT16_MAX;
+    }
+    PutLe(tail, 8, additionalEntries + 1, 2);
+    PutLe(tail, 10, additionalEntries + 1, 2);
+    PutLe(tail, 12, offset - centralOffset, 4);
+    written = written && WriteAt(fd, offset, tail);
+    close(fd);
+    ASSERT_TRUE(written);
+    RandomAccessFile file;
+    ASSERT_TRUE(file.Init(path, true));
+    HapZipReader reader(file);
+    std::string content;
+    ASSERT_TRUE(reader.ReadEntry("module.json", content));
+    EXPECT_EQ(content, "{}");
+}
+
+HWTEST_F(Zip64Test, ClassicDirectoryAtFourGiBBoundary, TestSize.Level1)
+{
+    ASSERT_TRUE(Build(0, 0, false));
+    const uint64_t layoutSize = tailOffset + tail.size();
+    for (uint64_t length : {FOUR_GIB, FOUR_GIB + 1}) {
+        // The legacy directory offset and size still fit in both archives.
+        ASSERT_TRUE(Build(length - layoutSize, 0, false));
+        RandomAccessFile file;
+        ASSERT_TRUE(file.Init(path, true));
+        ASSERT_EQ(file.GetLength(), static_cast<long long>(length));
+        SignatureInfo signature;
+        EXPECT_EQ(ParseHapSignatureInfo(path, signature),
+            length == FOUR_GIB ? VERIFY_SUCCESS : SIGNATURE_NOT_FOUND);
+        HapZipReader reader(file);
+        HapZipEntryInfo entry;
+        EXPECT_EQ(reader.GetEntry("module.json", entry), length == FOUR_GIB);
+    }
+}
+
+HWTEST_F(Zip64Test, LargeZip64RequiresAdjacentSigningBlock, TestSize.Level1)
+{
+    ASSERT_TRUE(Build(FOUR_GIB, 0, true, 0, "module.json", 0, 1));
+    SignatureInfo signature;
+    EXPECT_EQ(ParseHapSignatureInfo(path, signature), SIGNATURE_NOT_FOUND);
+    HapVerifyResult result;
+    EXPECT_EQ(HapVerify(path, result, true), SIGNATURE_NOT_FOUND);
 }
 
 HWTEST_F(Zip64Test, LocatorRequiresLegacyDirectoryOffsetSentinel, TestSize.Level1)
@@ -386,19 +444,28 @@ HWTEST_F(Zip64Test, LocatorRequiresLegacyDirectoryOffsetSentinel, TestSize.Level
 
 HWTEST_F(Zip64Test, RejectMalformedZip64, TestSize.Level1)
 {
-    // Locator target, record length, disk count, central directory, and legacy consistency.
-    for (const auto& mutation : std::vector<std::array<uint64_t, 3>> {
-        {64, UINT64_MAX, 8}, {4, UINT64_MAX, 8}, {72, 2, 4}, {48, UINT64_MAX, 8},
-        {40, UINT64_MAX, 8}, {76 + 16, 1, 4}, {56, 0, 4}, {14, 20, 2}}) {
-        ASSERT_TRUE(Build());
-        ASSERT_TRUE(Replace(tailOffset + mutation[0], mutation[1], mutation[2]));
-        RandomAccessFile file;
-        ASSERT_TRUE(file.Init(path, true));
-        HapZipReader reader(file);
-        HapZipEntryInfo entry;
-        EXPECT_FALSE(reader.GetEntry("module.json", entry));
-        SignatureInfo signature;
-        EXPECT_FALSE(HapSigningBlockUtils::FindHapSignature(file, signature));
+    // Each change invalidates exactly one field in an otherwise valid ZIP64 tail.
+    for (uint64_t localOffset : {uint64_t {0}, FOUR_GIB}) {
+        ASSERT_TRUE(Build(localOffset));
+        for (const auto& mutation : std::vector<std::array<uint64_t, 3>> {
+            {0, 0, 4}, {56, 0, 4}, {64, UINT64_MAX, 8}, {4, UINT64_MAX, 8}, {14, 20, 2},
+            {60, 1, 4}, {72, 2, 4}, {16, 1, 4}, {20, 1, 4}, {24, 2, 8},
+            {48, UINT64_MAX, 8}, {40, UINT64_MAX, 8}, {76 + 4, 1, 2}, {76 + 6, 1, 2},
+            {76 + 10, 2, 2}, {76 + 12, 1, 4}, {76 + 16, 1, 4}}) {
+            ASSERT_TRUE(Replace(tailOffset + mutation[0], mutation[1], mutation[2]));
+            RandomAccessFile file;
+            ASSERT_TRUE(file.Init(path, true));
+            HapZipReader reader(file);
+            HapZipEntryInfo entry;
+            EXPECT_FALSE(reader.GetEntry("module.json", entry));
+            SignatureInfo signature;
+            EXPECT_EQ(ParseHapSignatureInfo(path, signature), SIGNATURE_NOT_FOUND);
+            int fd = open(path.c_str(), O_RDWR);
+            ASSERT_GE(fd, 0);
+            bool restored = WriteAt(fd, tailOffset, tail);
+            close(fd);
+            ASSERT_TRUE(restored);
+        }
     }
 }
 
