@@ -21,6 +21,7 @@
 #include <parameters.h>
 #include <string>
 #include <sys/mman.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include "common/hap_verify_log.h"
@@ -33,6 +34,18 @@ namespace Security {
 namespace Verify {
 namespace {
 constexpr int32_t HITLS_DUAL_CHUNK_COUNT = 2;
+static_assert(sizeof(off_t) >= sizeof(int64_t), "appverify requires 64-bit POSIX file offsets");
+
+bool GetFileLength(int fd, off_t& length)
+{
+    struct stat fileStat {};
+    if (fstat(fd, &fileStat) != 0 || fileStat.st_size < 0) {
+        HAPVERIFY_LOG_ERROR("getting file length failed: %{public}d", errno);
+        return false;
+    }
+    length = fileStat.st_size;
+    return true;
+}
 }
 
 const int32_t RandomAccessFile::FILE_OPEN_FAIL_ERROR_NUM = -1;
@@ -63,9 +76,7 @@ bool RandomAccessFile::Init(const std::string& filePath, bool readFile)
         return false;
     }
 
-    fileLength = lseek(fd, 0, SEEK_END);
-    if (fileLength < 0) {
-        HAPVERIFY_LOG_ERROR("getting fileLength failed: %{public}lld", fileLength);
+    if (!GetFileLength(fd, fileLength)) {
         return false;
     }
     readFile_ = readFile;
@@ -90,9 +101,7 @@ bool RandomAccessFile::InitWithFd(const int32_t fileFd)
         return false;
     }
 
-    fileLength = lseek(fd, 0, SEEK_END);
-    if (fileLength < 0) {
-        HAPVERIFY_LOG_ERROR("getting fileLength failed: %{public}lld", fileLength);
+    if (!GetFileLength(fd, fileLength)) {
         return false;
     }
     readFile_ = true;
@@ -127,13 +136,12 @@ long long RandomAccessFile::DoMMap(int32_t bufCapacity, long long offset, MmapIn
     if (bufCapacity <= 0 || offset < 0 || offset > fileLength - bufCapacity) {
         return READ_OFFSET_OUT_OF_RANGE;
     }
-    mmapInfo.mmapPosition = (offset / memoryPageSize) * memoryPageSize;
-    long long readMoreLen = offset - mmapInfo.mmapPosition;
-    if (readMoreLen > INT_MAX || bufCapacity > INT_MAX - readMoreLen) {
+    mmapInfo.mmapPosition = static_cast<off_t>((offset / memoryPageSize) * memoryPageSize);
+    mmapInfo.readMoreLen = static_cast<size_t>(offset - mmapInfo.mmapPosition);
+    if (static_cast<size_t>(bufCapacity) > SIZE_MAX - mmapInfo.readMoreLen) {
         return MMAP_PARAM_INVALID;
     }
-    mmapInfo.readMoreLen = static_cast<int>(readMoreLen);
-    mmapInfo.mmapSize = bufCapacity + mmapInfo.readMoreLen;
+    mmapInfo.mmapSize = static_cast<size_t>(bufCapacity) + mmapInfo.readMoreLen;
     mmapInfo.mapAddr = reinterpret_cast<char*>(mmap(nullptr, mmapInfo.mmapSize, PROT_READ,
         MAP_SHARED | MAP_POPULATE, fd, mmapInfo.mmapPosition));
     if (mmapInfo.mapAddr == MAP_FAILED) {
@@ -218,14 +226,14 @@ long long RandomAccessFile::ReadFileFullyFromOffsetV2(char buf[], long long offs
         return DEST_BUFFER_IS_NULL;
     }
 
-    long long bytesRead = pread(fd, buf, bufCapacity, offset);
+    ssize_t bytesRead = pread(fd, buf, static_cast<size_t>(bufCapacity), static_cast<off_t>(offset));
     if (bytesRead < 0) {
         HAPVERIFY_LOG_ERROR("pread failed: %{public}d", errno);
         return bytesRead;
     }
     if (bytesRead != bufCapacity) {
         HAPVERIFY_LOG_ERROR("pread incomplete: bytesRead=%{public}lld, bufCapacity=%{public}d",
-            bytesRead, bufCapacity);
+            static_cast<long long>(bytesRead), bufCapacity);
         return READ_OFFSET_OUT_OF_RANGE;
     }
 
@@ -250,14 +258,14 @@ long long RandomAccessFile::ReadFileFullyFromOffsetV2(HapByteBuffer& buffer, lon
         return DEST_BUFFER_IS_NULL;
     }
 
-    long long bytesRead = pread(fd, buf, bufCapacity, offset);
+    ssize_t bytesRead = pread(fd, buf, static_cast<size_t>(bufCapacity), static_cast<off_t>(offset));
     if (bytesRead < 0) {
-        HAPVERIFY_LOG_ERROR("pread failed: %{public}lld", bytesRead);
+        HAPVERIFY_LOG_ERROR("pread failed: %{public}lld", static_cast<long long>(bytesRead));
         delete[] buf;
         return bytesRead;
     }
 
-    buffer.PutData(0, buf, bytesRead);
+    buffer.PutData(0, buf, static_cast<int32_t>(bytesRead));
     delete[] buf;
     return bytesRead;
 }
@@ -275,14 +283,14 @@ bool RandomAccessFile::ReadFileFromOffsetAndDigestUpdateV2(const DigestParameter
         return false;
     }
 
-    long long bytesRead = pread(fd, buffer, chunkSize, offset);
+    ssize_t bytesRead = pread(fd, buffer, static_cast<size_t>(chunkSize), static_cast<off_t>(offset));
     if (bytesRead < 0) {
-        HAPVERIFY_LOG_ERROR("pread failed: %{public}lld", bytesRead);
+        HAPVERIFY_LOG_ERROR("pread failed: %{public}lld", static_cast<long long>(bytesRead));
         delete[] buffer;
         return false;
     }
 
-    bool res = HapVerifyOpensslUtils::DigestUpdate(digestParam, buffer, bytesRead);
+    bool res = HapVerifyOpensslUtils::DigestUpdate(digestParam, buffer, static_cast<int32_t>(bytesRead));
     delete[] buffer;
     return res;
 }
@@ -309,9 +317,9 @@ bool RandomAccessFile::ReadFileFromOffsetAndHitlsDigestUpdate(HitlsDigestParamet
         return false;
     }
 
-    long long bytesRead = pread(fd, buffer, chunkSize, offset);
+    ssize_t bytesRead = pread(fd, buffer, static_cast<size_t>(chunkSize), static_cast<off_t>(offset));
     if (bytesRead < 0) {
-        HAPVERIFY_LOG_ERROR("pread failed: %{public}lld", bytesRead);
+        HAPVERIFY_LOG_ERROR("pread failed: %{public}lld", static_cast<long long>(bytesRead));
         delete[] buffer;
         return false;
     }
@@ -343,15 +351,16 @@ bool RandomAccessFile::ReadTwoChunksAndHitlsDigestUpdate(HitlsDigestParameter& d
         return false;
     }
 
-    long long bytesRead = pread(fd, buffer, totalSize, offset);
+    ssize_t bytesRead = pread(fd, buffer, static_cast<size_t>(totalSize), static_cast<off_t>(offset));
     if (bytesRead < 0) {
-        HAPVERIFY_LOG_ERROR("pread failed: %{public}lld", bytesRead);
+        HAPVERIFY_LOG_ERROR("pread failed: %{public}lld", static_cast<long long>(bytesRead));
         delete[] buffer;
         return false;
     }
 
     if (bytesRead != totalSize) {
-        HAPVERIFY_LOG_ERROR("pread incomplete: bytesRead=%{public}lld, totalSize=%{public}d", bytesRead, totalSize);
+        HAPVERIFY_LOG_ERROR("pread incomplete: bytesRead=%{public}lld, totalSize=%{public}d",
+            static_cast<long long>(bytesRead), totalSize);
         delete[] buffer;
         return false;
     }

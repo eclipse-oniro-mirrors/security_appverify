@@ -53,7 +53,8 @@
                 "common/hap_byte_buffer.h",
                 "common/export_define.h",
                 "provision/provision_info.h",
-                "util/signature_info.h"
+                "util/signature_info.h",
+                "util/zip64_eocd.h"
               ]
             },
             "name": "//base/security/appverify/interfaces/innerkits/appverify:libhapverify"

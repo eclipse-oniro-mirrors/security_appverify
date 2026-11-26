@@ -15,22 +15,25 @@
 #ifndef HAP_SIGNATURE_INFO_H
 #define HAP_SIGNATURE_INFO_H
 
+#include <optional>
 #include <vector>
 
 #include "common/hap_byte_buffer.h"
 #include "interfaces/hap_verify_result.h"
+#include "util/zip64_eocd.h"
 
 namespace OHOS {
 namespace Security {
 namespace Verify {
 struct SignatureInfo {
     HapByteBuffer hapSignatureBlock;
-    long long hapSigningBlockOffset;
-    long long hapCentralDirOffset;
-    long long hapEocdOffset;
+    long long hapSigningBlockOffset = 0;
+    long long hapCentralDirOffset = 0;
+    long long hapEocdOffset = 0;
     HapByteBuffer hapEocd;
     std::vector<OptionalBlock> optionBlocks;
     int32_t version = 0;
+    std::optional<Zip64Info> zip64Info;
 };
 } // namespace Verify
 } // namespace Security

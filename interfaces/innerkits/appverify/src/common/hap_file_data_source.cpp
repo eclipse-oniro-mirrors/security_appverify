@@ -15,6 +15,8 @@
 
 #include "common/hap_file_data_source.h"
 
+#include <climits>
+
 #include "common/hap_verify_log.h"
 #include "util/hap_verify_hitls_utils.h"
 
@@ -52,7 +54,8 @@ void HapFileDataSource::Reset()
 
 bool HapFileDataSource::ReadDataAndDigestUpdate(const DigestParameter& digestParam, int32_t chunkSize)
 {
-    if (chunkSize <= 0 || chunkSize > Remaining()) {
+    if (chunkSize <= 0 || sourcePosition < 0 || sourcePosition > sourceSize || chunkSize > Remaining() ||
+        fileOffset < 0 || sourcePosition > LLONG_MAX - fileOffset) {
         HAPVERIFY_LOG_ERROR("Invalid chunkSize");
         return false;
     }
@@ -73,8 +76,13 @@ bool HapFileDataSource::ReadDataAndHitlsDigestUpdate(HitlsDigestParameter& diges
 
 bool HapFileDataSource::ReadTwoChunksAndHitlsDigestUpdate(HitlsDigestParameter& digestParam, int32_t chunkSize)
 {
+    if (chunkSize <= 0 || sourcePosition < 0 || sourcePosition > sourceSize || chunkSize > Remaining() ||
+        fileOffset < 0 || sourcePosition > LLONG_MAX - fileOffset) {
+        HAPVERIFY_LOG_ERROR("Invalid HITLS chunk range");
+        return false;
+    }
     // Check if we have at least two chunks of same size remaining
-    if (sourcePosition + chunkSize * HITLS_DUAL_CHUNK_COUNT > sourceSize) {
+    if (static_cast<long long>(chunkSize) * HITLS_DUAL_CHUNK_COUNT > Remaining()) {
         // Not enough data for two chunks, fall back to single chunk mode
         if (sourcePosition + chunkSize <= sourceSize) {
             if (!hapFileRandomAccess.ReadFileFromOffsetAndHitlsDigestUpdate(digestParam, chunkSize,
@@ -94,7 +102,7 @@ bool HapFileDataSource::ReadTwoChunksAndHitlsDigestUpdate(HitlsDigestParameter& 
         return false;
     }
 
-    sourcePosition += chunkSize * HITLS_DUAL_CHUNK_COUNT;
+    sourcePosition += static_cast<long long>(chunkSize) * HITLS_DUAL_CHUNK_COUNT;
     return true;
 }
 } // namespace Verify

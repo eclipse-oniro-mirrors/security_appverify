@@ -19,6 +19,7 @@
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <fcntl.h>
 #include <map>
 #include <memory>
@@ -609,10 +610,10 @@ std::string ToHexString(const char* data, int32_t len)
 
 int32_t GetChunkCount(long long inputSize, long long chunkSize)
 {
-    if (chunkSize <= 0 || inputSize > LLONG_MAX - chunkSize) {
+    if (chunkSize <= 0 || inputSize < 0) {
         return 0;
     }
-    long long count = (inputSize + chunkSize - 1) / chunkSize;
+    long long count = inputSize / chunkSize + (inputSize % chunkSize != 0);
     if (count <= 0 || count > INT_MAX) {
         return 0;
     }
@@ -623,13 +624,27 @@ bool VerifyEntryCoveredChunks(RandomAccessFile& hapFile, const HapZipEntryInfo& 
     const DigestParameter& digestParam, const HapByteBuffer& cachedChunkDigest, long long contentsZipSize,
     std::set<int32_t>& checkedChunks)
 {
-    uint64_t entryEnd = entry.dataOffset + static_cast<uint64_t>(entry.compressedSize);
+    if (contentsZipSize < 0 || entry.dataOffset > static_cast<uint64_t>(contentsZipSize) ||
+        entry.compressedSize > static_cast<uint64_t>(contentsZipSize) - entry.dataOffset) {
+        HAPVERIFY_LOG_ERROR("ZIP entry exceeds the signed contents region");
+        return false;
+    }
+    uint64_t entryEnd = entry.dataOffset + entry.compressedSize;
     if (entry.localHeaderOffset >= entryEnd || entryEnd > static_cast<uint64_t>(contentsZipSize)) {
         HAPVERIFY_LOG_ERROR("invalid zip entry range, name: %{public}s", entry.name.c_str());
         return false;
     }
-    int32_t firstChunk = static_cast<int32_t>(entry.localHeaderOffset / ZIP_CHUNK_SIZE);
-    int32_t lastChunk = static_cast<int32_t>((entryEnd - 1) / ZIP_CHUNK_SIZE);
+    uint64_t firstChunk64 = entry.localHeaderOffset / ZIP_CHUNK_SIZE;
+    uint64_t lastChunk64 = (entryEnd - 1) / ZIP_CHUNK_SIZE;
+    if (firstChunk64 > INT_MAX || lastChunk64 >= INT_MAX || digestParam.digestOutputSizeBytes <= 0 ||
+        cachedChunkDigest.GetCapacity() < ZIP_CHUNK_DIGEST_PRIFIX_LEN ||
+        lastChunk64 >= static_cast<uint64_t>((cachedChunkDigest.GetCapacity() - ZIP_CHUNK_DIGEST_PRIFIX_LEN) /
+            digestParam.digestOutputSizeBytes)) {
+        HAPVERIFY_LOG_ERROR("ZIP entry chunk index exceeds the digest buffer");
+        return false;
+    }
+    int32_t firstChunk = static_cast<int32_t>(firstChunk64);
+    int32_t lastChunk = static_cast<int32_t>(lastChunk64);
     const char* cachedDigest = cachedChunkDigest.GetBufferPtr();
     for (int32_t chunkIndex = firstChunk; chunkIndex <= lastChunk; ++chunkIndex) {
         if (checkedChunks.find(chunkIndex) != checkedChunks.end()) {
@@ -1501,7 +1516,7 @@ bool HapVerifyV2::ParseProfileFromP7b(const std::string& p7bFilePath, Pkcs7Conte
     return true;
 }
 
-int32_t HapVerifyV2::VerifyEnterpriseResignBlocks(RandomAccessFile& hapFile, const SignatureInfo& hapSignInfo,
+int32_t HapVerifyV2::VerifyEnterpriseResignBlocks(RandomAccessFile& hapFile, SignatureInfo& hapSignInfo,
     const AppDistType appDistType, const std::string& localCertDir, bool& isEnterpriseResigned)
 {
     isEnterpriseResigned = false;
@@ -1540,12 +1555,11 @@ int32_t HapVerifyV2::VerifyEnterpriseResignBlocks(RandomAccessFile& hapFile, con
 
     std::vector<OptionalBlock> digestBlocks = HapSigningBlockUtils::BuildDigestBlocks(
         hapSignInfo, { ENTERPRISE_RE_SIGN_BLOB }, true);
-    SignatureInfo signInfoForResign = hapSignInfo;
     if (!HapSigningBlockUtils::VerifyHapIntegrityWithHitls(fullPackageSignContext, hapFile,
-        signInfoForResign, digestBlocks)) {
+        hapSignInfo, digestBlocks)) {
         HAPVERIFY_LOG_ERROR("verify resign integrity with hitls failed");
         if (!HapSigningBlockUtils::VerifyHapIntegrity(fullPackageSignContext, hapFile,
-            signInfoForResign, digestBlocks)) {
+            hapSignInfo, digestBlocks)) {
             HAPVERIFY_LOG_ERROR("verify resign integrity with openssl failed");
             return VERIFY_INTEGRITY_FAIL;
         }

@@ -16,6 +16,7 @@
 #define private public
 
 #include <climits>
+#include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
 #include <fstream>
@@ -167,14 +168,27 @@ HWTEST_F(RandomAccessFileTest, InitWithFd001, TestSize.Level1)
 
 /**
  * @tc.name: Test InitWithFd function
- * @tc.desc: The static function will return each reading result;
+ * @tc.desc: Initialize from an open regular file and verify its length.
  * @tc.type: FUNC
  */
 HWTEST_F(RandomAccessFileTest, InitWithFd002, TestSize.Level1)
 {
+    char filePath[] = "./test_init_with_fd_XXXXXX";
+    const int fileFd = mkstemp(filePath);
+    ASSERT_GE(fileFd, 0);
+    const int unlinkResult = unlink(filePath);
+    constexpr char content[] = "appverify";
+    const ssize_t written = write(fileFd, content, sizeof(content) - 1);
+
     RandomAccessFile randomAccessFile;
-    const int32_t fileFd = 0;
-    EXPECT_FALSE(randomAccessFile.InitWithFd(fileFd));
+    const bool initialized = randomAccessFile.InitWithFd(fileFd);
+    const int closeResult = close(fileFd);
+
+    EXPECT_EQ(unlinkResult, 0);
+    EXPECT_EQ(closeResult, 0);
+    ASSERT_EQ(written, static_cast<ssize_t>(sizeof(content) - 1));
+    ASSERT_TRUE(initialized);
+    EXPECT_EQ(randomAccessFile.GetLength(), static_cast<long long>(written));
 }
 
 HWTEST_F(RandomAccessFileTest, ReadFileFromOffsetAndHitlsDigestUpdate001, TestSize.Level1)
@@ -307,7 +321,7 @@ HWTEST_F(RandomAccessFileTest, HapFileDataSourceHitls001, TestSize.Level1)
     if (!HapVerifyHitlsUtils::DigestInit(digestParam, CRYPT_MD_SHA256_MB)) {
         GTEST_SKIP() << "openhitls runtime library is unavailable";
     }
-    ASSERT_TRUE(emptySource.ReadTwoChunksAndHitlsDigestUpdate(digestParam, 4));
+    ASSERT_FALSE(emptySource.ReadTwoChunksAndHitlsDigestUpdate(digestParam, 4));
     ASSERT_EQ(emptySource.sourcePosition, 0);
     HapVerifyHitlsUtils::DigestFree(digestParam);
 }
